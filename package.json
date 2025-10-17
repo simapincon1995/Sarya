@@ -1,0 +1,65 @@
+{
+  "name": "shirinq-connect",
+  "version": "1.0.0",
+  "description": "Intelligent HR & Payroll Management System",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "electron": "cd client && npm run electron",
+    "electron-dev": "cd client && npm run electron-dev",
+    "electron-build": "cd client && npm run electron-build",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "seed": "cd server && node seed.js",
+    "test": "cd server && npm test",
+    "test-all": "node test-all-features.js",
+    "test-api": "cd server && npm run test:api",
+    "test-frontend": "cd client && npm test",
+    "test-ui": "node validate-ui.js",
+    "validate-setup": "node validate-complete-setup.js",
+    "lint": "cd server && npm run lint && cd ../client && npm run lint",
+    "lint:fix": "cd server && npm run lint:fix && cd ../client && npm run lint:fix",
+    "start": "cd server && npm start",
+    "start:prod": "NODE_ENV=production npm start",
+    "docker:build": "docker build -t shirinq-connect .",
+    "docker:run": "docker run -p 5000:5000 -p 3000:3000 shirinq-connect",
+    "setup": "npm run install-all && npm run seed",
+    "clean": "rm -rf node_modules client/node_modules server/node_modules client/build server/logs",
+    "reset": "npm run clean && npm run setup"
+  },
+  "keywords": [
+    "hr",
+    "payroll",
+    "management",
+    "react",
+    "nodejs",
+    "mongodb",
+    "electron",
+    "real-time",
+    "dashboard",
+    "attendance",
+    "leave-management"
+  ],
+  "author": "ShirinQ Connect Team",
+  "license": "MIT",
+  "devDependencies": {
+    "axios": "^1.6.2",
+    "colors": "^1.4.0",
+    "concurrently": "^8.2.2",
+    "puppeteer": "^21.5.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/shirinq-connect.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/shirinq-connect/issues"
+  },
+  "homepage": "https://github.com/your-org/shirinq-connect#readme"
+}

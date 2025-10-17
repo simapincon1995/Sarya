@@ -1,0 +1,251 @@
+.login-wrapper {
+  display: flex;
+  height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+.login-left-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5rem;
+  position: relative;
+}
+
+.login-right-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #9333ea 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  color:purple;
+}
+
+
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-left: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.form-section {
+  max-width: 350px;
+  width: 100%;
+}
+
+.welcome-text {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+.sub-text {
+  color: #6b7280;
+  margin-bottom: 2.5rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: #fafafa;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #a855f7;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+.error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #8e61f7;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.primary-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  color: #fff;
+  border: none;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #374151;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.google-btn:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.google-btn .google-icon {
+  width: 20px;
+  margin-right: 0.5rem;
+}
+
+.signup-text {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #6b7280;
+}
+
+.illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.illustration-img {
+  width: 85%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.illustration-img:hover {
+  transform: translateY(-5px);
+}
+
+/* Add some decorative elements */
+.login-right-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('./assets/girl-headphones.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  z-index: 1;
+}
+
+
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-wrapper {
+    flex-direction: column;
+  }
+  
+  .login-left-panel {
+    padding: 2rem;
+  }
+  
+  .login-right-panel {
+    min-height: 300px;
+  }
+  
+  .illustration-img {
+    max-width: 250px;
+  }
+  
+  .welcome-text {
+    font-size: 1.875rem;
+  }
+  
+  .form-section {
+    max-width: 100%;
+  }
+}

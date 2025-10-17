@@ -1,0 +1,875 @@
+/* Time Tracker Wireframe Layout */
+.time-tracker-wireframe {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Header */
+.tracker-header {
+  margin-bottom: 2rem;
+}
+
+.header-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e9ecef;
+}
+
+.header-navigation h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  flex: 1;
+  letter-spacing: 1px;
+}
+
+.header-navigation .p-button {
+  background: transparent;
+  border: none;
+  color: #666;
+  width: 40px;
+  height: 40px;
+}
+
+.header-navigation .p-button:hover {
+  background: #f8f9fa;
+  color: #333;
+}
+
+/* Main Layout */
+.tracker-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Left Panel */
+.tracker-left-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e9ecef;
+}
+
+/* Circular Clock */
+.circular-clock {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.clock-face {
+  width: 200px;
+  height: 200px;
+  border: 4px solid #333;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  position: relative;
+}
+
+.clock-face::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 20px;
+  background: #333;
+}
+
+.clock-time {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.clock-date {
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Current Status */
+.current-status {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.current-status h3 {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.status-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 1px;
+}
+
+/* Action Buttons Grid */
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.action-btn {
+  padding: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  min-height: 50px;
+  border: 2px solid #333;
+  background: white;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  background: #333;
+  color: white;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkout-btn {
+  background: #333;
+  color: white;
+}
+
+.checkout-btn:hover {
+  background: #555;
+}
+
+.checkin-btn {
+  grid-column: 1 / -1;
+  background: #333;
+  color: white;
+}
+
+.checkin-btn:hover {
+  background: #555;
+}
+
+.checked-out-btn {
+  grid-column: 1 / -1;
+  background: #6c757d;
+  color: white;
+  opacity: 0.7;
+}
+
+.checked-out-btn:hover {
+  background: #6c757d;
+  color: white;
+}
+
+/* Today's Overview */
+.todays-overview {
+  border-top: 2px solid #e9ecef;
+  padding-top: 2rem;
+}
+
+.todays-overview h3 {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.overview-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.overview-btn {
+  padding: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  border: 2px solid #333;
+  background: white;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.overview-btn:hover {
+  background: #333;
+  color: white;
+}
+
+/* Time Summary */
+.time-summary {
+  margin-bottom: 1.5rem;
+}
+
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.time-label {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.time-value {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+/* Last Synced */
+.last-synced {
+  font-size: 0.8rem;
+  color: #999;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Right Panel - Activity Log */
+.tracker-right-panel {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e9ecef;
+  height: fit-content;
+  max-height: 600px;
+  overflow: hidden;
+}
+
+.activity-log-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.activity-log-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #666;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.activity-log-content {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Activity List */
+.activity-list {
+  padding: 0;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s ease;
+}
+
+.activity-item:hover {
+  background: #f8f9fa;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-time {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+  min-width: 60px;
+  font-family: 'Courier New', monospace;
+}
+
+.activity-description {
+  flex: 1;
+  margin-left: 1rem;
+  font-size: 0.85rem;
+  color: #333;
+  font-weight: 500;
+}
+
+/* No Activity State */
+.no-activity-simple {
+  padding: 2rem;
+  text-align: center;
+  color: #999;
+}
+
+.no-activity-simple p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Break Dialog */
+.break-dialog .p-dialog-header {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.break-dialog .p-dialog-content {
+  padding: 2rem;
+}
+
+.break-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.break-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.break-form label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.break-form .p-dropdown,
+.break-form .p-inputtextarea {
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  transition: border-color 0.3s ease;
+}
+
+.break-form .p-dropdown:focus,
+.break-form .p-inputtextarea:focus {
+  border-color: #333;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tracker-main-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .tracker-right-panel {
+    order: -1;
+    max-height: 300px;
+  }
+  
+  .circular-clock {
+    margin-bottom: 1.5rem;
+  }
+  
+  .clock-face {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .clock-time {
+    font-size: 1.4rem;
+  }
+  
+  .action-buttons-grid,
+  .overview-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .action-btn,
+  .overview-btn {
+    min-height: 45px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .time-tracker-wireframe {
+    padding: 0.5rem;
+  }
+  
+  .tracker-left-panel {
+    padding: 1.5rem;
+  }
+  
+  .header-navigation {
+    padding: 0.75rem 1rem;
+  }
+  
+  .header-navigation h2 {
+    font-size: 1.25rem;
+  }
+  
+  .clock-face {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .clock-time {
+    font-size: 1.2rem;
+  }
+  
+  .clock-date {
+    font-size: 0.8rem;
+  }
+}
+
+/* Header Styles */
+.tracker-header {
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.current-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.current-time i {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+.time-display {
+  font-size: 3rem;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.date-display {
+  font-size: 1.1rem;
+  opacity: 0.95;
+  font-weight: 500;
+}
+
+/* Control Panel */
+.control-panel {
+  margin-bottom: 1.5rem;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+}
+
+.control-panel .p-card-body {
+  padding: 2rem;
+}
+
+.control-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Status Display */
+.status-display {
+  text-align: center;
+}
+
+.status-badge {
+  margin-bottom: 1.5rem;
+}
+
+.status-badge .p-badge {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+}
+
+.time-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.time-stat {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.time-stat:hover {
+  border-color: #cbd5e0;
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  letter-spacing: 0.025em;
+}
+
+.working-time {
+  color: #059669;
+}
+
+.break-time {
+  color: #d97706;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.primary-action .p-button {
+  min-width: 200px;
+  height: 60px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.check-in-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+}
+
+.check-in-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+}
+
+.check-out-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: none;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+}
+
+.check-out-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4);
+}
+
+.break-actions {
+  margin-top: 0.5rem;
+}
+
+.break-btn {
+  min-width: 160px;
+  height: 50px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.break-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Activity Log Card */
+.activity-log-card {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+}
+
+.activity-log-card .p-card-body {
+  padding: 2rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.card-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  color: #374151;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.card-header i {
+  color: #6366f1;
+  font-size: 1.25rem;
+}
+
+/* Timeline Styles */
+.activity-timeline {
+  margin-top: 1rem;
+}
+
+.activity-timeline .p-timeline-event-marker {
+  border: none;
+  background: transparent;
+  width: 40px;
+  height: 40px;
+}
+
+.timeline-marker {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.timeline-marker:hover {
+  transform: scale(1.1);
+}
+
+.timeline-content {
+  background: #f8fafc;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border-left: 4px solid #e2e8f0;
+  margin-left: 1rem;
+  transition: all 0.3s ease;
+}
+
+.timeline-content:hover {
+  background: #f1f5f9;
+  border-left-color: #6366f1;
+  transform: translateX(4px);
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+}
+
+.activity-time {
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.activity-type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+}
+
+.activity-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* No Activity State */
+.no-activity {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #64748b;
+}
+
+.no-activity i {
+  font-size: 3rem;
+  color: #cbd5e0;
+  margin-bottom: 1rem;
+}
+
+.no-activity p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Break Dialog */
+.break-dialog .p-dialog-header {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.break-dialog .p-dialog-content {
+  padding: 2rem;
+}
+
+.break-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.break-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.break-form label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.break-form .p-dropdown,
+.break-form .p-inputtextarea {
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  transition: border-color 0.3s ease;
+}
+
+.break-form .p-dropdown:focus,
+.break-form .p-inputtextarea:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .time-tracker-redesigned {
+    padding: 1rem;
+  }
+  
+  .tracker-header {
+    padding: 1.5rem 1rem;
+  }
+  
+  .time-display {
+    font-size: 2.5rem;
+  }
+  
+  .time-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .control-panel .p-card-body,
+  .activity-log-card .p-card-body {
+    padding: 1.5rem;
+  }
+  
+  .primary-action .p-button {
+    min-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .timeline-content {
+    margin-left: 0.5rem;
+  }
+  
+  .activity-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .time-display {
+    font-size: 2rem;
+  }
+  
+  .date-display {
+    font-size: 1rem;
+  }
+  
+  .time-stat {
+    padding: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+}
