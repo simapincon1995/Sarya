@@ -384,7 +384,7 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
                 return 'NOT CHECKED IN';
               })()}
             </div>
-            {isCheckedIn && checkInTime && !hasCheckedOutToday && (
+            {isCheckedIn && checkInTime  && (
               <div className="text-color-secondary" style={{ marginTop: '0.5rem' }}>
                 Checked in at {formatTime(new Date(checkInTime))}
               </div>
@@ -393,7 +393,7 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
 
           {/* Action Buttons */}
           <div className="action-buttons-grid">
-            {isCheckedIn && !hasCheckedOutToday && (
+            {isCheckedIn  && (
               <>
                 {isOnBreak ? (
                   <Button
@@ -414,7 +414,7 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
               </>
             )}
             
-            {!isCheckedIn && !hasCheckedOutToday && (
+            {!isCheckedIn  && (
               <Button
                 label="CHECK IN"
                 className="action-btn checkin-btn"
@@ -424,7 +424,7 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
               />
             )}
             
-            {isCheckedIn && !hasCheckedOutToday && !isOnBreak && (
+            {isCheckedIn  && !isOnBreak && (
               <Button
                 label="CHECK OUT"
                 className="action-btn checkout-btn"
@@ -482,7 +482,7 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
           </div>
           
           {/* Checkout Button in Activity Log */}
-          {isCheckedIn && !hasCheckedOutToday && !isOnBreak && (
+          {isCheckedIn  && !isOnBreak && (
             <div style={{ marginTop: '1rem', textAlign: 'right' }}>
               <Button
                 label="CHECK OUT"
