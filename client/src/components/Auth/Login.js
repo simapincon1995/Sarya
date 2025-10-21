@@ -64,23 +64,71 @@ const Login = () => {
     <div className="login-wrapper">
       <Toast ref={toast} />
 
-      {/* Left section - Form */}
+      {/* Left section - Process Steps */}
       <div className="login-left-panel">
-        <h1 className="brand-logo">
-         Sarya Connective
-        </h1>
+        <div className="brand-logo">
+          <img src="/assets/logo.jfif" alt="SaryaHR" className="logo-image" />
+          <span className="logo-text">SaryaHR</span>
+        </div>
 
-        <div className="form-section">
-          <h2 className="welcome-text">Welcome back</h2>
-          <p className="sub-text">Please enter your details</p>
+        <div className="process-steps">
+          <div className="step">
+            <div className="step-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div className="step-content">
+              <h3>Employee Onboarding</h3>
+              <p>Complete your profile setup and get access to company resources</p>
+            </div>
+          </div>
+
+          <div className="step">
+            <div className="step-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div className="step-content">
+              <h3>Time & Attendance</h3>
+              <p>Track your work hours, manage attendance, and submit timesheets</p>
+            </div>
+          </div>
+
+          <div className="step">
+            <div className="step-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"/>
+                <rect x="9" y="11" width="6" height="11"/>
+                <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </div>
+            <div className="step-content">
+              <h3>HR Management</h3>
+              <p>Access payroll, leave management, and employee self-service portal</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right section - Login Form */}
+      <div className="login-right-panel">
+        <div className="form-container">
+          <h2 className="welcome-text">Welcome Back!</h2>
+          <p className="sub-text">Fill in your credentials below to access your SaryaHR account.</p>
 
           <form onSubmit={handleSubmit}>
             <div className="input-group">
-              <label>Email address</label>
+              <label>Email</label>
               <input
                 type="email"
                 name="email"
-                placeholder="Enter your email"
+                placeholder="name@example.com"
                 value={formData.email}
                 onChange={handleInputChange}
                 disabled={isLoading}
@@ -93,7 +141,7 @@ const Login = () => {
               <input
                 type="password"
                 name="password"
-                placeholder="Enter your password"
+                placeholder="Your password..."
                 value={formData.password}
                 onChange={handleInputChange}
                 disabled={isLoading}
@@ -101,24 +149,19 @@ const Login = () => {
               {errors.password && <small className="error">{errors.password}</small>}
             </div>
 
-            <div className="options-row">
-
-              <button type="button" className="link-btn">
-                Forgot password
-              </button>
-            </div>
-
-            <button type="submit" className="primary-btn" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign in'}
+            <button type="submit" className="login-btn" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Login'}
             </button>
 
-         </form>
+            <div className="form-footer">
+              <a href="/forgot-password" className="help-link">Having trouble logging in?</a>
+              <div className="divider">or</div>
+              <p className="signup-text">
+                Don't have an account yet? <a href="/register" className="signup-link">Sign up for free</a>
+              </p>
+            </div>
+          </form>
         </div>
-      </div>
-
-      {/* Right section - Illustration */}
-      <div className="login-right-panel">
-       
       </div>
     </div>
   );
