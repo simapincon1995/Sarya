@@ -35,13 +35,19 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "widget": "start-widget-cmd.bat",
+    "widget-ps": "powershell -ExecutionPolicy Bypass -File start-widget.ps1",
+    "build": "node build-script.js web",
+    "build:widget": "node build-script.js widget",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron": "electron .",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "electron-build": "npm run build && electron-builder",
-    "preelectron-pack": "npm run build"
+    "preelectron-pack": "npm run build",
+    "widget-electron": "ELECTRON_MAIN=public/electron-widget.js electron .",
+    "widget-dev": "concurrently \"npm run widget\" \"wait-on http://localhost:3001 && ELECTRON_MAIN=public/electron-widget.js electron .\"",
+    "widget-build": "npm run build:widget && ELECTRON_MAIN=public/electron-widget.js electron-builder"
   },
   "eslintConfig": {
     "extends": [

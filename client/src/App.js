@@ -14,6 +14,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import Layout from './components/Layout/Layout';
 import Login from './components/Auth/Login';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import WidgetApp from './WidgetApp';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -57,6 +58,12 @@ function App() {
                 <Route 
                   path="/login" 
                   element={<Login />} 
+                />
+                
+                {/* Widget Route for Development */}
+                <Route 
+                  path="/widget" 
+                  element={<WidgetApp />} 
                 />
                 
                 {/* Protected Routes */}

@@ -3,7 +3,11 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 import App from './App';
+import WidgetApp from './WidgetApp';
 import './index.css';
+
+// Check if we're building the widget version
+const isWidgetBuild = process.env.REACT_APP_ENTRY_POINT === 'widget';
 
 // PrimeReact configuration
 const value = {
@@ -18,12 +22,25 @@ const value = {
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <BrowserRouter>
+
+if (isWidgetBuild) {
+  // Load the attendance widget
+  root.render(
+    <React.StrictMode>
       <PrimeReactProvider value={value}>
-        <App />
+        <WidgetApp />
       </PrimeReactProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
+    </React.StrictMode>
+  );
+} else {
+  // Load the full HRMS application
+  root.render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <PrimeReactProvider value={value}>
+          <App />
+        </PrimeReactProvider>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+}
