@@ -13,6 +13,7 @@ import { SocketProvider } from './contexts/SocketContext';
 // Components
 import Layout from './components/Layout/Layout';
 import Login from './components/Auth/Login';
+import Signup from './components/Auth/Signup';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import WidgetApp from './WidgetApp';
 
@@ -60,6 +61,11 @@ function App() {
                 <Route 
                   path="/login" 
                   element={<Login />} 
+                />
+                
+                <Route 
+                  path="/signup" 
+                  element={<Signup />} 
                 />
                 
                 {/* Public Live Dashboard Route */}

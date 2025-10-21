@@ -11,6 +11,16 @@ export const authService = {
     }
   },
 
+  // Signup for admin accounts only
+  async signup(userData) {
+    try {
+      const response = await api.post('/auth/signup', userData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Register new user (Admin only)
   async register(userData) {
     try {

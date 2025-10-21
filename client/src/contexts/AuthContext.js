@@ -60,6 +60,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const signup = async (userData) => {
+    try {
+      setIsLoading(true);
+      const response = await authService.signup(userData);
+      
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+        setUser(response.user);
+        setIsAuthenticated(true);
+        return { success: true, user: response.user };
+      }
+      
+      return { success: false, message: response.message };
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Signup failed' 
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -97,6 +121,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     isLoading,
     login,
+    signup,
     logout,
     updateUser,
     hasRole,

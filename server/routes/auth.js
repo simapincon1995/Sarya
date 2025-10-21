@@ -12,6 +12,81 @@ const generateToken = (userId) => {
   });
 };
 
+// Signup for admin accounts only (Public endpoint)
+router.post('/signup', async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      department,
+      designation,
+      phone
+    } = req.body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !email || !password || !department || !designation) {
+      return res.status(400).json({ 
+        message: 'All required fields must be provided' 
+      });
+    }
+
+    // Validate email domain - only @hrms.com allowed
+    if (!email.toLowerCase().endsWith('@hrms.com')) {
+      return res.status(400).json({ 
+        message: 'Only @hrms.com email addresses are allowed for admin signup' 
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+
+    if (existingUser) {
+      return res.status(400).json({ 
+        message: 'User with this email already exists' 
+      });
+    }
+
+    // Create new admin user
+    const user = new User({
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      password,
+      role: 'admin', // Force admin role for signup
+      department,
+      designation,
+      phone,
+      salary: 0 // Default salary, can be updated later
+    });
+
+    await user.save();
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.status(201).json({
+      message: 'Admin account created successfully',
+      token,
+      user: {
+        id: user._id,
+        employeeId: user.employeeId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+        designation: user.designation,
+        theme: user.theme
+      }
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ message: 'Signup failed', error: error.message });
+  }
+});
+
 // Register new user (Admin only)
 router.post('/register', authenticateToken, async (req, res) => {
   try {

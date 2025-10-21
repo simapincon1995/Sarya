@@ -157,7 +157,7 @@ const Login = () => {
               <a href="/forgot-password" className="help-link">Having trouble logging in?</a>
               <div className="divider">or</div>
               <p className="signup-text">
-                Don't have an account yet? <a href="/register" className="signup-link">Sign up for free</a>
+                Don't have an account yet? <a href="/register" className="signup-link">Create admin account</a>
               </p>
             </div>
           </form>

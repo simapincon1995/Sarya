@@ -137,6 +137,16 @@
   margin-bottom: 1.5rem;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-row .input-group {
+  margin-bottom: 1.5rem;
+}
+
 .input-group label {
   font-weight: 500;
   margin-bottom: 0.5rem;
