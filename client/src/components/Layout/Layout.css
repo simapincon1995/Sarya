@@ -405,6 +405,36 @@
   color: #2563eb !important;
 }
 
+/* Additional styling for breadcrumb classes */
+.custom-breadcrumb .current-page {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  /* border: 1px solid #e2e8f0 !important; */
+  cursor: default !important;
+}
+
+.custom-breadcrumb .home-breadcrumb {
+  /* color: #3b82f6 !important;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  border: 1px solid #93c5fd !important; */
+  font-weight: 600 !important;
+  .p-menuitem-icon, .p-menuitem-text{
+    color:#3b82f6 ;
+  }
+}
+
+/* Smooth transitions for all breadcrumb interactions */
+.custom-breadcrumb * {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Focus ring for better accessibility */
+.custom-breadcrumb .p-breadcrumb .p-menuitem-link:focus-visible {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+
 /* Content Wrapper */
 .content-wrapper {
   padding: 2rem;
@@ -537,6 +567,16 @@
   
   .breadcrumb-container {
     padding: 0.75rem 1rem;
+  }
+  
+  .custom-breadcrumb .p-breadcrumb .p-menuitem-link {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .custom-breadcrumb .p-breadcrumb .p-breadcrumb-separator {
+    margin: 0 0.375rem !important;
+    font-size: 0.75rem !important;
   }
   
   .admin-sidebar {

@@ -1,19 +1,14 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { BreadCrumb } from 'primereact/breadcrumb';
 
 const CustomBreadcrumb = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const getBreadcrumbItems = () => {
     const pathSegments = location.pathname.split('/').filter(segment => segment !== '');
     const items = [];
-    
-    // Always start with Dashboard
-    items.push({
-      label: 'Dashboard',
-      url: '/dashboard'
-    });
     
     // Map path segments to readable labels
     const pathLabels = {
@@ -38,12 +33,13 @@ const CustomBreadcrumb = () => {
       // Don't make the last item clickable
       if (index === pathSegments.length - 1) {
         items.push({
-          label: label
+          label: label,
+          className: 'current-page'
         });
       } else {
         items.push({
           label: label,
-          url: currentPath
+          command: () => navigate(currentPath)
         });
       }
     });
@@ -64,10 +60,12 @@ const CustomBreadcrumb = () => {
         model={items} 
         home={{ 
           icon: 'pi pi-home', 
-          url: '/dashboard',
-          label: 'Dashboard'
+          command: () => navigate('/dashboard'),
+          label: 'Dashboard',
+          className: 'home-breadcrumb'
         }}
         className="custom-breadcrumb"
+        aria-label="Breadcrumb navigation"
       />
     </div>
   );
