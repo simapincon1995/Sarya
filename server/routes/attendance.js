@@ -3,8 +3,15 @@ const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 const Holiday = require('../models/Holiday');
 const { authenticateToken, authorize, canAccessEmployee } = require('../middleware/auth');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
+
+// Dashboard-specific rate limiter
+const dashboardLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500 // Higher limit for dashboard API calls
+});
 
 // Check in
 router.post('/checkin', authenticateToken, async (req, res) => {
@@ -473,7 +480,7 @@ router.get('/summary/:employeeId', authenticateToken, canAccessEmployee, async (
 });
 
 // Get public dashboard attendance data (no auth required)
-router.get('/dashboard/public', async (req, res) => {
+router.get('/dashboard/public', dashboardLimiter, async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -565,7 +572,7 @@ router.get('/dashboard/public', async (req, res) => {
 });
 
 // Get dashboard attendance data
-router.get('/dashboard/overview', authenticateToken, async (req, res) => {
+router.get('/dashboard/overview', authenticateToken, dashboardLimiter, async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

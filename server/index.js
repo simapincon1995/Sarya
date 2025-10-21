@@ -41,8 +41,15 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 200 // limit each IP to 200 requests per windowMs (increased for dashboard)
 });
+
+// More lenient rate limiting for dashboard endpoints
+const dashboardLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500 // Higher limit for dashboard API calls
+});
+
 app.use(limiter);
 
 // Body parsing middleware

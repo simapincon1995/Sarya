@@ -35,6 +35,10 @@ api.interceptors.response.use(
       // Token expired or invalid
       localStorage.removeItem('token');
       window.location.href = '/login';
+    } else if (error.response?.status === 429) {
+      // Rate limit exceeded
+      console.warn('Rate limit exceeded. Please wait before making more requests.');
+      // You could show a toast notification here if you have a notification system
     }
     return Promise.reject(error);
   }

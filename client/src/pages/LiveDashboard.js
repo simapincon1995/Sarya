@@ -11,11 +11,12 @@ const LiveDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [lastRequestTime, setLastRequestTime] = useState(0);
   const { realtimeData } = useSocket();
 
   useEffect(() => {
     loadDashboardData();
-    const interval = setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
+    const interval = setInterval(loadDashboardData, 60000); // Refresh every 60 seconds (increased from 30)
     return () => clearInterval(interval);
   }, []);
 
@@ -26,11 +27,18 @@ const LiveDashboard = () => {
   }, [realtimeData]);
 
   const loadDashboardData = async () => {
+    const now = Date.now();
+    if (now - lastRequestTime < 10000) return; // Min 10 seconds between calls
+    setLastRequestTime(now);
+    
     try {
       const data = await attendanceService.getDashboardOverview();
       setDashboardData(data);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      if (error.response?.status === 429) {
+        console.warn('Rate limited - will retry later');
+      }
     } finally {
       setIsLoading(false);
     }

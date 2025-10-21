@@ -2,8 +2,15 @@ const express = require('express');
 const DashboardWidget = require('../models/DashboardWidget');
 const User = require('../models/User');
 const { authenticateToken, authorize } = require('../middleware/auth');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
+
+// Dashboard-specific rate limiter
+const dashboardLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500 // Higher limit for dashboard API calls
+});
 
 // Get all dashboard widgets (for management)
 router.get('/', authenticateToken, authorize('admin', 'hr_admin', 'manager'), async (req, res) => {
@@ -20,7 +27,7 @@ router.get('/', authenticateToken, authorize('admin', 'hr_admin', 'manager'), as
 });
 
 // Get public dashboard widgets (for live dashboard)
-router.get('/public', async (req, res) => {
+router.get('/public', dashboardLimiter, async (req, res) => {
   try {
     const widgets = await DashboardWidget.find({ 
       isVisible: true, 
@@ -196,7 +203,7 @@ router.post('/performer-of-day', authenticateToken, authorize('admin', 'hr_admin
 });
 
 // Get "Performer of the Day" widget
-router.get('/performer-of-day', async (req, res) => {
+router.get('/performer-of-day', dashboardLimiter, async (req, res) => {
   try {
     const widget = await DashboardWidget.findOne({ 
       name: 'performer-of-day',

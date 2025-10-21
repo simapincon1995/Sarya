@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState({});
+  const [lastRequestTime, setLastRequestTime] = useState(0);
   const { user } = useAuth();
   const { realtimeData } = useSocket();
 
@@ -33,6 +34,10 @@ const Dashboard = () => {
   }, [realtimeData]);
 
   const loadDashboardData = async () => {
+    const now = Date.now();
+    if (now - lastRequestTime < 10000) return; // Min 10 seconds between calls
+    setLastRequestTime(now);
+    
     try {
       setIsLoading(true);
       const data = await attendanceService.getDashboardOverview();
@@ -42,6 +47,9 @@ const Dashboard = () => {
       prepareChartData(data);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      if (error.response?.status === 429) {
+        console.warn('Rate limited - will retry later');
+      }
     } finally {
       setIsLoading(false);
     }

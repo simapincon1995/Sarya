@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { useSocket } from '../contexts/SocketContext';
@@ -13,38 +13,40 @@ const PublicLiveDashboard = () => {
   const [customWidgets, setCustomWidgets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [lastRequestTime, setLastRequestTime] = useState({});
   const { realtimeData } = useSocket();
 
-  useEffect(() => {
-    loadDashboardData();
-    loadPerformerOfDay();
-    loadCustomWidgets();
-    const interval = setInterval(() => {
-      loadDashboardData();
-      loadPerformerOfDay();
-      loadCustomWidgets();
-    }, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (realtimeData.attendance || realtimeData.leaves || realtimeData.dashboard) {
-      loadDashboardData();
+  // Throttle function to prevent too frequent API calls
+  const throttleRequest = useCallback((key, minInterval = 5000) => {
+    const now = Date.now();
+    const lastTime = lastRequestTime[key] || 0;
+    if (now - lastTime < minInterval) {
+      return false; // Request is throttled
     }
-  }, [realtimeData]);
+    setLastRequestTime(prev => ({ ...prev, [key]: now }));
+    return true;
+  }, [lastRequestTime]);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
+    if (!throttleRequest('dashboard', 10000)) return; // Min 10 seconds between dashboard calls
+    
     try {
       const data = await attendanceService.getPublicDashboardOverview();
       setDashboardData(data);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      if (error.response?.status === 429) {
+        console.warn('Rate limited - will retry later');
+        // Don't update state on rate limit to avoid UI flicker
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [throttleRequest]);
 
-  const loadPerformerOfDay = async () => {
+  const loadPerformerOfDay = useCallback(async () => {
+    if (!throttleRequest('performer', 15000)) return; // Min 15 seconds between performer calls
+    
     try {
       const response = await dashboardService.getPerformerOfDay();
       // Only set performer if widget exists and has performerData
@@ -55,11 +57,16 @@ const PublicLiveDashboard = () => {
       }
     } catch (error) {
       console.error('Error loading performer of day:', error);
+      if (error.response?.status === 429) {
+        console.warn('Rate limited - will retry later');
+      }
       setPerformerOfDay(null);
     }
-  };
+  }, [throttleRequest]);
 
-  const loadCustomWidgets = async () => {
+  const loadCustomWidgets = useCallback(async () => {
+    if (!throttleRequest('widgets', 20000)) return; // Min 20 seconds between widget calls
+    
     try {
       const response = await dashboardService.getPublicDashboardWidgets();
       // Filter out performer of day and limit to 3 custom widgets
@@ -69,9 +76,30 @@ const PublicLiveDashboard = () => {
       setCustomWidgets(customWidgets);
     } catch (error) {
       console.error('Error loading custom widgets:', error);
+      if (error.response?.status === 429) {
+        console.warn('Rate limited - will retry later');
+      }
       setCustomWidgets([]);
     }
-  };
+  }, [throttleRequest]);
+
+  useEffect(() => {
+    loadDashboardData();
+    loadPerformerOfDay();
+    loadCustomWidgets();
+    const interval = setInterval(() => {
+      loadDashboardData();
+      loadPerformerOfDay();
+      loadCustomWidgets();
+    }, 60000); // Refresh every 60 seconds (increased from 30 seconds)
+    return () => clearInterval(interval);
+  }, [loadDashboardData, loadPerformerOfDay, loadCustomWidgets]);
+
+  useEffect(() => {
+    if (realtimeData.attendance || realtimeData.leaves || realtimeData.dashboard) {
+      loadDashboardData();
+    }
+  }, [realtimeData, loadDashboardData]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
