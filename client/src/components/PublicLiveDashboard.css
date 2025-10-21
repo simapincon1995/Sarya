@@ -1,0 +1,958 @@
+/* Public Live Dashboard Styles */
+.public-live-dashboard {
+  height: 100vh;
+  width: 100vw;
+  background: #1A1A2E;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+}
+
+.public-live-dashboard.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+/* Header Styles */
+.public-dashboard-header {
+  background: #1A1A2E;
+  border-bottom: 1px solid #2D2D44;
+  padding: 0.5rem 1rem;
+  flex-shrink: 0;
+  height: 60px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  max-width: 100%;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.company-logo {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.company-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.company-name {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-title {
+  font-size: 0.8rem;
+  margin: 0;
+  color: #B0B0B0;
+  font-weight: 400;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.header-actions .p-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.header-actions .p-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Main Content */
+.dashboard-content {
+  padding: 0.75rem;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+}
+
+/* Dynamic Grid Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  gap: 0.75rem;
+  height: 100%;
+  width: 100%;
+}
+
+/* Statistics Grid - Top Row */
+.stats-grid {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  height: 100%;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #1A1A2E 0%, #2D2D44 100%);
+  border: 1px solid #3D3D5C;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4CAF50, #2196F3);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  border-color: #4CAF50;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+
+.stat-icon {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 1.5rem;
+  opacity: 0.7;
+  z-index: 2;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: white;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #B0B0B0;
+  font-weight: 500;
+  margin-bottom: 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-comparison {
+  font-size: 0.7rem;
+  color: #4CAF50;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Widget Base Styles */
+.widget-card {
+  background: #1A1A2E;
+  border: none;
+  border-radius: 4px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.widget-card .p-card-title {
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #2D2D44;
+  flex-shrink: 0;
+}
+
+.widget-card .p-card-content {
+  color: white;
+  padding: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Performer of the Day Card - Now in stats grid */
+.performer-stat-card {
+  background: linear-gradient(135deg, #FFB347 0%, #FF8C00 50%, #FF6B6B 100%);
+  border: 1px solid #FF8C00;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.performer-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FF6B6B, #FFB347, #FF8C00);
+}
+
+.performer-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
+  border-color: #FF6B6B;
+}
+
+.performer-card {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border: none;
+  border-radius: 4px;
+}
+
+.performer-card .p-card-title {
+  color: #1A1A2E;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(26, 26, 46, 0.2);
+}
+
+.performer-stat-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.performer-stat-icon {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 1.5rem;
+  opacity: 0.9;
+  z-index: 2;
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.2) 0%, rgba(26, 26, 46, 0.1) 100%);
+  border-radius: 15px;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(26, 26, 46, 0.3);
+  box-shadow: 0 2px 8px rgba(26, 26, 46, 0.2);
+}
+
+.performer-stat-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2C2C2C;
+  margin-bottom: 0.25rem;
+  line-height: 1.1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.performer-stat-department {
+  font-size: 0.75rem;
+  color: #1A1A1A;
+  opacity: 0.9;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.performer-stat-achievement {
+  font-size: 0.8rem;
+  color: #2C2C2C;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.performer-stat-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(26, 26, 46, 0.1);
+  border-radius: 12px;
+}
+
+.performer-stat-badge-icon {
+  font-size: 1rem;
+}
+
+.performer-stat-badge-text {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #2C2C2C;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.performer-stat-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.3) 0%, rgba(26, 26, 46, 0.2) 100%);
+  transition: all 0.3s ease;
+}
+
+.performer-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 1rem;
+  text-align: center;
+}
+
+.performer-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.performer-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1A1A2E;
+  margin-bottom: 0.5rem;
+}
+
+.performer-department {
+  font-size: 0.9rem;
+  color: #1A1A2E;
+  opacity: 0.8;
+  margin-bottom: 0.75rem;
+}
+
+.performer-achievement {
+  font-size: 1rem;
+  color: #1A1A2E;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.performer-reason {
+  font-size: 0.8rem;
+  color: #1A1A2E;
+  opacity: 0.7;
+  margin-bottom: 1rem;
+}
+
+.performer-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(26, 26, 46, 0.1);
+  border-radius: 8px;
+  margin-top: auto;
+}
+
+.badge-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.badge-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1A1A2E;
+  text-align: center;
+}
+
+/* Second Row Widgets */
+.second-row-widgets {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  height: 100%;
+}
+
+/* On Break Widget */
+.on-break-widget {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* Attendance Rate Widget */
+.attendance-rate-widget {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.rate-card {
+  background: #1A1A2E;
+  border: none;
+  border-radius: 4px;
+  padding: 1rem;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rate-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #4CAF50;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.rate-description {
+  color: #B0B0B0;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+/* Recent Activity Widget */
+.recent-activity-widget {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+/* Custom Widgets Area - Only shown when widgets exist */
+.custom-widgets-area {
+  grid-column: 1 / -1;
+  grid-row: 3 / 9;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+/* When no custom widgets, extend second row widgets to fill more space */
+.dashboard-grid.no-custom-widgets .second-row-widgets {
+  grid-row: 2 / 6;
+}
+
+.custom-widget {
+  background: #1A1A2E;
+  border: 1px solid #2D2D44;
+  border-radius: 4px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-widget-title {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2D2D44;
+}
+
+.custom-widget-content {
+  flex: 1;
+  color: #B0B0B0;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Table Styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.25rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.data-table thead {
+  flex-shrink: 0;
+}
+
+.data-table tbody {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.data-table th {
+  background: #2D2D44;
+  color: #B0B0B0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #3A3A5C;
+}
+
+.data-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #2D2D44;
+  font-size: 0.75rem;
+  color: #E0E0E0;
+}
+
+.data-table tr:hover {
+  background: #2D2D44;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Column-specific styling for Recent Check-ins */
+.data-table th:nth-child(1),
+.data-table td:nth-child(1) {
+  width: 40%;
+  text-align: left;
+}
+
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+  width: 30%;
+  text-align: left;
+}
+
+.data-table th:nth-child(3),
+.data-table td:nth-child(3) {
+  width: 30%;
+  text-align: right;
+}
+
+/* List Styles */
+.data-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.data-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #2D2D44;
+  font-size: 0.9rem;
+}
+
+.data-list-item:last-child {
+  border-bottom: none;
+}
+
+.data-list-item:hover {
+  background: #2D2D44;
+}
+
+.data-list-item .name {
+  color: white;
+  font-weight: 500;
+}
+
+.data-list-item .value {
+  color: #B0B0B0;
+  font-weight: 600;
+}
+
+/* Break Status Badge */
+.break-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: #FFD700;
+  color: #1A1A2E;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.break-status-dot {
+  width: 6px;
+  height: 6px;
+  background: #1A1A2E;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.no-break-message {
+  text-align: center;
+  color: #B0B0B0;
+  font-style: italic;
+  padding: 2rem;
+  font-size: 0.9rem;
+}
+
+/* Side-by-side Layout */
+.side-by-side-section {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Attendance Rate Section */
+.attendance-rate-section {
+  margin-bottom: 0;
+}
+
+.rate-card {
+  background: #1A1A2E;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rate-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4CAF50;
+  margin-bottom: 0.15rem;
+  line-height: 1;
+}
+
+.rate-description {
+  color: #B0B0B0;
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+/* Performer of the Day Section */
+.performer-section {
+  margin-bottom: 0.75rem;
+}
+
+.performer-card {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border: none;
+  border-radius: 4px;
+}
+
+.performer-card .p-card-title {
+  color: #1A1A2E;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(26, 26, 46, 0.2);
+}
+
+.performer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.performer-info {
+  flex: 1;
+}
+
+.performer-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1A1A2E;
+  margin-bottom: 0.25rem;
+}
+
+.performer-department {
+  font-size: 0.75rem;
+  color: #1A1A2E;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+}
+
+.performer-achievement {
+  font-size: 0.8rem;
+  color: #1A1A2E;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.performer-reason {
+  font-size: 0.7rem;
+  color: #1A1A2E;
+  opacity: 0.7;
+}
+
+.performer-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  background: rgba(26, 26, 46, 0.1);
+  border-radius: 8px;
+  min-width: 60px;
+}
+
+.badge-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.badge-text {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #1A1A2E;
+  text-align: center;
+}
+
+/* Recent Activity */
+.recent-activity-section {
+  margin-bottom: 2rem;
+}
+
+.activity-time {
+  color: #4CAF50;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.late-badge {
+  background: #FF6B6B;
+  color: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 8px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .public-dashboard-header {
+    padding: 0.4rem 0.75rem;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .dashboard-content {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .side-by-side-section {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .data-table {
+    font-size: 0.65rem;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 0.3rem 0.4rem;
+  }
+}
+
+/* Medium screens responsive design for new grid layout */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .second-row-widgets {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .on-break-widget {
+    grid-row: 1;
+  }
+  
+  .attendance-rate-widget {
+    grid-row: 2;
+  }
+  
+  .recent-activity-widget {
+    grid-row: 3;
+  }
+  
+  .custom-widgets-area {
+    grid-column: 1 / -1;
+    grid-row: 3 / 13;
+    grid-template-columns: 1fr;
+  }
+  
+  /* When no custom widgets, extend second row */
+  .dashboard-grid.no-custom-widgets .second-row-widgets {
+    grid-row: 2 / 8;
+  }
+  
+  .performer-stat-content {
+    padding: 0.5rem;
+  }
+  
+  .performer-stat-name {
+    font-size: 0.8rem;
+  }
+  
+  .performer-stat-department {
+    font-size: 0.65rem;
+  }
+  
+  .performer-stat-achievement {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .company-name {
+    font-size: 1.2rem;
+  }
+  
+  .stat-value {
+    font-size: 1.3rem;
+  }
+  
+  .rate-value {
+    font-size: 1.8rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* New Grid Layout Responsive */
+  .dashboard-grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  
+  .second-row-widgets {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  
+  .on-break-widget {
+    grid-row: 1;
+  }
+  
+  .attendance-rate-widget {
+    grid-row: 2;
+  }
+  
+  .recent-activity-widget {
+    grid-row: 3;
+  }
+  
+  .custom-widgets-area {
+    grid-column: 1 / -1;
+    grid-row: 3 / 13;
+    grid-template-columns: 1fr;
+  }
+  
+  /* When no custom widgets, extend second row */
+  .dashboard-grid.no-custom-widgets .second-row-widgets {
+    grid-row: 2 / 8;
+  }
+  
+  .performer-stat-name {
+    font-size: 0.75rem;
+  }
+  
+  .performer-stat-department {
+    font-size: 0.6rem;
+  }
+  
+  .performer-stat-achievement {
+    font-size: 0.65rem;
+  }
+}

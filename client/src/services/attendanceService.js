@@ -129,6 +129,16 @@ export const attendanceService = {
     }
   },
 
+  // Get public dashboard overview (no auth required)
+  async getPublicDashboardOverview() {
+    try {
+      const response = await api.get('/attendance/dashboard/public');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Add activity note
   async addActivityNote(activityData) {
     try {

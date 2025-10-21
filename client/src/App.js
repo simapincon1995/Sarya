@@ -28,6 +28,8 @@ import Holidays from './pages/Holidays';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import LiveDashboard from './pages/LiveDashboard';
+import PublicLiveDashboard from './components/PublicLiveDashboard';
+import DashboardWidgetManagement from './pages/DashboardWidgetManagement';
 
 function App() {
   const toast = useRef(null);
@@ -60,6 +62,12 @@ function App() {
                   element={<Login />} 
                 />
                 
+                {/* Public Live Dashboard Route */}
+                <Route 
+                  path="/live-dashboard" 
+                  element={<PublicLiveDashboard />} 
+                />
+                
                 {/* Widget Route for Development */}
                 <Route 
                   path="/widget" 
@@ -87,6 +95,7 @@ function App() {
                   <Route path="profile" element={<Profile />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="live-dashboard" element={<LiveDashboard />} />
+                  <Route path="dashboard-widgets" element={<DashboardWidgetManagement />} />
                 </Route>
                 
                 {/* Catch all route */}

@@ -472,8 +472,8 @@ router.get('/summary/:employeeId', authenticateToken, canAccessEmployee, async (
   }
 });
 
-// Get dashboard attendance data
-router.get('/dashboard/overview', authenticateToken, async (req, res) => {
+// Get public dashboard attendance data (no auth required)
+router.get('/dashboard/public', async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -486,12 +486,17 @@ router.get('/dashboard/overview', authenticateToken, async (req, res) => {
       employee: { $ne: null } // Filter out records with null employee references
     }).populate('employee', 'firstName lastName employeeId department');
 
-    // Get total employees
-    const totalEmployees = await User.countDocuments({ isActive: true, role: 'employee' });
+    // Get total employees (including all roles: employee, manager, hr_admin, admin)
+    const totalEmployees = await User.countDocuments({ 
+      isActive: true, 
+      role: { $in: ['employee', 'manager', 'hr_admin', 'admin'] }
+    });
 
     // Calculate statistics
     const checkedIn = todayAttendance.filter(a => a.checkIn && !a.checkOut).length;
     const checkedOut = todayAttendance.filter(a => a.checkOut).length;
+    const presentToday = checkedIn + checkedOut; // Total present today
+    
     const onBreakEmployees = todayAttendance.filter(a => {
       if (!a.employee) return false; // Skip if employee is null
       const activeBreak = a.breaks.find(breakItem => breakItem.isActive && !breakItem.endTime);
@@ -506,6 +511,9 @@ router.get('/dashboard/overview', authenticateToken, async (req, res) => {
     }));
     const onBreak = onBreakEmployees.length;
     const late = todayAttendance.filter(a => a.isLate).length;
+
+    // Calculate absent (non-negative)
+    const absent = Math.max(0, totalEmployees - presentToday);
 
     // Department-wise attendance
     const departmentStats = {};
@@ -531,11 +539,104 @@ router.get('/dashboard/overview', authenticateToken, async (req, res) => {
     res.json({
       overview: {
         totalEmployees,
+        presentToday,
         checkedIn,
         checkedOut,
         onBreak,
         late,
-        absent: totalEmployees - todayAttendance.length
+        absent
+      },
+      departmentStats,
+      recentActivity: todayAttendance
+        .filter(a => a.checkIn)
+        .sort((a, b) => new Date(b.checkIn.time) - new Date(a.checkIn.time))
+        .slice(0, 10)
+        .map(a => ({
+          employee: a.employee,
+          checkIn: a.checkIn.time,
+          isLate: a.isLate
+        })),
+      onBreakEmployees
+    });
+  } catch (error) {
+    console.error('Get public dashboard overview error:', error);
+    res.status(500).json({ message: 'Failed to fetch dashboard overview', error: error.message });
+  }
+});
+
+// Get dashboard attendance data
+router.get('/dashboard/overview', authenticateToken, async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Get today's attendance
+    const todayAttendance = await Attendance.find({
+      date: { $gte: today, $lt: tomorrow },
+      employee: { $ne: null } // Filter out records with null employee references
+    }).populate('employee', 'firstName lastName employeeId department');
+
+    // Get total employees (including all roles: employee, manager, hr_admin, admin)
+    const totalEmployees = await User.countDocuments({ 
+      isActive: true, 
+      role: { $in: ['employee', 'manager', 'hr_admin', 'admin'] }
+    });
+
+    // Calculate statistics
+    const checkedIn = todayAttendance.filter(a => a.checkIn && !a.checkOut).length;
+    const checkedOut = todayAttendance.filter(a => a.checkOut).length;
+    const presentToday = checkedIn + checkedOut; // Total present today
+    
+    const onBreakEmployees = todayAttendance.filter(a => {
+      if (!a.employee) return false; // Skip if employee is null
+      const activeBreak = a.breaks.find(breakItem => breakItem.isActive && !breakItem.endTime);
+      return !!activeBreak;
+    }).map(a => ({
+      id: a.employee._id,
+      name: `${a.employee.firstName} ${a.employee.lastName}`.trim(),
+      employeeId: a.employee.employeeId,
+      department: a.employee.department,
+      breakType: (a.breaks.find(b => b.isActive && !b.endTime) || {}).breakType,
+      startTime: (a.breaks.find(b => b.isActive && !b.endTime) || {}).startTime
+    }));
+    const onBreak = onBreakEmployees.length;
+    const late = todayAttendance.filter(a => a.isLate).length;
+
+    // Calculate absent (non-negative)
+    const absent = Math.max(0, totalEmployees - presentToday);
+
+    // Department-wise attendance
+    const departmentStats = {};
+    todayAttendance.forEach(attendance => {
+      // Check if employee exists and has department
+      if (!attendance.employee || !attendance.employee.department) {
+        console.warn('Attendance record found with missing employee or department:', attendance._id);
+        return; // Skip this record
+      }
+      const dept = attendance.employee.department;
+      if (!departmentStats[dept]) {
+        departmentStats[dept] = { total: 0, present: 0, late: 0 };
+      }
+      departmentStats[dept].total++;
+      if (attendance.checkIn) {
+        departmentStats[dept].present++;
+        if (attendance.isLate) {
+          departmentStats[dept].late++;
+        }
+      }
+    });
+
+    res.json({
+      overview: {
+        totalEmployees,
+        presentToday,
+        checkedIn,
+        checkedOut,
+        onBreak,
+        late,
+        absent
       },
       departmentStats,
       recentActivity: todayAttendance

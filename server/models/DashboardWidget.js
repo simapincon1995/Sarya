@@ -70,6 +70,15 @@ const dashboardWidgetSchema = new mongoose.Schema({
     }],
     rows: [mongoose.Schema.Types.Mixed]
   },
+  performerData: {
+    employeeName: String,
+    department: String,
+    achievement: String,
+    reason: String,
+    date: String,
+    updatedBy: String,
+    updatedAt: String
+  },
   isVisible: {
     type: Boolean,
     default: true

@@ -1,0 +1,210 @@
+/* Dashboard Widget Management Styles */
+.dashboard-widget-management {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1A1A2E;
+  margin-bottom: 0.5rem;
+}
+
+.page-header p {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Performer Section */
+.performer-section {
+  margin-bottom: 2rem;
+}
+
+.performer-content {
+  padding: 1rem 0;
+}
+
+.current-performer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  color: white;
+}
+
+.performer-info h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.performer-info .department {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-bottom: 0.75rem;
+}
+
+.performer-info .achievement {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.performer-info .reason {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+.performer-info .updated-info {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.performer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.performer-actions .p-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.performer-actions .p-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.no-performer {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.no-performer p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+/* Widgets Section */
+.widgets-section {
+  margin-bottom: 2rem;
+}
+
+.widgets-header {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.widgets-table {
+  margin-top: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* Form Styles */
+.performer-form,
+.widget-form {
+  padding: 1rem 0;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group .p-inputtext,
+.form-group .p-dropdown,
+.form-group .p-inputtextarea {
+  width: 100%;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-group label {
+  margin-bottom: 0;
+  font-weight: 400;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-widget-management {
+    padding: 1rem;
+  }
+
+  .current-performer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .performer-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-widget-management {
+    padding: 0.5rem;
+  }
+
+  .current-performer {
+    padding: 1rem;
+  }
+
+  .performer-info h3 {
+    font-size: 1.2rem;
+  }
+
+  .performer-info .achievement {
+    font-size: 1rem;
+  }
+}

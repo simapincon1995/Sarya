@@ -109,6 +109,17 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
       title: 'Live Dashboard'
     });
 
+    // Dashboard Widget Management (Admin, HR Admin, Manager only)
+    if (hasPermission('manage_dashboard') || hasRole('admin') || hasRole('hr_admin') || hasRole('manager')) {
+      items.push({
+        label: 'Dashboard Widgets',
+        icon: 'pi pi-cog',
+        command: () => handleMenuClick('/dashboard-widgets'),
+        className: location.pathname === '/dashboard-widgets' ? 'active' : '',
+        title: 'Dashboard Widget Management'
+      });
+    }
+
     // Settings
     items.push({
       label: 'Settings',
