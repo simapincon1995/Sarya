@@ -322,7 +322,7 @@
 .custom-breadcrumb {
   background: transparent !important;
   border: none !important;
-  padding: 0 !important;
+  padding: 0 0 10px 0 !important;
 }
 
 .custom-breadcrumb .p-breadcrumb-list {
