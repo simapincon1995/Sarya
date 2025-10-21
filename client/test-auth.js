@@ -10,7 +10,7 @@ async function testLogin() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                email: 'admin@shirinq.com',
+                email: 'admin@sarya.com',
                 password: 'admin123'
             })
         });
@@ -83,7 +83,7 @@ async function runTests() {
         console.log('✅ Added session validation on widget startup');
         
         console.log('\n🎯 Widget should now work with credentials:');
-        console.log('Email: admin@shirinq.com');
+        console.log('Email: admin@sarya.com');
         console.log('Password: admin123');
     } else {
         console.log('\n❌ Cannot proceed with attendance API test - login failed');

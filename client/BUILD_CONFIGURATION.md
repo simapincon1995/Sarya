@@ -1,6 +1,6 @@
 # Build Configuration Guide
 
-This document explains how to build different versions of the ShirinQ Connect application.
+This document explains how to build different versions of the Sarya Connective application.
 
 ## Development Commands
 

@@ -42,7 +42,7 @@ npm run widget
 
 ### Step 3: Verify Login Works
 - Open `http://localhost:3001`
-- Try logging in with: `employee@shirinq.com` / `employee123`
+- Try logging in with: `employee@sarya.com` / `employee123`
 - Should now work without CORS errors
 
 ## 🚀 Alternative Startup Methods

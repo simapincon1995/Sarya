@@ -1,5 +1,5 @@
 {
-  "name": "shirinq-connect",
+  "name": "sarya-connective",
   "version": "1.0.0",
   "description": "Intelligent HR & Payroll Management System",
   "main": "server/index.js",
@@ -28,8 +28,8 @@
     "lint:fix": "cd server && npm run lint:fix && cd ../client && npm run lint:fix",
     "start": "cd server && npm start",
     "start:prod": "NODE_ENV=production npm start",
-    "docker:build": "docker build -t shirinq-connect .",
-    "docker:run": "docker run -p 5000:5000 -p 3000:3000 shirinq-connect",
+    "docker:build": "docker build -t sarya-connective .",
+    "docker:run": "docker run -p 5000:5000 -p 3000:3000 sarya-connective",
     "setup": "npm run install-all && npm run seed",
     "clean": "rm -rf node_modules client/node_modules server/node_modules client/build server/logs",
     "reset": "npm run clean && npm run setup"
@@ -47,7 +47,7 @@
     "attendance",
     "leave-management"
   ],
-  "author": "ShirinQ Connect Team",
+  "author": "Sarya Connective Team",
   "license": "MIT",
   "devDependencies": {
     "axios": "^1.6.2",
@@ -61,10 +61,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/shirinq-connect.git"
+    "url": "https://github.com/your-org/sarya-connective.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/shirinq-connect/issues"
+    "url": "https://github.com/your-org/sarya-connective/issues"
   },
-  "homepage": "https://github.com/your-org/shirinq-connect#readme"
+  "homepage": "https://github.com/your-org/sarya-connective#readme"
 }

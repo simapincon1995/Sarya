@@ -11,10 +11,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useSocket } from '../../contexts/SocketContext';
 import SidebarMenu from './SidebarMenu';
+import CustomBreadcrumb from '../Common/Breadcrumb';
 import './Layout.css';
 
 const Layout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth() || {};
   const { currentTheme, changeTheme, themes } = useTheme() || {};
   const { isConnected } = useSocket() || {};
@@ -86,13 +88,25 @@ const Layout = () => {
 
   return (
     <div className="admin-layout">
+      {/* Mobile Backdrop */}
+      {mobileMenuOpen && (
+        <div 
+          className="mobile-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+      
       {/* Fixed Sidebar */}
-      <div className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <div className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         {/* Logo Section */}
         <div className="sidebar-header">
           <div className="logo-container">
-            <i className="pi pi-building text-2xl text-white"></i>
-            {!sidebarCollapsed && <span className="logo-text">HRMS</span>}
+            <img 
+              src="/assets/logo.jfif" 
+              alt="Company Logo" 
+              className="company-logo"
+            />
+            {!sidebarCollapsed && <span className="logo-text">Sarya</span>}
           </div>
         </div>
 
@@ -102,14 +116,14 @@ const Layout = () => {
         </div>
 
         {/* Collapse Button at Bottom */}
-        <div className="sidebar-footer">
+        {/* <div className="sidebar-footer">
           <Button
             icon={sidebarCollapsed ? "pi pi-angle-right" : "pi pi-angle-left"}
             className="p-button-text p-button-plain sidebar-toggle"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             tooltip={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           />
-        </div>
+        </div> */}
       </div>
 
       {/* Main Content Area */}
@@ -117,18 +131,25 @@ const Layout = () => {
         {/* Top Navigation Bar */}
         <div className="admin-topbar">
           <div className="topbar-left">
-            <div className="search-container">
+            <Button
+              icon="pi pi-bars"
+              className="p-button-text p-button-plain mobile-menu-toggle"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              tooltip="Toggle Menu"
+            />
+            
+            {/* <div className="search-container">
               <i className="pi pi-search search-icon"></i>
               <InputText 
                 placeholder="Search..." 
                 className="search-input"
               />
-            </div>
+            </div> */}
           </div>
 
           <div className="topbar-right">
             {/* Theme Switcher */}
-            <Menu model={themeMenuItems} popup ref={themeMenuRef} appendTo={document.body} />
+            {/* <Menu model={themeMenuItems} popup ref={themeMenuRef} appendTo={document.body} />
             <Button
               icon="pi pi-palette"
               className="p-button-text p-button-plain topbar-item"
@@ -139,26 +160,26 @@ const Layout = () => {
                 }
               }}
               tooltip="Change Theme"
-            />
+            /> */}
 
             {/* Notifications */}
-            <Button
+            {/* <Button
               icon="pi pi-bell"
               className="p-button-text p-button-plain topbar-item notification-btn"
               tooltip="Notifications"
               onClick={handleNotificationClick}
             >
               <Badge value="3" severity="danger" className="notification-badge" />
-            </Button>
+            </Button> */}
 
             {/* Connection Status */}
-            <div className="connection-status">
+            {/* <div className="connection-status">
               <i className={`pi ${isConnected ? 'pi-circle-fill text-green-500' : 'pi-circle-fill text-red-500'}`}></i>
-            </div>
+            </div> */}
 
             {/* User Menu */}
             <Menu model={userMenuItems} popup ref={userMenuRef} appendTo={document.body} />
-            <div
+            {/* <div
               className="user-profile-section"
               onClick={(e) => {
                 e.preventDefault();
@@ -173,18 +194,27 @@ const Layout = () => {
                 shape="circle"
                 size="normal"
               />
-              <div className="user-info">
-                <span className="user-name">{user?.firstName || 'User'} {user?.lastName || ''}</span>
-                <span className="user-role">{user?.role?.replace('_', ' ') || 'Employee'}</span>
-              </div>
-              <i className="pi pi-chevron-down dropdown-icon"></i>
-            </div>
+            </div> */}
+              <Avatar
+                // image={user?.profilePicture}
+                icon="pi pi-user"
+                size="normal"
+                    onClick={(e) => {
+                e.preventDefault();
+                if (userMenuRef.current) {
+                  userMenuRef.current.toggle(e);
+                }
+              }}
+              />
           </div>
         </div>
 
         {/* Page Content */}
         <div className="admin-content">
-          <Outlet />
+          <CustomBreadcrumb />
+          <div className="content-wrapper">
+            <Outlet />
+          </div>
         </div>
       </div>
     </div>

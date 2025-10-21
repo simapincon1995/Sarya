@@ -351,19 +351,24 @@ const Templates = () => {
         >
           <div className="grid">
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="name" className="block text-sm font-medium mb-2">
+                  Template Name *
+                </label>
                 <InputText 
                   id="name" 
                   className="w-full" 
                   value={formData.name} 
                   onChange={(e) => onFormChange('name', e.target.value)} 
                 />
-                <label htmlFor="name">Template Name *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="type" className="block text-sm font-medium mb-2">
+                  Template Type *
+                </label>
                 <Dropdown 
                   id="type" 
                   className="w-full" 
@@ -371,12 +376,14 @@ const Templates = () => {
                   onChange={(e) => onFormChange('type', e.value)} 
                   options={templateTypeOptions}
                 />
-                <label htmlFor="type">Template Type *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="description" className="block text-sm font-medium mb-2">
+                  Description
+                </label>
                 <InputTextarea 
                   id="description" 
                   className="w-full" 
@@ -385,12 +392,14 @@ const Templates = () => {
                   rows={2}
                   maxLength={500}
                 />
-                <label htmlFor="description">Description</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="content" className="block text-sm font-medium mb-2">
+                  Template Content *
+                </label>
                 <InputTextarea 
                   id="content" 
                   className="w-full" 
@@ -399,8 +408,7 @@ const Templates = () => {
                   rows={15}
                   style={{ fontFamily: 'monospace' }}
                 />
-                <label htmlFor="content">Template Content *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-6">

@@ -1,4 +1,4 @@
-# ShirinQ Connect - Intelligent HR & Payroll Management System
+# Sarya Connective - Intelligent HR & Payroll Management System
 
 A comprehensive, production-ready HR & Payroll Management System built with modern web technologies, featuring real-time monitoring, role-based access control, and multi-theme support.
 
@@ -100,7 +100,7 @@ A comprehensive, production-ready HR & Payroll Management System built with mode
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd shirinq-connect
+cd sarya-connective
 
 # Install all dependencies
 npm run install-all
@@ -111,7 +111,7 @@ npm run install-all
 #### Option A: MongoDB Compass (Recommended)
 1. Open MongoDB Compass
 2. Create connection: `mongodb://localhost:27017`
-3. Create database: `shirinq_connect`
+3. Create database: `sarya_connective`
 
 #### Option B: MongoDB Shell
 ```bash
@@ -120,7 +120,7 @@ mongod
 
 # Connect and create database
 mongo
-use shirinq_connect
+use sarya_connective
 exit
 ```
 
@@ -131,8 +131,8 @@ The application comes pre-configured with development settings:
 ```env
 NODE_ENV=development
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/shirinq_connect
-JWT_SECRET=shirinq_connect_super_secret_jwt_key_2024_production_ready
+MONGODB_URI=mongodb://localhost:27017/sarya_connective
+JWT_SECRET=sarya_connective_super_secret_jwt_key_2024_production_ready
 DEFAULT_TIMEZONE=Asia/Kolkata
 DEFAULT_LANGUAGE=en
 DEFAULT_CURRENCY=INR
@@ -149,10 +149,10 @@ npm run seed
 ```
 
 This creates sample users and data:
-- **Admin**: `admin@shirinq.com` / `admin123`
-- **HR Admin**: `hr@shirinq.com` / `hr123`
-- **Manager**: `manager@shirinq.com` / `manager123`
-- **Employee**: `employee@shirinq.com` / `employee123`
+- **Admin**: `admin@sarya.com` / `admin123`
+- **HR Admin**: `hr@sarya.com` / `hr123`
+- **Manager**: `manager@sarya.com` / `manager123`
+- **Employee**: `employee@sarya.com` / `employee123`
 
 ### 5. Start Application
 
@@ -352,7 +352,7 @@ GET /api/organization          # Get organization info
 
 ### Project Structure
 ```
-shirinq-connect/
+sarya-connective/
 ├── client/                 # React frontend
 │   ├── public/            # Static assets
 │   ├── src/
@@ -411,7 +411,7 @@ npm run reset            # Clean and reinstall everything
 ```env
 NODE_ENV=production
 PORT=5000
-MONGODB_URI=mongodb://your-production-db:27017/shirinq_connect
+MONGODB_URI=mongodb://your-production-db:27017/sarya_connective
 JWT_SECRET=your-production-secret-key
 CORS_ORIGIN=https://your-domain.com
 ```
@@ -428,15 +428,15 @@ NODE_ENV=production npm start
 ### Docker Production
 ```bash
 # Build production image
-docker build -t shirinq-connect:latest .
+docker build -t sarya-connective:latest .
 
 # Run production container
 docker run -d \
   -p 5000:5000 \
   -p 3000:3000 \
   -e NODE_ENV=production \
-  -e MONGODB_URI=mongodb://your-db:27017/shirinq_connect \
-  shirinq-connect:latest
+  -e MONGODB_URI=mongodb://your-db:27017/sarya_connective \
+  sarya-connective:latest
 ```
 
 ## 🔒 Security Features
@@ -514,7 +514,7 @@ REACT_APP_DEBUG=true npm start
 ### Getting Help
 - **Documentation**: Check this README and SETUP_GUIDE.md
 - **Issues**: Create an issue in the repository
-- **Email**: support@shirinq.com
+- **Email**: support@sarya.com
 
 ### Contributing
 1. Fork the repository
@@ -544,6 +544,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ by the ShirinQ Connect Team**
+**Built with ❤️ by the Sarya Connective Team**
 
 For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)

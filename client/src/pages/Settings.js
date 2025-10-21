@@ -32,7 +32,7 @@ const Settings = () => {
   });
   
   const [organizationSettings, setOrganizationSettings] = useState({
-    name: 'ShirinQ Connect',
+    name: 'Sarya Connective',
     timezone: timezone,
     language: currentLanguage,
     currency: 'INR',
@@ -335,7 +335,7 @@ const Settings = () => {
               <div className="flex flex-column gap-3">
                 <div className="flex justify-content-between">
                   <span className="text-sm font-medium">Application Name:</span>
-                  <span className="text-sm">ShirinQ Connect</span>
+                  <span className="text-sm">Sarya Connective</span>
                 </div>
                 <div className="flex justify-content-between">
                   <span className="text-sm font-medium">Version:</span>

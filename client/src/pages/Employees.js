@@ -315,87 +315,113 @@ const Employees = () => {
           <div className="grid">
             {editorMode === 'edit' && (
               <div className="col-12 md:col-6">
-                <span className="p-float-label w-full">
+                <div className="field">
+                  <label htmlFor="employeeId" className="block text-sm font-medium mb-2">
+                    Employee ID (Auto-generated)
+                  </label>
                   <InputText id="employeeId" className="w-full" value={formData.employeeId} readOnly />
-                  <label htmlFor="employeeId">Employee ID (Auto-generated)</label>
-                </span>
+                </div>
               </div>
             )}
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="email" className="block text-sm font-medium mb-2">
+                  Email
+                </label>
                 <InputText id="email" className="w-full" value={formData.email} onChange={(e) => onFormChange('email', e.target.value)} />
-                <label htmlFor="email">Email</label>
-              </span>
+              </div>
             </div>
             {editorMode === 'create' && (
               <div className="col-12 md:col-6">
-                <span className="p-float-label w-full">
+                <div className="field">
+                  <label htmlFor="password" className="block text-sm font-medium mb-2">
+                    Password
+                  </label>
                   <InputText id="password" type="password" className="w-full" value={formData.password} onChange={(e) => onFormChange('password', e.target.value)} />
-                  <label htmlFor="password">Password</label>
-                </span>
+                </div>
               </div>
             )}
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="firstName" className="block text-sm font-medium mb-2">
+                  First Name
+                </label>
                 <InputText id="firstName" className="w-full" value={formData.firstName} onChange={(e) => onFormChange('firstName', e.target.value)} />
-                <label htmlFor="firstName">First Name</label>
-              </span>
+              </div>
             </div>
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="lastName" className="block text-sm font-medium mb-2">
+                  Last Name
+                </label>
                 <InputText id="lastName" className="w-full" value={formData.lastName} onChange={(e) => onFormChange('lastName', e.target.value)} />
-                <label htmlFor="lastName">Last Name</label>
-              </span>
+              </div>
             </div>
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="department" className="block text-sm font-medium mb-2">
+                  Department
+                </label>
                 <InputText id="department" className="w-full" value={formData.department} onChange={(e) => onFormChange('department', e.target.value)} />
-                <label htmlFor="department">Department</label>
-              </span>
+              </div>
             </div>
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="designation" className="block text-sm font-medium mb-2">
+                  Designation
+                </label>
                 <InputText id="designation" className="w-full" value={formData.designation} onChange={(e) => onFormChange('designation', e.target.value)} />
-                <label htmlFor="designation">Designation</label>
-              </span>
+              </div>
             </div>
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="role" className="block text-sm font-medium mb-2">
+                  Role
+                </label>
                 <Dropdown id="role" className="w-full" value={formData.role} onChange={(e) => onFormChange('role', e.value)} options={[{ label: 'Admin', value: 'admin' }, { label: 'HR Admin', value: 'hr_admin' }, { label: 'Manager', value: 'manager' }, { label: 'Employee', value: 'employee' }]} />
-                <label htmlFor="role">Role</label>
-              </span>
+              </div>
             </div>
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="manager" className="block text-sm font-medium mb-2">
+                  Manager
+                </label>
                 <Dropdown id="manager" className="w-full" value={formData.manager} onChange={(e) => onFormChange('manager', e.value)} options={(managers || []).map(m => ({ label: `${m.firstName} ${m.lastName}`, value: m._id }))} placeholder="Select Manager" />
-                <label htmlFor="manager">Manager</label>
-              </span>
+              </div>
             </div>
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="phone" className="block text-sm font-medium mb-2">
+                  Phone
+                </label>
                 <InputText id="phone" className="w-full" value={formData.phone} onChange={(e) => onFormChange('phone', e.target.value)} />
-                <label htmlFor="phone">Phone</label>
-              </span>
+              </div>
             </div>
             {editorMode === 'edit' && (
               <div className="col-12 md:col-6">
-                <span className="p-float-label w-full">
+                <div className="field">
+                  <label htmlFor="newPassword" className="block text-sm font-medium mb-2">
+                    Set/Reset Password
+                  </label>
                   <InputText id="newPassword" type="password" className="w-full" value={formData.password} onChange={(e) => onFormChange('password', e.target.value)} />
-                  <label htmlFor="newPassword">Set/Reset Password</label>
-                </span>
+                </div>
               </div>
             )}
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="salary" className="block text-sm font-medium mb-2">
+                  Salary
+                </label>
                 <InputText id="salary" className="w-full" value={formData.salary} onChange={(e) => onFormChange('salary', e.target.value)} />
-                <label htmlFor="salary">Salary</label>
-              </span>
+              </div>
             </div>
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="joiningDate" className="block text-sm font-medium mb-2">
+                  Joining Date
+                </label>
                 <Calendar id="joiningDate" className="w-full" value={formData.joiningDate} onChange={(e) => onFormChange('joiningDate', e.value)} showIcon />
-                <label htmlFor="joiningDate">Joining Date</label>
-              </span>
+              </div>
             </div>
           </div>
         </Dialog>

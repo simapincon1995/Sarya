@@ -38,13 +38,13 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
 
     // Attendance
     if (hasPermission('mark_attendance') || hasPermission('view_team_reports')) {
-      items.push({
-        label: 'Attendance',
-        icon: 'pi pi-clock',
-        command: () => handleMenuClick('/attendance'),
-        className: location.pathname === '/attendance' ? 'active' : '',
-        title: 'Attendance'
-      });
+      // items.push({
+      //   label: 'Attendance',
+      //   icon: 'pi pi-clock',
+      //   command: () => handleMenuClick('/attendance'),
+      //   className: location.pathname === '/attendance' ? 'active' : '',
+      //   title: 'Attendance'
+      // });
       
       // Attendance History
       items.push({
@@ -68,26 +68,26 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
     }
 
     // Payroll (HR Admin only)
-    if (hasPermission('manage_payroll')) {
-      items.push({
-        label: 'Payroll',
-        icon: 'pi pi-dollar',
-        command: () => handleMenuClick('/payroll'),
-        className: location.pathname === '/payroll' ? 'active' : '',
-        title: 'Payroll'
-      });
-    }
+    // if (hasPermission('manage_payroll')) {
+    //   items.push({
+    //     label: 'Payroll',
+    //     icon: 'pi pi-dollar',
+    //     command: () => handleMenuClick('/payroll'),
+    //     className: location.pathname === '/payroll' ? 'active' : '',
+    //     title: 'Payroll'
+    //   });
+    // }
 
     // Templates (HR Admin only)
-    if (hasPermission('manage_templates')) {
-      items.push({
-        label: 'Templates',
-        icon: 'pi pi-file-edit',
-        command: () => handleMenuClick('/templates'),
-        className: location.pathname === '/templates' ? 'active' : '',
-        title: 'Templates'
-      });
-    }
+    // if (hasPermission('manage_templates')) {
+    //   items.push({
+    //     label: 'Templates',
+    //     icon: 'pi pi-file-edit',
+    //     command: () => handleMenuClick('/templates'),
+    //     className: location.pathname === '/templates' ? 'active' : '',
+    //     title: 'Templates'
+    //   });
+    // }
 
     // Holidays
     if (hasPermission('manage_holidays') || hasPermission('view_own_data')) {

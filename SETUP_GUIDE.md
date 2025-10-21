@@ -1,6 +1,6 @@
-# ShirinQ Connect - Complete Setup & Testing Guide
+# Sarya Connective - Complete Setup & Testing Guide
 
-This comprehensive guide will walk you through setting up and testing the complete ShirinQ Connect HR & Payroll Management System.
+This comprehensive guide will walk you through setting up and testing the complete Sarya Connective HR & Payroll Management System.
 
 ## 📋 Prerequisites
 
@@ -18,7 +18,7 @@ Before starting, ensure you have the following installed:
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd shirinq-connect
+cd sarya-connective
 
 # Install all dependencies (root, server, and client)
 npm run install-all
@@ -31,9 +31,9 @@ npm run install-all
 1. **Install MongoDB Compass** and open it
 2. **Create a new connection** with the following details:
    - Connection String: `mongodb://localhost:27017`
-   - Database Name: `shirinq_connect`
+   - Database Name: `sarya_connective`
 3. **Click Connect** to establish the connection
-4. **Create the database** by clicking "Create Database" and naming it `shirinq_connect`
+4. **Create the database** by clicking "Create Database" and naming it `sarya_connective`
 
 #### Option B: Using MongoDB Shell
 
@@ -45,7 +45,7 @@ mongod
 mongo
 
 # Create the database
-use shirinq_connect
+use sarya_connective
 
 # Exit MongoDB shell
 exit
@@ -64,14 +64,14 @@ cd server
 ```env
 NODE_ENV=development
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/shirinq_connect
-JWT_SECRET=shirinq_connect_super_secret_jwt_key_2024_production_ready
+MONGODB_URI=mongodb://localhost:27017/sarya_connective
+JWT_SECRET=sarya_connective_super_secret_jwt_key_2024_production_ready
 JWT_EXPIRE=7d
 BCRYPT_ROUNDS=12
 CORS_ORIGIN=http://localhost:3000
 
 # Application Settings
-APP_NAME=ShirinQ Connect
+APP_NAME=Sarya Connective
 APP_VERSION=1.0.0
 DEFAULT_TIMEZONE=Asia/Kolkata
 DEFAULT_LANGUAGE=en
@@ -102,10 +102,10 @@ node seed.js
 ```
 
 This will create:
-- Admin user: `admin@shirinq.com` / `admin123`
-- HR Admin: `hr@shirinq.com` / `hr123`
-- Manager: `manager@shirinq.com` / `manager123`
-- Employee: `employee@shirinq.com` / `employee123`
+- Admin user: `admin@sarya.com` / `admin123`
+- HR Admin: `hr@sarya.com` / `hr123`
+- Manager: `manager@sarya.com` / `manager123`
+- Employee: `employee@sarya.com` / `employee123`
 - Sample holidays, templates, and dashboard widgets
 
 ### 5. Start the Application
@@ -168,7 +168,7 @@ npm test
 ```json
 {
   "info": {
-    "name": "ShirinQ Connect API",
+    "name": "Sarya Connective API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -207,7 +207,7 @@ npm test
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@shirinq.com\",\n  \"password\": \"admin123\"\n}"
+              "raw": "{\n  \"email\": \"admin@sarya.com\",\n  \"password\": \"admin123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -252,26 +252,26 @@ npm test
 
 **Test all user personas:**
 
-1. **Admin User** (`admin@shirinq.com` / `admin123`)
+1. **Admin User** (`admin@sarya.com` / `admin123`)
    - ✅ Access to all modules
    - ✅ Employee management
    - ✅ System settings
    - ✅ User role management
 
-2. **HR Admin** (`hr@shirinq.com` / `hr123`)
+2. **HR Admin** (`hr@sarya.com` / `hr123`)
    - ✅ Employee management
    - ✅ Payroll management
    - ✅ Template management
    - ✅ Holiday management
    - ❌ System settings (restricted)
 
-3. **Manager** (`manager@shirinq.com` / `manager123`)
+3. **Manager** (`manager@sarya.com` / `manager123`)
    - ✅ Team management
    - ✅ Leave approvals
    - ✅ Team attendance
    - ❌ Payroll management (restricted)
 
-4. **Employee** (`employee@shirinq.com` / `employee123`)
+4. **Employee** (`employee@sarya.com` / `employee123`)
    - ✅ Personal attendance
    - ✅ Leave applications
    - ✅ Personal profile
@@ -437,7 +437,7 @@ scenarios:
       - post:
           url: "/api/auth/login"
           json:
-            email: "admin@shirinq.com"
+            email: "admin@sarya.com"
             password: "admin123"
           capture:
             - json: "$.token"
@@ -462,7 +462,7 @@ node -e "
 const mongoose = require('mongoose');
 const User = require('./models/User');
 
-mongoose.connect('mongodb://localhost:27017/shirinq_connect');
+mongoose.connect('mongodb://localhost:27017/sarya_connective');
 
 async function testPerformance() {
   console.time('User Query');
@@ -623,13 +623,13 @@ tail -f logs/app.log
 **MongoDB Compass:**
 1. Open MongoDB Compass
 2. Connect to `mongodb://localhost:27017`
-3. Navigate to `shirinq_connect` database
+3. Navigate to `sarya_connective` database
 4. Monitor collections and indexes
 
 **MongoDB Shell:**
 ```bash
 mongo
-use shirinq_connect
+use sarya_connective
 db.stats()
 db.users.count()
 db.attendance.count()
@@ -644,7 +644,7 @@ db.attendance.count()
 ```env
 NODE_ENV=production
 PORT=5000
-MONGODB_URI=mongodb://your-production-db:27017/shirinq_connect
+MONGODB_URI=mongodb://your-production-db:27017/sarya_connective
 JWT_SECRET=your-production-secret-key
 CORS_ORIGIN=https://your-domain.com
 ```
@@ -665,10 +665,10 @@ NODE_ENV=production npm start
 
 ```bash
 # Build Docker image
-docker build -t shirinq-connect .
+docker build -t sarya-connective .
 
 # Run container
-docker run -p 5000:5000 -p 3000:3000 shirinq-connect
+docker run -p 5000:5000 -p 3000:3000 sarya-connective
 ```
 
 ## 📞 Support
@@ -687,4 +687,4 @@ For additional support, please refer to the main README.md file or create an iss
 
 **Happy Testing! 🎉**
 
-This guide covers all aspects of setting up, testing, and deploying ShirinQ Connect. Follow each section carefully to ensure a complete and successful implementation.
+This guide covers all aspects of setting up, testing, and deploying Sarya Connective. Follow each section carefully to ensure a complete and successful implementation.

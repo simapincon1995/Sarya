@@ -136,13 +136,13 @@ function createMenu() {
       label: 'Help',
       submenu: [
         {
-          label: 'About ShirinQ Connect',
+          label: 'About Sarya Connective',
           click: () => {
             const { dialog } = require('electron');
             dialog.showMessageBox(mainWindow, {
               type: 'info',
-              title: 'About ShirinQ Connect',
-              message: 'ShirinQ Connect',
+              title: 'About Sarya Connective',
+              message: 'Sarya Connective',
               detail: 'Intelligent HR & Payroll Management System\nVersion 1.0.0\n\nBuilt with React, Node.js, and Electron'
             });
           }
@@ -150,7 +150,7 @@ function createMenu() {
         {
           label: 'Learn More',
           click: () => {
-            shell.openExternal('https://github.com/your-repo/shirinq-connect');
+            shell.openExternal('https://github.com/your-repo/sarya-connective');
           }
         }
       ]

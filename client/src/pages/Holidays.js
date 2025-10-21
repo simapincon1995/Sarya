@@ -331,19 +331,24 @@ const Holidays = () => {
         >
           <div className="grid">
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="name" className="block text-sm font-medium mb-2">
+                  Holiday Name *
+                </label>
                 <InputText 
                   id="name" 
                   className="w-full" 
                   value={formData.name} 
                   onChange={(e) => onFormChange('name', e.target.value)} 
                 />
-                <label htmlFor="name">Holiday Name *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="date" className="block text-sm font-medium mb-2">
+                  Date *
+                </label>
                 <Calendar 
                   id="date" 
                   className="w-full" 
@@ -352,12 +357,14 @@ const Holidays = () => {
                   showIcon 
                   dateFormat="dd/mm/yy"
                 />
-                <label htmlFor="date">Date *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="type" className="block text-sm font-medium mb-2">
+                  Holiday Type *
+                </label>
                 <Dropdown 
                   id="type" 
                   className="w-full" 
@@ -365,8 +372,7 @@ const Holidays = () => {
                   onChange={(e) => onFormChange('type', e.value)} 
                   options={holidayTypeOptions}
                 />
-                <label htmlFor="type">Holiday Type *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-6">
@@ -391,7 +397,10 @@ const Holidays = () => {
             </div>
 
             <div className="col-12">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="description" className="block text-sm font-medium mb-2">
+                  Description
+                </label>
                 <InputTextarea 
                   id="description" 
                   className="w-full" 
@@ -400,8 +409,7 @@ const Holidays = () => {
                   rows={3}
                   maxLength={500}
                 />
-                <label htmlFor="description">Description</label>
-              </span>
+              </div>
             </div>
           </div>
         </Dialog>

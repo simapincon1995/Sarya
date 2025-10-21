@@ -408,7 +408,14 @@ const AttendanceWidget = () => {
     return (
       <div className="attendance-widget">
         <div className="widget-header">
-          <h3>Attendance Login</h3>
+          <div className="widget-brand">
+            <img 
+              src="/assets/logo.jfif" 
+              alt="Sarya Connective Logo" 
+              className="widget-logo"
+            />
+            <h3>Sarya Connective</h3>
+          </div>
           <div className={`connection-status ${isOnline ? 'online' : 'offline'}`}>
             {isOnline ? '🟢 Online' : '🔴 Offline'}
           </div>
@@ -440,7 +447,14 @@ const AttendanceWidget = () => {
   return (
     <div className="attendance-widget">
       <div className="widget-header">
-        <h3>Attendance Tracker</h3>
+        <div className="widget-brand">
+          <img 
+            src="/assets/logo.jfif" 
+            alt="Sarya Connective Logo" 
+            className="widget-logo"
+          />
+          <h3>Attendance Tracker</h3>
+        </div>
         <div className={`connection-status ${isOnline ? 'online' : 'offline'}`}>
           {isOnline ? '🟢 Online' : '🔴 Offline'}
           {pendingEvents.length > 0 && (

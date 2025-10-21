@@ -1,8 +1,8 @@
 {
-  "name": "shirinq-connect-client",
+  "name": "sarya-connective-client",
   "version": "1.0.0",
-  "description": "ShirinQ Connect Client - HR & Payroll Management System Frontend",
-  "author": "ShirinQ Connect Team",
+  "description": "Sarya Connective Client - HR & Payroll Management System Frontend",
+  "author": "Sarya Connective Team",
   "private": true,
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -70,8 +70,8 @@
   "main": "public/electron.js",
   "homepage": "./",
   "build": {
-    "appId": "com.shirinq.connect",
-    "productName": "ShirinQ Connect",
+    "appId": "com.sarya.connective",
+    "productName": "Sarya Connective",
     "directories": {
       "output": "dist"
     },
@@ -85,7 +85,7 @@
     },
     "win": {
       "target": "nsis",
-      "publisherName": "ShirinQ Connect Team",
+      "publisherName": "Sarya Connective Team",
       "verifyUpdateCodeSignature": false
     },
     "linux": {

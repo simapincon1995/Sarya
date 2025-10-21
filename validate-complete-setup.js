@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Complete Setup Validation Script for ShirinQ Connect
+ * Complete Setup Validation Script for Sarya Connective
  * This script validates that all components are properly configured and working
  */
 
@@ -310,7 +310,7 @@ class SetupValidator {
       // This is a warning because MongoDB might not be running during validation
       const mongoose = require('mongoose');
       try {
-        await mongoose.connect('mongodb://localhost:27017/shirinq_connect', {
+        await mongoose.connect('mongodb://localhost:27017/sarya_connective', {
           serverSelectionTimeoutMS: 5000
         });
         await mongoose.disconnect();
@@ -398,7 +398,7 @@ class SetupValidator {
   }
 
   async runAllValidations() {
-    this.log('🚀 Starting Complete Setup Validation for ShirinQ Connect', 'info');
+    this.log('🚀 Starting Complete Setup Validation for Sarya Connective', 'info');
     this.log('=' * 70, 'info');
 
     try {
@@ -431,16 +431,16 @@ class SetupValidator {
     
     if (successRate >= 95) {
       this.log(`Success Rate: ${successRate}% - EXCELLENT! 🎉`, 'success');
-      this.log('🎉 ShirinQ Connect is ready for production!', 'success');
+      this.log('🎉 Sarya Connective is ready for production!', 'success');
     } else if (successRate >= 90) {
       this.log(`Success Rate: ${successRate}% - VERY GOOD! 👍`, 'warning');
-      this.log('👍 ShirinQ Connect is mostly ready with minor issues.', 'warning');
+      this.log('👍 Sarya Connective is mostly ready with minor issues.', 'warning');
     } else if (successRate >= 80) {
       this.log(`Success Rate: ${successRate}% - GOOD! ⚠️`, 'warning');
-      this.log('⚠️  ShirinQ Connect needs some fixes before production.', 'warning');
+      this.log('⚠️  Sarya Connective needs some fixes before production.', 'warning');
     } else {
       this.log(`Success Rate: ${successRate}% - NEEDS WORK! ❌`, 'error');
-      this.log('❌ ShirinQ Connect requires significant fixes.', 'error');
+      this.log('❌ Sarya Connective requires significant fixes.', 'error');
     }
 
     this.log('=' * 70, 'info');

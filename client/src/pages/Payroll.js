@@ -412,7 +412,10 @@ const Payroll = () => {
         >
           <div className="grid">
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="employee" className="block text-sm font-medium mb-2">
+                  Employee *
+                </label>
                 <Dropdown 
                   id="employee" 
                   className="w-full" 
@@ -423,12 +426,14 @@ const Payroll = () => {
                     value: emp._id
                   }))}
                 />
-                <label htmlFor="employee">Employee *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="month" className="block text-sm font-medium mb-2">
+                  Month *
+                </label>
                 <Dropdown 
                   id="month" 
                   className="w-full" 
@@ -436,12 +441,14 @@ const Payroll = () => {
                   onChange={(e) => onFormChange('month', e.value)} 
                   options={monthOptions}
                 />
-                <label htmlFor="month">Month *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="year" className="block text-sm font-medium mb-2">
+                  Year *
+                </label>
                 <InputNumber 
                   id="year" 
                   className="w-full" 
@@ -449,8 +456,7 @@ const Payroll = () => {
                   onValueChange={(e) => onFormChange('year', e.value)} 
                   useGrouping={false}
                 />
-                <label htmlFor="year">Year *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12">
@@ -458,7 +464,10 @@ const Payroll = () => {
             </div>
 
             <div className="col-12 md:col-4">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="basicSalary" className="block text-sm font-medium mb-2">
+                  Basic Salary *
+                </label>
                 <InputNumber 
                   id="basicSalary" 
                   className="w-full" 
@@ -467,24 +476,28 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="basicSalary">Basic Salary *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-4">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="overtimeHours" className="block text-sm font-medium mb-2">
+                  Overtime Hours
+                </label>
                 <InputNumber 
                   id="overtimeHours" 
                   className="w-full" 
                   value={formData.overtime.hours} 
                   onValueChange={(e) => onFormChange('overtime.hours', e.value)} 
                 />
-                <label htmlFor="overtimeHours">Overtime Hours</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-4">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="overtimeRate" className="block text-sm font-medium mb-2">
+                  Overtime Rate
+                </label>
                 <InputNumber 
                   id="overtimeRate" 
                   className="w-full" 
@@ -493,8 +506,7 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="overtimeRate">Overtime Rate</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12">
@@ -502,7 +514,10 @@ const Payroll = () => {
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="hra" className="block text-sm font-medium mb-2">
+                  HRA
+                </label>
                 <InputNumber 
                   id="hra" 
                   className="w-full" 
@@ -511,12 +526,14 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="hra">HRA</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="medical" className="block text-sm font-medium mb-2">
+                  Medical
+                </label>
                 <InputNumber 
                   id="medical" 
                   className="w-full" 
@@ -525,12 +542,14 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="medical">Medical</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="transport" className="block text-sm font-medium mb-2">
+                  Transport
+                </label>
                 <InputNumber 
                   id="transport" 
                   className="w-full" 
@@ -539,12 +558,14 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="transport">Transport</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="otherAllowances" className="block text-sm font-medium mb-2">
+                  Other
+                </label>
                 <InputNumber 
                   id="otherAllowances" 
                   className="w-full" 
@@ -553,8 +574,7 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="otherAllowances">Other</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12">
@@ -562,7 +582,10 @@ const Payroll = () => {
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="pf" className="block text-sm font-medium mb-2">
+                  PF
+                </label>
                 <InputNumber 
                   id="pf" 
                   className="w-full" 
@@ -571,12 +594,14 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="pf">PF</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="esi" className="block text-sm font-medium mb-2">
+                  ESI
+                </label>
                 <InputNumber 
                   id="esi" 
                   className="w-full" 
@@ -585,12 +610,14 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="esi">ESI</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="tax" className="block text-sm font-medium mb-2">
+                  Tax
+                </label>
                 <InputNumber 
                   id="tax" 
                   className="w-full" 
@@ -599,12 +626,14 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="tax">Tax</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-3">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="otherDeductions" className="block text-sm font-medium mb-2">
+                  Other
+                </label>
                 <InputNumber 
                   id="otherDeductions" 
                   className="w-full" 
@@ -613,12 +642,14 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="otherDeductions">Other</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="bonus" className="block text-sm font-medium mb-2">
+                  Bonus
+                </label>
                 <InputNumber 
                   id="bonus" 
                   className="w-full" 
@@ -627,8 +658,7 @@ const Payroll = () => {
                   mode="currency" 
                   currency="INR"
                 />
-                <label htmlFor="bonus">Bonus</label>
-              </span>
+              </div>
             </div>
           </div>
         </Dialog>

@@ -80,7 +80,7 @@ const LiveDashboard = () => {
       <div className="flex justify-content-between align-items-center mb-4">
         <div>
           <h1 className="text-3xl font-bold text-primary mb-2">
-            ShirinQ Connect - Live Dashboard
+            Sarya Connective - Live Dashboard
           </h1>
           <p className="text-lg text-color-secondary">
             Real-time employee activity monitoring

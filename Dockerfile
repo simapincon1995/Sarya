@@ -1,4 +1,4 @@
-# Multi-stage build for ShirinQ Connect
+# Multi-stage build for Sarya Connective
 FROM node:18-alpine AS base
 
 # Set working directory
@@ -30,25 +30,25 @@ RUN apk add --no-cache mongodb-tools
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S shirinq -u 1001
+RUN adduser -S sarya -u 1001
 
 # Set working directory
 WORKDIR /app
 
 # Copy built application
-COPY --from=build --chown=shirinq:nodejs /app/server ./server
-COPY --from=build --chown=shirinq:nodejs /app/client/build ./client/build
-COPY --from=build --chown=shirinq:nodejs /app/package*.json ./
+COPY --from=build --chown=sarya:nodejs /app/server ./server
+COPY --from=build --chown=sarya:nodejs /app/client/build ./client/build
+COPY --from=build --chown=sarya:nodejs /app/package*.json ./
 
 # Install production dependencies only
 WORKDIR /app/server
 RUN npm ci --only=production && npm cache clean --force
 
 # Create uploads directory
-RUN mkdir -p /app/uploads && chown -R shirinq:nodejs /app/uploads
+RUN mkdir -p /app/uploads && chown -R sarya:nodejs /app/uploads
 
 # Switch to non-root user
-USER shirinq
+USER sarya
 
 # Expose ports
 EXPOSE 5000 3000

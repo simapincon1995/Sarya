@@ -1,7 +1,7 @@
 {
-  "name": "shirinq-connect-server",
+  "name": "sarya-connective-server",
   "version": "1.0.0",
-  "description": "Backend server for ShirinQ Connect HR Management System",
+  "description": "Backend server for Sarya Connective HR Management System",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

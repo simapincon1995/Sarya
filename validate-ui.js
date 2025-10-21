@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * UI Validation Script for ShirinQ Connect
+ * UI Validation Script for Sarya Connective
  * This script validates all UI components and user flows
  */
 
@@ -125,7 +125,7 @@ class UIValidator {
 
   async testAdminUserFlow() {
     await this.test('Admin Login', async () => {
-      await this.login('admin@shirinq.com', 'admin123');
+      await this.login('admin@sarya.com', 'admin123');
       
       const currentUrl = this.page.url();
       if (!currentUrl.includes('/dashboard')) {
@@ -172,7 +172,7 @@ class UIValidator {
 
   async testHRUserFlow() {
     await this.test('HR Admin Login', async () => {
-      await this.login('hr@shirinq.com', 'hr123');
+      await this.login('hr@sarya.com', 'hr123');
       
       const currentUrl = this.page.url();
       if (!currentUrl.includes('/dashboard')) {
@@ -203,7 +203,7 @@ class UIValidator {
 
   async testManagerUserFlow() {
     await this.test('Manager Login', async () => {
-      await this.login('manager@shirinq.com', 'manager123');
+      await this.login('manager@sarya.com', 'manager123');
       
       const currentUrl = this.page.url();
       if (!currentUrl.includes('/dashboard')) {
@@ -224,7 +224,7 @@ class UIValidator {
 
   async testEmployeeUserFlow() {
     await this.test('Employee Login', async () => {
-      await this.login('employee@shirinq.com', 'employee123');
+      await this.login('employee@sarya.com', 'employee123');
       
       const currentUrl = this.page.url();
       if (!currentUrl.includes('/dashboard')) {
@@ -255,7 +255,7 @@ class UIValidator {
 
   async testThemeSwitching() {
     await this.test('Theme Switcher', async () => {
-      await this.login('admin@shirinq.com', 'admin123');
+      await this.login('admin@sarya.com', 'admin123');
       await this.page.click('a[href="/settings"]');
       await this.page.waitForNavigation({ waitUntil: 'networkidle0' });
       
@@ -369,7 +369,7 @@ class UIValidator {
   }
 
   async runAllTests() {
-    this.log('🚀 Starting UI Validation for ShirinQ Connect', 'info');
+    this.log('🚀 Starting UI Validation for Sarya Connective', 'info');
     this.log('=' * 60, 'info');
 
     try {

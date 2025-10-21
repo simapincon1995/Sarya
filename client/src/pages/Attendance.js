@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
-import { useAuth } from '../contexts/AuthContext';
 import { attendanceService } from '../services/attendanceService';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
 import TimeTracker from '../components/TimeTracker/TimeTracker';
@@ -13,7 +12,6 @@ const Attendance = () => {
   const [attendanceStatus, setAttendanceStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
-  const { user } = useAuth();
   const toast = React.useRef(null);
   const loadingRef = React.useRef(false);
 

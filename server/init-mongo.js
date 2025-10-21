@@ -1,5 +1,5 @@
 // MongoDB initialization script for Docker
-db = db.getSiblingDB('shirinq_connect');
+db = db.getSiblingDB('sarya_connective');
 
 // Create collections with validation
 db.createCollection('users', {

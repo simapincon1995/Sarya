@@ -67,7 +67,7 @@ const Login = () => {
       {/* Left section - Form */}
       <div className="login-left-panel">
         <h1 className="brand-logo">
-         ShrinQ Connect
+         Sarya Connective
         </h1>
 
         <div className="form-section">

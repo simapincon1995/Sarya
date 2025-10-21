@@ -369,7 +369,10 @@ const Leaves = () => {
         >
           <div className="grid">
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="leaveType" className="block text-sm font-medium mb-2">
+                  Leave Type *
+                </label>
                 <Dropdown 
                   id="leaveType" 
                   className="w-full" 
@@ -377,12 +380,14 @@ const Leaves = () => {
                   onChange={(e) => onFormChange('leaveType', e.value)} 
                   options={leaveTypeOptions} 
                 />
-                <label htmlFor="leaveType">Leave Type *</label>
-              </span>
+              </div>
             </div>
             
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="startDate" className="block text-sm font-medium mb-2">
+                  Start Date *
+                </label>
                 <Calendar 
                   id="startDate" 
                   className="w-full" 
@@ -392,12 +397,14 @@ const Leaves = () => {
                   dateFormat="dd/mm/yy"
                   minDate={new Date()}
                 />
-                <label htmlFor="startDate">Start Date *</label>
-              </span>
+              </div>
             </div>
 
             <div className="col-12 md:col-6">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="endDate" className="block text-sm font-medium mb-2">
+                  End Date *
+                </label>
                 <Calendar 
                   id="endDate" 
                   className="w-full" 
@@ -407,13 +414,15 @@ const Leaves = () => {
                   dateFormat="dd/mm/yy"
                   minDate={formData.startDate || new Date()}
                 />
-                <label htmlFor="endDate">End Date *</label>
-              </span>
+              </div>
             </div>
 
             {formData.isHalfDay && (
               <div className="col-12 md:col-6">
-                <span className="p-float-label w-full">
+                <div className="field">
+                  <label htmlFor="halfDayPeriod" className="block text-sm font-medium mb-2">
+                    Half Day Period
+                  </label>
                   <Dropdown 
                     id="halfDayPeriod" 
                     className="w-full" 
@@ -421,13 +430,15 @@ const Leaves = () => {
                     onChange={(e) => onFormChange('halfDayPeriod', e.value)} 
                     options={halfDayOptions} 
                   />
-                  <label htmlFor="halfDayPeriod">Half Day Period</label>
-                </span>
+                </div>
               </div>
             )}
 
             <div className="col-12">
-              <span className="p-float-label w-full">
+              <div className="field">
+                <label htmlFor="reason" className="block text-sm font-medium mb-2">
+                  Reason for Leave *
+                </label>
                 <InputTextarea 
                   id="reason" 
                   className="w-full" 
@@ -436,8 +447,7 @@ const Leaves = () => {
                   rows={4}
                   maxLength={500}
                 />
-                <label htmlFor="reason">Reason for Leave *</label>
-              </span>
+              </div>
             </div>
           </div>
         </Dialog>
