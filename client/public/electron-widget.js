@@ -1,31 +1,63 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
+// Import optional dependencies
+let autoLaunch, Store;
+try {
+  autoLaunch = require('electron-auto-launch');
+  Store = require('electron-store');
+} catch (err) {
+  console.log('Optional dependencies not available:', err.message);
+}
+
 let mainWindow;
+let store;
+
+// Initialize persistent storage
+if (Store) {
+  store = new Store({
+    defaults: {
+      windowBounds: { width: 350, height: 400, x: 0, y: 0 },
+      opacity: 0.9,
+      alwaysOnTop: true,
+      autoLaunch: true
+    }
+  });
+}
 
 function createWindow() {
-  // Create the browser window - small widget size
+  // Get saved window bounds or use defaults
+  const savedBounds = store ? store.get('windowBounds') : { width: 350, height: 400, x: 0, y: 0 };
+  
+  // Create the browser window - sticky note style
   mainWindow = new BrowserWindow({
-    width: 380,
-    height: 500,
+    width: savedBounds.width,
+    height: savedBounds.height,
+    x: savedBounds.x,
+    y: savedBounds.y,
     maxWidth: 400,
     maxHeight: 600,
-    minWidth: 350,
-    minHeight: 400,
+    minWidth: 300,
+    minHeight: 350,
     resizable: true,
-    frame: true,
+    frame: false, // Frameless window
+    transparent: true, // Transparent background
+    alwaysOnTop: store ? store.get('alwaysOnTop') : true, // Always on top
+    skipTaskbar: true, // Don't show in taskbar
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
       webSecurity: true,
-      sandbox: false
+      sandbox: false,
+      preload: path.join(__dirname, 'preload-widget.js') // Add preload script
     },
     icon: path.join(__dirname, 'assets/icon.png'),
     show: false,
-    titleBarStyle: 'default',
-    alwaysOnTop: false
+    titleBarStyle: 'hidden',
+    vibrancy: 'under-window', // macOS vibrancy effect
+    visualEffectState: 'active'
   });
 
   // Load the widget app
@@ -41,13 +73,34 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     
-    // Position window at top-right of screen
-    const { screen } = require('electron');
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
+    // Set opacity from store
+    if (store) {
+      const opacity = store.get('opacity');
+      mainWindow.setOpacity(opacity);
+    }
     
-    mainWindow.setPosition(width - 400, 50);
+    // Position window at top-right of screen if no saved position
+    if (!store || !store.get('windowBounds.x')) {
+      const { screen } = require('electron');
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { width, height } = primaryDisplay.workAreaSize;
+      
+      mainWindow.setPosition(width - 400, 50);
+    }
   });
+
+  // Save window bounds when moved or resized
+  if (store) {
+    mainWindow.on('moved', () => {
+      const bounds = mainWindow.getBounds();
+      store.set('windowBounds', bounds);
+    });
+
+    mainWindow.on('resized', () => {
+      const bounds = mainWindow.getBounds();
+      store.set('windowBounds', bounds);
+    });
+  }
 
   // Handle window closed
   mainWindow.on('closed', () => {
@@ -69,20 +122,126 @@ function createWindow() {
   });
 }
 
+// IPC handlers for widget controls
+ipcMain.handle('widget-minimize', () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.handle('widget-close', () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+ipcMain.handle('widget-toggle-always-on-top', () => {
+  if (mainWindow) {
+    const isAlwaysOnTop = mainWindow.isAlwaysOnTop();
+    mainWindow.setAlwaysOnTop(!isAlwaysOnTop);
+    if (store) {
+      store.set('alwaysOnTop', !isAlwaysOnTop);
+    }
+    return !isAlwaysOnTop;
+  }
+});
+
+ipcMain.handle('widget-set-opacity', (event, opacity) => {
+  if (mainWindow) {
+    mainWindow.setOpacity(opacity);
+    if (store) {
+      store.set('opacity', opacity);
+    }
+  }
+});
+
+ipcMain.handle('widget-get-settings', () => {
+  if (store) {
+    return {
+      opacity: store.get('opacity'),
+      alwaysOnTop: store.get('alwaysOnTop'),
+      autoLaunch: store.get('autoLaunch')
+    };
+  }
+  return { opacity: 0.9, alwaysOnTop: true, autoLaunch: true };
+});
+
+ipcMain.handle('widget-toggle-auto-launch', () => {
+  if (autoLaunch && store) {
+    const currentSetting = store.get('autoLaunch');
+    const newSetting = !currentSetting;
+    
+    if (newSetting) {
+      autoLaunch.enable();
+    } else {
+      autoLaunch.disable();
+    }
+    
+    store.set('autoLaunch', newSetting);
+    return newSetting;
+  }
+  return false;
+});
+
 // Create a minimal menu for the widget
 function createMenu() {
   const template = [
     {
-      label: 'App',
+      label: 'Widget',
       submenu: [
+        {
+          label: 'Minimize',
+          accelerator: 'CmdOrCtrl+M',
+          click: () => {
+            if (mainWindow) mainWindow.minimize();
+          }
+        },
+        {
+          label: 'Always on Top',
+          type: 'checkbox',
+          checked: store ? store.get('alwaysOnTop') : true,
+          click: (menuItem) => {
+            if (mainWindow) {
+              mainWindow.setAlwaysOnTop(menuItem.checked);
+              if (store) store.set('alwaysOnTop', menuItem.checked);
+            }
+          }
+        },
+        {
+          label: 'Auto Launch',
+          type: 'checkbox',
+          checked: store ? store.get('autoLaunch') : true,
+          click: (menuItem) => {
+            if (autoLaunch && store) {
+              if (menuItem.checked) {
+                autoLaunch.enable();
+              } else {
+                autoLaunch.disable();
+              }
+              store.set('autoLaunch', menuItem.checked);
+            }
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Opacity',
+          submenu: [
+            { label: '100%', click: () => { if (mainWindow) { mainWindow.setOpacity(1.0); if (store) store.set('opacity', 1.0); } } },
+            { label: '90%', click: () => { if (mainWindow) { mainWindow.setOpacity(0.9); if (store) store.set('opacity', 0.9); } } },
+            { label: '80%', click: () => { if (mainWindow) { mainWindow.setOpacity(0.8); if (store) store.set('opacity', 0.8); } } },
+            { label: '70%', click: () => { if (mainWindow) { mainWindow.setOpacity(0.7); if (store) store.set('opacity', 0.7); } } },
+            { label: '60%', click: () => { if (mainWindow) { mainWindow.setOpacity(0.6); if (store) store.set('opacity', 0.6); } } }
+          ]
+        },
+        { type: 'separator' },
         {
           label: 'About',
           click: () => {
             require('electron').dialog.showMessageBox(mainWindow, {
               type: 'info',
-              title: 'About Attendance Widget',
-              message: 'HRMS Attendance Widget',
-              detail: 'Simple desktop attendance tracker'
+              title: 'About HRMS Widget',
+              message: 'HRMS Sticky Note Widget',
+              detail: 'A transparent, always-on-top attendance widget\nVersion 1.0.0\n\nFeatures:\n• Frameless & Transparent\n• Always on Top\n• Auto Launch\n• Draggable\n• Persistent Settings'
             });
           }
         },
@@ -105,23 +264,7 @@ function createMenu() {
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' }
-      ]
-    },
-    {
-      label: 'Window',
-      submenu: [
-        { role: 'minimize' },
-        { role: 'close' },
-        {
-          label: 'Always on Top',
-          type: 'checkbox',
-          click: (menuItem) => {
-            mainWindow.setAlwaysOnTop(menuItem.checked);
-          }
-        }
+        { role: 'zoomOut' }
       ]
     }
   ];
@@ -132,6 +275,14 @@ function createMenu() {
 
 // App event handlers
 app.whenReady().then(() => {
+  // Setup auto-launch if available
+  if (autoLaunch && store) {
+    const shouldAutoLaunch = store.get('autoLaunch');
+    if (shouldAutoLaunch) {
+      autoLaunch.enable();
+    }
+  }
+
   createWindow();
   createMenu();
 

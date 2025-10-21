@@ -145,12 +145,20 @@ router.delete('/:widgetId', authenticateToken, authorize('admin', 'hr_admin', 'm
 // Create or update "Performer of the Day" widget
 router.post('/performer-of-day', authenticateToken, authorize('admin', 'hr_admin', 'manager'), async (req, res) => {
   try {
-    const { employeeName, department, achievement, reason, isVisible } = req.body;
+    const { performers, isVisible } = req.body;
     const userId = req.user._id;
 
-    if (!employeeName || !department || !achievement) {
+    if (!performers || !Array.isArray(performers) || performers.length === 0) {
       return res.status(400).json({ 
-        message: 'Employee name, department, and achievement are required' 
+        message: 'At least one performer name is required' 
+      });
+    }
+
+    // Validate that all performers have names
+    const validPerformers = performers.filter(performer => performer.name && performer.name.trim());
+    if (validPerformers.length === 0) {
+      return res.status(400).json({ 
+        message: 'At least one valid performer name is required' 
       });
     }
 
@@ -158,10 +166,7 @@ router.post('/performer-of-day', authenticateToken, authorize('admin', 'hr_admin
     let widget = await DashboardWidget.findOne({ name: 'performer-of-day' });
 
     const performerData = {
-      employeeName,
-      department,
-      achievement,
-      reason: reason || '',
+      performers: validPerformers,
       date: new Date().toISOString().split('T')[0], // Today's date
       updatedBy: req.user.fullName || `${req.user.firstName} ${req.user.lastName}`,
       updatedAt: new Date().toISOString()
@@ -179,8 +184,8 @@ router.post('/performer-of-day', authenticateToken, authorize('admin', 'hr_admin
       widget = new DashboardWidget({
         name: 'performer-of-day',
         type: 'announcement',
-        title: 'Performer of the Day',
-        description: 'Today\'s top performing employee',
+        title: 'Performers of the Day',
+        description: 'Today\'s top performing employees',
         performerData: performerData, // Store in custom field
         isVisible: isVisible !== undefined ? isVisible : true,
         isPublic: true,
@@ -193,12 +198,12 @@ router.post('/performer-of-day', authenticateToken, authorize('admin', 'hr_admin
     await widget.populate('createdBy', 'firstName lastName email');
 
     res.json({
-      message: 'Performer of the day updated successfully',
+      message: 'Performers of the day updated successfully',
       widget
     });
   } catch (error) {
     console.error('Create/update performer of day error:', error);
-    res.status(500).json({ message: 'Failed to update performer of the day', error: error.message });
+    res.status(500).json({ message: 'Failed to update performers of the day', error: error.message });
   }
 });
 
@@ -211,25 +216,30 @@ router.get('/performer-of-day', dashboardLimiter, async (req, res) => {
       isPublic: true
     });
 
+    console.log('Found widget:', widget); // Debug log
+
     if (!widget) {
+      console.log('No widget found'); // Debug log
       return res.json({ 
-        message: 'No performer of the day set',
+        message: 'No performers of the day set',
         widget: null 
       });
     }
 
     // Check if widget has actual performer data
-    if (!widget.performerData || !widget.performerData.employeeName) {
+    if (!widget.performerData || !widget.performerData.performers || widget.performerData.performers.length === 0) {
+      console.log('No valid performer data:', widget.performerData); // Debug log
       return res.json({ 
-        message: 'No performer of the day data available',
+        message: 'No performers of the day data available',
         widget: null 
       });
     }
 
+    console.log('Returning widget with performers:', widget.performerData.performers); // Debug log
     res.json({ widget });
   } catch (error) {
     console.error('Get performer of day error:', error);
-    res.status(500).json({ message: 'Failed to fetch performer of the day', error: error.message });
+    res.status(500).json({ message: 'Failed to fetch performers of the day', error: error.message });
   }
 });
 
@@ -237,7 +247,7 @@ router.get('/performer-of-day', dashboardLimiter, async (req, res) => {
 router.put('/performer-of-day/hide', authenticateToken, authorize('admin', 'hr_admin', 'manager'), async (req, res) => {
   try {
     const widget = await DashboardWidget.findOne({ name: 'performer-of-day' });
-    
+
     if (!widget) {
       return res.status(404).json({ message: 'Performer of the day widget not found' });
     }
@@ -250,6 +260,103 @@ router.put('/performer-of-day/hide', authenticateToken, authorize('admin', 'hr_a
   } catch (error) {
     console.error('Hide performer of day error:', error);
     res.status(500).json({ message: 'Failed to hide performer of the day', error: error.message });
+  }
+});
+
+// Create or update Team Data widget
+router.post('/team-data', authenticateToken, authorize('admin', 'hr_admin', 'manager'), async (req, res) => {
+  try {
+    const { teamAlpha, teamBeta, isVisible } = req.body;
+    const userId = req.user._id;
+
+    if (!teamAlpha || !teamBeta) {
+      return res.status(400).json({ 
+        message: 'Team Alpha and Team Beta data are required' 
+      });
+    }
+
+    // Check if team data widget already exists
+    let widget = await DashboardWidget.findOne({ name: 'team-data' });
+
+    const teamData = {
+      teamAlpha: {
+        name: teamAlpha.name || 'Team Alpha',
+        actualCalls: teamAlpha.actualCalls || 0,
+        expectedCalls: teamAlpha.expectedCalls || 0
+      },
+      teamBeta: {
+        name: teamBeta.name || 'Team Beta',
+        actualCalls: teamBeta.actualCalls || 0,
+        expectedCalls: teamBeta.expectedCalls || 0
+      },
+      date: new Date().toISOString().split('T')[0], // Today's date
+      updatedBy: req.user.fullName || `${req.user.firstName} ${req.user.lastName}`,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (widget) {
+      // Update existing widget
+      widget.teamData = teamData;
+      widget.isVisible = isVisible !== undefined ? isVisible : true;
+      widget.isPublic = true; // Always public for live dashboard
+      widget.lastUpdated = new Date();
+      await widget.save();
+    } else {
+      // Create new widget
+      widget = new DashboardWidget({
+        name: 'team-data',
+        type: 'team-donut-chart',
+        title: 'Team Performance',
+        description: 'Team Alpha and Beta call performance',
+        teamData: teamData,
+        isVisible: isVisible !== undefined ? isVisible : true,
+        isPublic: true,
+        createdBy: userId,
+        lastUpdated: new Date()
+      });
+      await widget.save();
+    }
+
+    await widget.populate('createdBy', 'firstName lastName email');
+
+    res.json({
+      message: 'Team data updated successfully',
+      widget
+    });
+  } catch (error) {
+    console.error('Create/update team data error:', error);
+    res.status(500).json({ message: 'Failed to update team data', error: error.message });
+  }
+});
+
+// Get Team Data widget
+router.get('/team-data', dashboardLimiter, async (req, res) => {
+  try {
+    const widget = await DashboardWidget.findOne({ 
+      name: 'team-data',
+      isVisible: true,
+      isPublic: true
+    });
+
+    if (!widget) {
+      return res.json({ 
+        message: 'No team data set',
+        widget: null 
+      });
+    }
+
+    // Check if widget has actual team data
+    if (!widget.teamData || !widget.teamData.teamAlpha || !widget.teamData.teamBeta) {
+      return res.json({ 
+        message: 'No team data available',
+        widget: null 
+      });
+    }
+
+    res.json({ widget });
+  } catch (error) {
+    console.error('Get team data error:', error);
+    res.status(500).json({ message: 'Failed to fetch team data', error: error.message });
   }
 });
 

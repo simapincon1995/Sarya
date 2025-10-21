@@ -13,16 +13,20 @@ import { Toast } from 'primereact/toast';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
 import { leaveService } from '../services/leaveService';
+import { usePopupState, useFormSubmission } from '../hooks/usePopupState';
 
 const Leaves = () => {
   const [leaves, setLeaves] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  
+  // Use custom popup hooks for better state management
+  const editorPopup = usePopupState(false);
+  const detailPopup = usePopupState(false);
+  const { submitForm } = useFormSubmission(editorPopup);
+  
   const [editorMode, setEditorMode] = useState('create'); // 'create' | 'edit'
   const [editingLeave, setEditingLeave] = useState(null);
   const [viewingLeave, setViewingLeave] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     leaveType: '',
     startDate: null,
@@ -66,7 +70,7 @@ const Leaves = () => {
       isHalfDay: false,
       halfDayPeriod: 'morning'
     });
-    setIsEditorOpen(true);
+    editorPopup.openPopup();
   };
 
   const openEdit = (row) => {
@@ -80,21 +84,21 @@ const Leaves = () => {
       isHalfDay: row.isHalfDay || false,
       halfDayPeriod: row.halfDayPeriod || 'morning'
     });
-    setIsEditorOpen(true);
+    editorPopup.openPopup();
   };
 
   const openDetail = (row) => {
     setViewingLeave(row);
-    setIsDetailOpen(true);
+    detailPopup.openPopup();
   };
 
   const closeEditor = () => {
-    setIsEditorOpen(false);
+    editorPopup.closePopup();
     setEditingLeave(null);
   };
 
   const closeDetail = () => {
-    setIsDetailOpen(false);
+    detailPopup.closePopup();
     setViewingLeave(null);
   };
 
@@ -102,35 +106,87 @@ const Leaves = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const submitForm = async () => {
-    try {
-      setIsSubmitting(true);
-      if (editorMode === 'create') {
-        await leaveService.applyLeave(formData);
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Leave application submitted successfully'
-        });
-      } else if (editingLeave) {
-        await leaveService.updateLeave(editingLeave._id, formData);
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Leave application updated successfully'
-        });
-      }
-      closeEditor();
-      await loadLeaves();
-    } catch (error) {
-      console.error('Save leave failed:', error);
+  const handleSubmitForm = async () => {
+    // Validate required fields
+    if (!formData.leaveType) {
       toast.current?.show({
         severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to save leave application'
+        summary: 'Validation Error',
+        detail: 'Please select a leave type'
       });
-    } finally {
-      setIsSubmitting(false);
+      return;
+    }
+
+    if (!formData.startDate) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please select a start date'
+      });
+      return;
+    }
+
+    if (!formData.endDate) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please select an end date'
+      });
+      return;
+    }
+
+    if (!formData.reason || formData.reason.trim() === '') {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please provide a reason for leave'
+      });
+      return;
+    }
+
+    // Validate date logic
+    if (formData.startDate >= formData.endDate) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'End date must be after start date'
+      });
+      return;
+    }
+
+    // Prepare data for submission
+    const submitData = {
+      leaveType: formData.leaveType,
+      startDate: formData.startDate.toISOString().split('T')[0],
+      endDate: formData.endDate.toISOString().split('T')[0],
+      reason: formData.reason.trim(),
+      isHalfDay: formData.isHalfDay,
+      halfDayPeriod: formData.halfDayPeriod
+    };
+
+    try {
+      await submitForm(async () => {
+        if (editorMode === 'create') {
+          await leaveService.applyLeave(submitData);
+          toast.current?.show({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Leave application submitted successfully'
+          });
+        } else if (editingLeave) {
+          await leaveService.updateLeave(editingLeave._id, submitData);
+          toast.current?.show({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Leave application updated successfully'
+          });
+        }
+      }, async () => {
+        await loadLeaves();
+      });
+    } catch (error) {
+      // Error is already handled by the hook, but we can add additional handling here if needed
+      console.error('Leave submission error:', error);
     }
   };
 
@@ -351,22 +407,37 @@ const Leaves = () => {
         {/* Leave Application Dialog */}
         <Dialog
           header={editorMode === 'create' ? 'Apply Leave' : 'Edit Leave Application'}
-          visible={isEditorOpen}
+          visible={editorPopup.isOpen}
           style={{ width: '600px' }}
           modal
           onHide={closeEditor}
           footer={
             <div className="flex justify-content-end gap-2">
-              <Button label="Cancel" className="p-button-text" onClick={closeEditor} />
+              <Button 
+                label="Cancel" 
+                className="p-button-text" 
+                onClick={closeEditor}
+                disabled={editorPopup.isLoading}
+              />
               <Button 
                 label={editorMode === 'create' ? 'Apply' : 'Update'} 
                 icon="pi pi-check" 
-                loading={isSubmitting} 
-                onClick={submitForm} 
+                loading={editorPopup.isLoading} 
+                onClick={handleSubmitForm}
+                disabled={editorPopup.isLoading}
               />
             </div>
           }
         >
+          {editorPopup.error && (
+            <div className="mb-3 p-3 border-round surface-100 border-1 border-red-200">
+              <div className="flex align-items-center gap-2 text-red-600">
+                <i className="pi pi-exclamation-triangle"></i>
+                <span className="font-medium">Error:</span>
+                <span>{editorPopup.error}</span>
+              </div>
+            </div>
+          )}
           <div className="grid">
             <div className="col-12 md:col-6">
               <div className="field">
@@ -417,6 +488,23 @@ const Leaves = () => {
               </div>
             </div>
 
+            <div className="col-12 md:col-6">
+              <div className="field">
+                <div className="flex align-items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isHalfDay"
+                    checked={formData.isHalfDay}
+                    onChange={(e) => onFormChange('isHalfDay', e.target.checked)}
+                    className="mr-2"
+                  />
+                  <label htmlFor="isHalfDay" className="text-sm font-medium">
+                    Half Day Leave
+                  </label>
+                </div>
+              </div>
+            </div>
+
             {formData.isHalfDay && (
               <div className="col-12 md:col-6">
                 <div className="field">
@@ -455,7 +543,7 @@ const Leaves = () => {
         {/* Leave Detail Dialog */}
         <Dialog
           header="Leave Application Details"
-          visible={isDetailOpen}
+          visible={detailPopup.isOpen}
           style={{ width: '600px' }}
           modal
           onHide={closeDetail}

@@ -1,16 +1,17 @@
 {
-  "appId": "com.shirinq.connect",
-  "productName": "ShirinQ Connect",
+  "appId": "com.sarya.connective.widget",
+  "productName": "HRMS Widget",
   "directories": {
-    "output": "dist"
+    "output": "dist-widget"
   },
   "files": [
     "build/**/*",
-    "public/electron.js",
+    "public/electron-widget.js",
+    "public/preload-widget.js",
     "node_modules/**/*"
   ],
   "mac": {
-    "category": "public.app-category.business",
+    "category": "public.app-category.productivity",
     "target": [
       {
         "target": "dmg",
@@ -26,7 +27,9 @@
         "arch": ["x64", "ia32"]
       }
     ],
-    "icon": "public/assets/icon.ico"
+    "icon": "public/assets/icon.ico",
+    "publisherName": "Sarya Connective Team",
+    "verifyUpdateCodeSignature": false
   },
   "linux": {
     "target": [
@@ -42,5 +45,8 @@
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true
-  }
+  },
+  "publish": null,
+  "afterSign": null,
+  "forceCodeSigning": false
 }

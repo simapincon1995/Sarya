@@ -15,16 +15,20 @@ import { Toast } from 'primereact/toast';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
 import { holidayService } from '../services/holidayService';
+import { usePopupState, useFormSubmission } from '../hooks/usePopupState';
 
 const Holidays = () => {
   const [holidays, setHolidays] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  
+  // Use custom popup hooks for better state management
+  const editorPopup = usePopupState(false);
+  const detailPopup = usePopupState(false);
+  const { submitForm } = useFormSubmission(editorPopup);
+  
   const [editorMode, setEditorMode] = useState('create'); // 'create' | 'edit'
   const [editingHoliday, setEditingHoliday] = useState(null);
   const [viewingHoliday, setViewingHoliday] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     date: null,
@@ -68,7 +72,7 @@ const Holidays = () => {
       isPaid: true,
       isActive: true
     });
-    setIsEditorOpen(true);
+    editorPopup.openPopup();
   };
 
   const openEdit = (row) => {
@@ -82,21 +86,21 @@ const Holidays = () => {
       isPaid: row.isPaid !== undefined ? row.isPaid : true,
       isActive: row.isActive !== undefined ? row.isActive : true
     });
-    setIsEditorOpen(true);
+    editorPopup.openPopup();
   };
 
   const openDetail = (row) => {
     setViewingHoliday(row);
-    setIsDetailOpen(true);
+    detailPopup.openPopup();
   };
 
   const closeEditor = () => {
-    setIsEditorOpen(false);
+    editorPopup.closePopup();
     setEditingHoliday(null);
   };
 
   const closeDetail = () => {
-    setIsDetailOpen(false);
+    detailPopup.closePopup();
     setViewingHoliday(null);
   };
 
@@ -104,35 +108,57 @@ const Holidays = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const submitForm = async () => {
-    try {
-      setIsSubmitting(true);
-      if (editorMode === 'create') {
-        await holidayService.createHoliday(formData);
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Holiday created successfully'
-        });
-      } else if (editingHoliday) {
-        await holidayService.updateHoliday(editingHoliday._id, formData);
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Holiday updated successfully'
-        });
-      }
-      closeEditor();
-      await loadHolidays();
-    } catch (error) {
-      console.error('Save holiday failed:', error);
+  const handleSubmitForm = async () => {
+    // Validate required fields
+    if (!formData.name || formData.name.trim() === '') {
       toast.current?.show({
         severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to save holiday'
+        summary: 'Validation Error',
+        detail: 'Please enter a holiday name'
       });
-    } finally {
-      setIsSubmitting(false);
+      return;
+    }
+
+    if (!formData.date) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please select a date'
+      });
+      return;
+    }
+
+    if (!formData.type) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please select a holiday type'
+      });
+      return;
+    }
+
+    try {
+      await submitForm(async () => {
+        if (editorMode === 'create') {
+          await holidayService.createHoliday(formData);
+          toast.current?.show({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Holiday created successfully'
+          });
+        } else if (editingHoliday) {
+          await holidayService.updateHoliday(editingHoliday._id, formData);
+          toast.current?.show({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Holiday updated successfully'
+          });
+        }
+      }, async () => {
+        await loadHolidays();
+      });
+    } catch (error) {
+      console.error('Holiday submission error:', error);
     }
   };
 
@@ -313,22 +339,37 @@ const Holidays = () => {
         {/* Holiday Editor Dialog */}
         <Dialog
           header={editorMode === 'create' ? 'Add Holiday' : 'Edit Holiday'}
-          visible={isEditorOpen}
+          visible={editorPopup.isOpen}
           style={{ width: '600px' }}
           modal
           onHide={closeEditor}
           footer={
             <div className="flex justify-content-end gap-2">
-              <Button label="Cancel" className="p-button-text" onClick={closeEditor} />
+              <Button 
+                label="Cancel" 
+                className="p-button-text" 
+                onClick={closeEditor}
+                disabled={editorPopup.isLoading}
+              />
               <Button 
                 label={editorMode === 'create' ? 'Add' : 'Update'} 
                 icon="pi pi-check" 
-                loading={isSubmitting} 
-                onClick={submitForm} 
+                loading={editorPopup.isLoading} 
+                onClick={handleSubmitForm}
+                disabled={editorPopup.isLoading}
               />
             </div>
           }
         >
+          {editorPopup.error && (
+            <div className="mb-3 p-3 border-round surface-100 border-1 border-red-200">
+              <div className="flex align-items-center gap-2 text-red-600">
+                <i className="pi pi-exclamation-triangle"></i>
+                <span className="font-medium">Error:</span>
+                <span>{editorPopup.error}</span>
+              </div>
+            </div>
+          )}
           <div className="grid">
             <div className="col-12 md:col-6">
               <div className="field">
@@ -417,7 +458,7 @@ const Holidays = () => {
         {/* Holiday Detail Dialog */}
         <Dialog
           header="Holiday Details"
-          visible={isDetailOpen}
+          visible={detailPopup.isOpen}
           style={{ width: '600px' }}
           modal
           onHide={closeDetail}

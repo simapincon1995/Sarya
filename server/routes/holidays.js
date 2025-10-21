@@ -75,17 +75,28 @@ router.post('/', authenticateToken, authorize('admin', 'hr_admin'), async (req, 
       workingHours
     } = req.body;
 
+    // Validate required fields
+    if (!name || !date || !type) {
+      return res.status(400).json({ message: 'Missing required fields: name, date, type' });
+    }
+
     const createdBy = req.user._id;
 
     // Check if holiday already exists on this date
-    const existingHoliday = await Holiday.findOne({ date: new Date(date) });
+    const holidayDate = new Date(date);
+    const existingHoliday = await Holiday.findOne({ 
+      date: {
+        $gte: new Date(holidayDate.getFullYear(), holidayDate.getMonth(), holidayDate.getDate()),
+        $lt: new Date(holidayDate.getFullYear(), holidayDate.getMonth(), holidayDate.getDate() + 1)
+      }
+    });
     if (existingHoliday) {
       return res.status(400).json({ message: 'Holiday already exists on this date' });
     }
 
     const holiday = new Holiday({
       name,
-      date: new Date(date),
+      date: holidayDate,
       type,
       description,
       isRecurring,
@@ -140,14 +151,14 @@ router.put('/:holidayId', authenticateToken, authorize('admin', 'hr_admin'), asy
     }
 
     // Update fields
-    if (name) holiday.name = name;
-    if (date) holiday.date = new Date(date);
-    if (type) holiday.type = type;
-    if (description) holiday.description = description;
+    if (name !== undefined) holiday.name = name;
+    if (date !== undefined) holiday.date = new Date(date);
+    if (type !== undefined) holiday.type = type;
+    if (description !== undefined) holiday.description = description;
     if (isRecurring !== undefined) holiday.isRecurring = isRecurring;
-    if (recurringPattern) holiday.recurringPattern = recurringPattern;
-    if (applicableDepartments) holiday.applicableDepartments = applicableDepartments;
-    if (applicableLocations) holiday.applicableLocations = applicableLocations;
+    if (recurringPattern !== undefined) holiday.recurringPattern = recurringPattern;
+    if (applicableDepartments !== undefined) holiday.applicableDepartments = applicableDepartments;
+    if (applicableLocations !== undefined) holiday.applicableLocations = applicableLocations;
     if (isPaid !== undefined) holiday.isPaid = isPaid;
     if (workingHours !== undefined) holiday.workingHours = workingHours;
     if (isActive !== undefined) holiday.isActive = isActive;

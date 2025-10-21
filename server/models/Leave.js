@@ -58,7 +58,7 @@ const leaveSchema = new mongoose.Schema({
   },
   halfDayType: {
     type: String,
-    enum: ['first-half', 'second-half'],
+    enum: ['first-half', 'second-half', 'morning', 'afternoon'],
     required: function() {
       return this.isHalfDay;
     }
@@ -106,7 +106,16 @@ leaveSchema.pre('save', function(next) {
     return next(new Error('End date must be after start date'));
   }
   
-  // Calculate total days
+  // Map frontend halfDayPeriod to backend halfDayType
+  if (this.isHalfDay && this.halfDayType) {
+    if (this.halfDayType === 'morning') {
+      this.halfDayType = 'first-half';
+    } else if (this.halfDayType === 'afternoon') {
+      this.halfDayType = 'second-half';
+    }
+  }
+  
+  // Calculate total days - ensure this runs even if totalDays is already set
   const timeDiff = this.endDate.getTime() - this.startDate.getTime();
   const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
   
@@ -114,6 +123,11 @@ leaveSchema.pre('save', function(next) {
     this.totalDays = 0.5;
   } else {
     this.totalDays = daysDiff;
+  }
+  
+  // Ensure totalDays is always set
+  if (!this.totalDays || this.totalDays <= 0) {
+    this.totalDays = this.isHalfDay ? 0.5 : 1;
   }
   
   next();

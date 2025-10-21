@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
+import { Chart } from 'primereact/chart';
 import { useSocket } from '../contexts/SocketContext';
 import { attendanceService } from '../services/attendanceService';
 import { dashboardService } from '../services/dashboardService';
@@ -11,6 +12,7 @@ const PublicLiveDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [performerOfDay, setPerformerOfDay] = useState(null);
   const [customWidgets, setCustomWidgets] = useState([]);
+  const [teamData, setTeamData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [lastRequestTime, setLastRequestTime] = useState({});
@@ -49,10 +51,13 @@ const PublicLiveDashboard = () => {
     
     try {
       const response = await dashboardService.getPerformerOfDay();
-      // Only set performer if widget exists and has performerData
-      if (response.widget && response.widget.performerData && response.widget.performerData.employeeName) {
+      console.log('Performer response:', response); // Debug log
+      // Only set performer if widget exists and has performerData with performers array
+      if (response.widget && response.widget.performerData && response.widget.performerData.performers && response.widget.performerData.performers.length > 0) {
+        console.log('Setting performer data:', response.widget.performerData); // Debug log
         setPerformerOfDay(response.widget);
       } else {
+        console.log('No valid performer data found'); // Debug log
         setPerformerOfDay(null);
       }
     } catch (error) {
@@ -64,14 +69,37 @@ const PublicLiveDashboard = () => {
     }
   }, [throttleRequest]);
 
+  const loadTeamData = useCallback(async () => {
+    if (!throttleRequest('team', 10000)) return; // Min 10 seconds between team data calls
+    
+    try {
+      const response = await dashboardService.getTeamData();
+      console.log('Team data response:', response); // Debug log
+      if (response.widget && response.widget.teamData) {
+        setTeamData(response.widget.teamData);
+      } else {
+        setTeamData(null);
+      }
+    } catch (error) {
+      console.error('Error loading team data:', error);
+      setTeamData(null);
+    }
+  }, [throttleRequest]);
+
   const loadCustomWidgets = useCallback(async () => {
     if (!throttleRequest('widgets', 20000)) return; // Min 20 seconds between widget calls
     
     try {
       const response = await dashboardService.getPublicDashboardWidgets();
-      // Filter out performer of day and limit to 3 custom widgets
+      // Filter out performer of day, team data widgets and limit to 3 custom widgets
       const customWidgets = response.widgets
-        .filter(widget => widget.name !== 'performer-of-day' && widget.isVisible && widget.isPublic)
+        .filter(widget => 
+          widget.name !== 'performer-of-day' && 
+          widget.type !== 'team-donut-chart' && 
+          widget.type !== 'team-data' &&
+          widget.isVisible && 
+          widget.isPublic
+        )
         .slice(0, 3);
       setCustomWidgets(customWidgets);
     } catch (error) {
@@ -86,14 +114,16 @@ const PublicLiveDashboard = () => {
   useEffect(() => {
     loadDashboardData();
     loadPerformerOfDay();
+    loadTeamData();
     loadCustomWidgets();
     const interval = setInterval(() => {
       loadDashboardData();
       loadPerformerOfDay();
+      loadTeamData();
       loadCustomWidgets();
     }, 60000); // Refresh every 60 seconds (increased from 30 seconds)
     return () => clearInterval(interval);
-  }, [loadDashboardData, loadPerformerOfDay, loadCustomWidgets]);
+  }, [loadDashboardData, loadPerformerOfDay, loadTeamData, loadCustomWidgets]);
 
   useEffect(() => {
     if (realtimeData.attendance || realtimeData.leaves || realtimeData.dashboard) {
@@ -101,19 +131,160 @@ const PublicLiveDashboard = () => {
     }
   }, [realtimeData, loadDashboardData]);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
+  const toggleFullscreen = async () => {
+    console.log('PublicLiveDashboard: toggleFullscreen called'); // Debug log
+    const element = document.documentElement;
+    
+    if (!document.fullscreenElement && 
+        !document.webkitFullscreenElement && 
+        !document.mozFullScreenElement && 
+        !document.msFullscreenElement) {
+      console.log('PublicLiveDashboard: Attempting to enter fullscreen'); // Debug log
+      
+      try {
+        // Try different elements and methods
+        let fullscreenPromise = null;
+        
+        if (element.requestFullscreen) {
+          console.log('PublicLiveDashboard: Using standard requestFullscreen on documentElement'); // Debug log
+          fullscreenPromise = element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) {
+          console.log('PublicLiveDashboard: Using webkit requestFullscreen on documentElement'); // Debug log
+          fullscreenPromise = Promise.resolve(element.webkitRequestFullscreen());
+        } else if (element.mozRequestFullScreen) {
+          console.log('PublicLiveDashboard: Using moz requestFullScreen on documentElement'); // Debug log
+          fullscreenPromise = Promise.resolve(element.mozRequestFullScreen());
+        } else if (element.msRequestFullscreen) {
+          console.log('PublicLiveDashboard: Using ms requestFullscreen on documentElement'); // Debug log
+          fullscreenPromise = Promise.resolve(element.msRequestFullscreen());
+        } else {
+          // Fallback: try body element
+          const bodyElement = document.body;
+          if (bodyElement.requestFullscreen) {
+            console.log('PublicLiveDashboard: Using standard requestFullscreen on body'); // Debug log
+            fullscreenPromise = bodyElement.requestFullscreen();
+          } else if (bodyElement.webkitRequestFullscreen) {
+            console.log('PublicLiveDashboard: Using webkit requestFullscreen on body'); // Debug log
+            fullscreenPromise = Promise.resolve(bodyElement.webkitRequestFullscreen());
+          } else if (bodyElement.mozRequestFullScreen) {
+            console.log('PublicLiveDashboard: Using moz requestFullScreen on body'); // Debug log
+            fullscreenPromise = Promise.resolve(bodyElement.mozRequestFullScreen());
+          } else if (bodyElement.msRequestFullscreen) {
+            console.log('PublicLiveDashboard: Using ms requestFullscreen on body'); // Debug log
+            fullscreenPromise = Promise.resolve(bodyElement.msRequestFullscreen());
+          } else {
+            console.log('PublicLiveDashboard: No fullscreen API available'); // Debug log
+            return;
+          }
+        }
+        
+        if (fullscreenPromise) {
+          await fullscreenPromise;
+          console.log('PublicLiveDashboard: Successfully entered fullscreen'); // Debug log
+          setIsFullscreen(true);
+        }
+      } catch (err) {
+        console.error('PublicLiveDashboard: Error attempting to enable fullscreen:', err);
+        // Try alternative approach - just set the state and rely on CSS
+        console.log('PublicLiveDashboard: Falling back to CSS-only fullscreen mode');
+        setIsFullscreen(true);
+      }
     } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
+      console.log('PublicLiveDashboard: Attempting to exit fullscreen'); // Debug log
+      
+      try {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          console.log('PublicLiveDashboard: Using standard exitFullscreen'); // Debug log
+          await document.exitFullscreen();
+          console.log('PublicLiveDashboard: Successfully exited fullscreen'); // Debug log
+          setIsFullscreen(false);
+        } else if (document.webkitExitFullscreen) {
+          console.log('PublicLiveDashboard: Using webkit exitFullscreen'); // Debug log
+          document.webkitExitFullscreen();
+          setIsFullscreen(false);
+        } else if (document.mozCancelFullScreen) {
+          console.log('PublicLiveDashboard: Using moz cancelFullScreen'); // Debug log
+          document.mozCancelFullScreen();
+          setIsFullscreen(false);
+        } else if (document.msExitFullscreen) {
+          console.log('PublicLiveDashboard: Using ms exitFullscreen'); // Debug log
+          document.msExitFullscreen();
+          setIsFullscreen(false);
+        }
+      } catch (err) {
+        console.error('PublicLiveDashboard: Error attempting to exit fullscreen:', err);
+        // Fallback: just set the state
+        setIsFullscreen(false);
+      }
     }
   };
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      console.log('PublicLiveDashboard: Fullscreen change event triggered'); // Debug log
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+      console.log('PublicLiveDashboard: Current fullscreen state:', isCurrentlyFullscreen); // Debug log
+      setIsFullscreen(isCurrentlyFullscreen);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
 
   if (isLoading) {
     return <LoadingSpinner message="Loading live dashboard..." />;
   }
+
+  // Chart configuration for team performance
+  const getTeamChartData = () => {
+    if (!teamData) return null;
+    
+    return {
+      labels: [teamData.teamAlpha?.name || 'Team Alpha', teamData.teamBeta?.name || 'Team Beta'],
+      datasets: [{
+        data: [
+          teamData.teamAlpha?.actualCalls || 0,
+          teamData.teamBeta?.actualCalls || 0
+        ],
+        backgroundColor: ['#4CAF50', '#2196F3'],
+        borderColor: ['#4CAF50', '#2196F3'],
+        borderWidth: 2
+      }]
+    };
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#B0B0B0',
+          font: {
+            size: 12
+          }
+        }
+      }
+    },
+    cutout: '60%'
+  };
 
   if (!dashboardData) {
     return (
@@ -164,19 +335,6 @@ const PublicLiveDashboard = () => {
           <div className="stats-grid">
             <Card className="stat-card">
               <div className="stat-icon">
-                <i className="pi pi-users" style={{ color: '#4CAF50' }}></i>
-              </div>
-              <div className="stat-content">
-                <div className="stat-value">{dashboardData.overview.totalEmployees}</div>
-                <div className="stat-label">Total Employees</div>
-                <div className="stat-comparison">
-                  <i className="pi pi-building"></i>
-                  All Roles
-                </div>
-              </div>
-            </Card>
-            <Card className="stat-card">
-              <div className="stat-icon">
                 <i className="pi pi-check-circle" style={{ color: '#2196F3' }}></i>
               </div>
               <div className="stat-content">
@@ -215,6 +373,25 @@ const PublicLiveDashboard = () => {
               </div>
             </Card>
             
+            {/* Static Attendance Rate Card */}
+            <Card className="stat-card attendance-rate-stat-card">
+              <div className="stat-icon">
+                <i className="pi pi-percentage" style={{ color: '#4CAF50' }}></i>
+              </div>
+              <div className="stat-content">
+                <div className="stat-value">
+                  {dashboardData.overview.totalEmployees > 0 
+                    ? Math.round((dashboardData.overview.presentToday / dashboardData.overview.totalEmployees) * 100)
+                    : 0}%
+                </div>
+                <div className="stat-label">Attendance Rate</div>
+                <div className="stat-comparison">
+                  <i className="pi pi-chart-pie"></i>
+                  Overall Rate
+                </div>
+              </div>
+            </Card>
+            
             {/* Performer of the Day Card in Statistics Row */}
             {performerOfDay ? (
               <Card className="performer-stat-card">
@@ -222,13 +399,20 @@ const PublicLiveDashboard = () => {
                   <i className="pi pi-trophy" style={{ color: '#2C2C2C' }}></i>
                 </div>
                 <div className="performer-stat-content">
-                  <div className="performer-stat-name">{performerOfDay.performerData.employeeName}</div>
-                  <div className="performer-stat-department">{performerOfDay.performerData.department}</div>
-                  <div className="performer-stat-achievement">{performerOfDay.performerData.achievement}</div>
-                  <div className="performer-stat-badge">
-                    <i className="performer-stat-badge-icon pi pi-trophy"></i>
-                    <span className="performer-stat-badge-text">Performer of the Day</span>
+                  <div className="performer-stat-title">Today's Performers</div>
+                  <div className="performers-list">
+                    {performerOfDay.performerData.performers.slice(-3).map((performer, index) => (
+                      <div key={index}>
+                        {performer.name}
+                      </div>
+                    ))}
+                    {performerOfDay.performerData.performers.length > 3 && (
+                      <div className="more-performers-indicator">
+                        +{performerOfDay.performerData.performers.length - 3} more
+                      </div>
+                    )}
                   </div>
+           
                 </div>
               </Card>
             ) : (
@@ -237,8 +421,8 @@ const PublicLiveDashboard = () => {
                   <i className="pi pi-star" style={{ color: '#666' }}></i>
                 </div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{ fontSize: '1.2rem', color: '#666' }}>No Performer</div>
-                  <div className="stat-label">Performer of the Day</div>
+                  <div className="stat-value" style={{ fontSize: '1.2rem', color: '#666' }}>No Performers</div>
+                  <div className="stat-label">Performers of the Day</div>
                   <div className="stat-comparison">
                     <i className="pi pi-info-circle"></i>
                     Not Set
@@ -248,7 +432,7 @@ const PublicLiveDashboard = () => {
             )}
           </div>
 
-          {/* Second Row - On Break, Attendance Rate, Recent Activity */}
+          {/* Second Row - On Break, Team Pie Charts, Recent Activity */}
           <div className="second-row-widgets">
             {/* On Break Widget */}
             <div className="on-break-widget">
@@ -284,16 +468,44 @@ const PublicLiveDashboard = () => {
               </Card>
             </div>
 
-            {/* Attendance Rate Widget */}
-            <div className="attendance-rate-widget">
-              <div className="rate-card">
-                <div className="rate-value">
-                  {dashboardData.overview.totalEmployees > 0 
-                    ? Math.round((dashboardData.overview.presentToday / dashboardData.overview.totalEmployees) * 100)
-                    : 0}%
-                </div>
-                <div className="rate-description">Attendance Rate</div>
-              </div>
+            {/* Team Performance Widget */}
+            <div className="team-performance-widget">
+              <Card title="Team Performance" className="widget-card">
+                {teamData ? (
+                  <div className="team-chart-container">
+                    <Chart 
+                      type="doughnut" 
+                      data={getTeamChartData()} 
+                      options={chartOptions}
+                      style={{ height: '200px', marginTop: '3rem' }}
+                    />
+                    <div className="team-stats">
+                      <div className="team-stat">
+                        <div className="team-stat-label">{teamData.teamAlpha?.name || 'Team Alpha'}</div>
+                        <div className="team-stat-value">
+                          {teamData.teamAlpha?.actualCalls || 0} / {teamData.teamAlpha?.expectedCalls || 0}
+                        </div>
+                        <div className="team-stat-subtext">Actual / Expected Calls</div>
+                      </div>
+                      <div className="team-stat">
+                        <div className="team-stat-label">{teamData.teamBeta?.name || 'Team Beta'}</div>
+                        <div className="team-stat-value">
+                          {teamData.teamBeta?.actualCalls || 0} / {teamData.teamBeta?.expectedCalls || 0}
+                        </div>
+                        <div className="team-stat-subtext">Actual / Expected Calls</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="no-team-data">
+                    <div className="no-data-icon">
+                      <i className="pi pi-chart-pie"></i>
+                    </div>
+                    <div className="no-data-text">Team Performance Data</div>
+                    <div className="no-data-subtext">Configure via Admin</div>
+                  </div>
+                )}
+              </Card>
             </div>
 
             {/* Recent Activity Widget */}
@@ -306,6 +518,7 @@ const PublicLiveDashboard = () => {
                         <th>Employee</th>
                         <th>Department</th>
                         <th>Time</th>
+                        <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -324,7 +537,13 @@ const PublicLiveDashboard = () => {
                               minute: '2-digit',
                               hour12: true
                             }) : 'N/A'}
-                            {activity.isLate && <span className="late-badge">Late</span>}
+                          </td>
+                          <td>
+                            {activity.isLate ? (
+                              <span className="late-status-badge">Late Check-in</span>
+                            ) : (
+                              <span className="ontime-status-badge">On Time</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -368,6 +587,43 @@ const PublicLiveDashboard = () => {
                         ) : (
                           <div>No data available</div>
                         )}
+                      </div>
+                    )}
+                    {widget.type === 'team-pie-chart' && (
+                      <div className="team-pie-chart-widget-content">
+                        <div className="team-charts-container">
+                          {/* Team 1 Pie Chart */}
+                          <div className="team-chart">
+                            <div className="team-chart-title">{widget.data?.team1Name || 'Team Alpha'}</div>
+                            <div className="pie-chart-placeholder">
+                              <div className="chart-icon">
+                                <i className="pi pi-chart-pie"></i>
+                              </div>
+                              <div className="chart-text">
+                                {widget.data?.team1Data?.present || 0} Present
+                              </div>
+                              <div className="chart-subtext">
+                                {widget.data?.team1Data?.total || 0} Total
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Team 2 Pie Chart */}
+                          <div className="team-chart">
+                            <div className="team-chart-title">{widget.data?.team2Name || 'Team Beta'}</div>
+                            <div className="pie-chart-placeholder">
+                              <div className="chart-icon">
+                                <i className="pi pi-chart-pie"></i>
+                              </div>
+                              <div className="chart-text">
+                                {widget.data?.team2Data?.present || 0} Present
+                              </div>
+                              <div className="chart-subtext">
+                                {widget.data?.team2Data?.total || 0} Total
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                     {widget.type === 'custom' && (

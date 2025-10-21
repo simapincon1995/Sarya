@@ -2,6 +2,7 @@ const express = require('express');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 const Holiday = require('../models/Holiday');
+const Organization = require('../models/Organization');
 const { authenticateToken, authorize, canAccessEmployee } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
 
@@ -65,19 +66,27 @@ router.post('/checkin', authenticateToken, async (req, res) => {
     };
 
     try {
-      const user = await User.findById(userId);
-      if (user && user.shift && user.shift.startTime) {
-        const [hours, minutes] = user.shift.startTime.split(':');
-        const shiftStartTime = new Date();
-        shiftStartTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      // Get organization work start time
+      const orgSettings = await Organization.getSettings();
+      const workStartTime = orgSettings.workingHours.start;
+      
+      if (workStartTime) {
+        const [hours, minutes] = workStartTime.split(':');
+        const workStartDateTime = new Date();
+        workStartDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-        if (attendance.checkIn.time > shiftStartTime) {
+        if (attendance.checkIn.time > workStartDateTime) {
           attendance.isLate = true;
-          attendance.lateMinutes = Math.floor((attendance.checkIn.time - shiftStartTime) / (1000 * 60));
+          attendance.lateMinutes = Math.floor((attendance.checkIn.time - workStartDateTime) / (1000 * 60));
+          attendance.status = 'late';
+        } else {
+          attendance.status = 'present';
         }
       }
-    } catch (shiftError) {
-      console.warn('Shift time calculation failed:', shiftError.message);
+    } catch (workTimeError) {
+      console.warn('Work time calculation failed:', workTimeError.message);
+      // Fallback to present status if work time calculation fails
+      attendance.status = 'present';
     }
 
     await attendance.save();

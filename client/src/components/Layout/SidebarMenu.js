@@ -17,12 +17,13 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
   const getMenuItems = () => {
     const items = [
       {
-        label: 'Dashboard',
-        icon: 'pi pi-home',
-        command: () => handleMenuClick('/dashboard'),
-        className: location.pathname === '/dashboard' ? 'active' : '',
-        title: 'Dashboard'
+        label: 'Live Dashboard',
+        icon: 'pi pi-desktop',
+        command: () => handleMenuClick('/live-dashboard'),
+        className: location.pathname === '/live-dashboard' ? 'active' : '',
+        title: 'Live Dashboard'
       }
+      
     ];
 
     // Employee Management
@@ -54,6 +55,9 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
         className: location.pathname === '/attendance-history' ? 'active' : '',
         title: 'Attendance History'
       });
+    }
+    if (hasPermission('view_own_data')) {
+      
     }
 
     // Leave Management
@@ -101,13 +105,7 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
     }
 
     // Live Dashboard
-    items.push({
-      label: 'Live Dashboard',
-      icon: 'pi pi-desktop',
-      command: () => handleMenuClick('/live-dashboard'),
-      className: location.pathname === '/live-dashboard' ? 'active' : '',
-      title: 'Live Dashboard'
-    });
+  
 
     // Dashboard Widget Management (Admin, HR Admin, Manager only)
     if (hasPermission('manage_dashboard') || hasRole('admin') || hasRole('hr_admin') || hasRole('manager')) {
@@ -118,16 +116,24 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
         className: location.pathname === '/dashboard-widgets' ? 'active' : '',
         title: 'Dashboard Widget Management'
       });
+      items.push({
+        label: 'Dashboard',
+        icon: 'pi pi-home',
+        command: () => handleMenuClick('/dashboard'),
+        className: location.pathname === '/dashboard' ? 'active' : '',
+        title: 'Dashboard'
+      });
+      items.push({
+        label: 'Settings',
+        icon: 'pi pi-cog',
+        command: () => handleMenuClick('/settings'),
+        className: location.pathname === '/settings' ? 'active' : '',
+        title: 'Settings'
+      });
     }
 
     // Settings
-    items.push({
-      label: 'Settings',
-      icon: 'pi pi-cog',
-      command: () => handleMenuClick('/settings'),
-      className: location.pathname === '/settings' ? 'active' : '',
-      title: 'Settings'
-    });
+
 
     return items;
   };

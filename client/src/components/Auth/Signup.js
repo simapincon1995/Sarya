@@ -184,8 +184,9 @@ const Signup = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-row">
               <div className="input-group">
-                <label>First Name</label>
+                <label htmlFor="firstName">First Name</label>
                 <input
+                  id="firstName"
                   type="text"
                   name="firstName"
                   placeholder="John"
@@ -197,8 +198,9 @@ const Signup = () => {
               </div>
 
               <div className="input-group">
-                <label>Last Name</label>
+                <label htmlFor="lastName">Last Name</label>
                 <input
+                  id="lastName"
                   type="text"
                   name="lastName"
                   placeholder="Doe"
@@ -211,8 +213,9 @@ const Signup = () => {
             </div>
 
             <div className="input-group">
-              <label>Email Address</label>
+              <label htmlFor="email">Email Address</label>
               <input
+                id="email"
                 type="email"
                 name="email"
                 placeholder="admin@hrms.com"
@@ -225,8 +228,9 @@ const Signup = () => {
 
             <div className="form-row">
               <div className="input-group">
-                <label>Password</label>
+                <label htmlFor="password">Password</label>
                 <input
+                  id="password"
                   type="password"
                   name="password"
                   placeholder="Minimum 6 characters"
@@ -238,8 +242,9 @@ const Signup = () => {
               </div>
 
               <div className="input-group">
-                <label>Confirm Password</label>
+                <label htmlFor="confirmPassword">Confirm Password</label>
                 <input
+                  id="confirmPassword"
                   type="password"
                   name="confirmPassword"
                   placeholder="Confirm your password"
@@ -253,8 +258,9 @@ const Signup = () => {
 
             <div className="form-row">
               <div className="input-group">
-                <label>Department</label>
+                <label htmlFor="department">Department</label>
                 <input
+                  id="department"
                   type="text"
                   name="department"
                   placeholder="IT Department"
@@ -266,8 +272,9 @@ const Signup = () => {
               </div>
 
               <div className="input-group">
-                <label>Designation</label>
+                <label htmlFor="designation">Designation</label>
                 <input
+                  id="designation"
                   type="text"
                   name="designation"
                   placeholder="System Administrator"
@@ -280,8 +287,9 @@ const Signup = () => {
             </div>
 
             <div className="input-group">
-              <label>Phone Number (Optional)</label>
+              <label htmlFor="phone">Phone Number (Optional)</label>
               <input
+                id="phone"
                 type="tel"
                 name="phone"
                 placeholder="+1 (555) 123-4567"

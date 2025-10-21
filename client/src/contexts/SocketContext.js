@@ -16,6 +16,7 @@ export const useSocket = () => {
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [socketEnabled, setSocketEnabled] = useState(true);
   const [realtimeData, setRealtimeData] = useState({
     attendance: null,
     leaves: null,
@@ -25,16 +26,22 @@ export const SocketProvider = ({ children }) => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Initialize socket connection
-      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
-        auth: {
-          token: localStorage.getItem('token')
-        },
-        transports: ['websocket', 'polling'],
-        timeout: 20000,
-        forceNew: true
-      });
+    if (isAuthenticated && user && socketEnabled) {
+      // Initialize socket connection with error handling
+      try {
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const newSocket = io(apiUrl, {
+          auth: {
+            token: localStorage.getItem('token')
+          },
+          transports: ['websocket', 'polling'],
+          timeout: 20000,
+          forceNew: true,
+          autoConnect: true,
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000
+        });
 
       newSocket.on('connect', () => {
         console.log('Socket connected:', newSocket.id);
@@ -52,6 +59,10 @@ export const SocketProvider = ({ children }) => {
       newSocket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
         setIsConnected(false);
+        // Don't show namespace errors to users as they're usually not critical
+        if (error.message && error.message.includes('Invalid namespace')) {
+          console.warn('Socket namespace error - this is usually not critical for functionality');
+        }
       });
 
       newSocket.on('reconnect', (attemptNumber) => {
@@ -93,11 +104,21 @@ export const SocketProvider = ({ children }) => {
         }));
       });
 
-      setSocket(newSocket);
+        setSocket(newSocket);
 
-      return () => {
-        newSocket.close();
-      };
+        return () => {
+          newSocket.close();
+        };
+      } catch (error) {
+        console.error('Failed to initialize socket connection:', error);
+        setIsConnected(false);
+        setSocket(null);
+        // Disable socket functionality if it fails to initialize
+        if (error.message && error.message.includes('Invalid namespace')) {
+          console.warn('Socket namespace error - disabling socket functionality');
+          setSocketEnabled(false);
+        }
+      }
     } else {
       // Disconnect socket if user is not authenticated
       if (socket) {
@@ -106,11 +127,15 @@ export const SocketProvider = ({ children }) => {
         setIsConnected(false);
       }
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, socketEnabled]);
 
   const emitEvent = (event, data) => {
     if (socket && isConnected) {
-      socket.emit(event, data);
+      try {
+        socket.emit(event, data);
+      } catch (error) {
+        console.warn('Socket emit failed:', error.message);
+      }
     }
   };
 
@@ -126,19 +151,28 @@ export const SocketProvider = ({ children }) => {
 
   const joinRoom = (roomName) => {
     if (socket && isConnected) {
-      socket.emit('join-room', roomName);
+      try {
+        socket.emit('join-room', roomName);
+      } catch (error) {
+        console.warn('Socket join room failed:', error.message);
+      }
     }
   };
 
   const leaveRoom = (roomName) => {
     if (socket && isConnected) {
-      socket.emit('leave-room', roomName);
+      try {
+        socket.emit('leave-room', roomName);
+      } catch (error) {
+        console.warn('Socket leave room failed:', error.message);
+      }
     }
   };
 
   const value = {
     socket,
     isConnected,
+    socketEnabled,
     realtimeData,
     emitEvent,
     subscribeToEvent,

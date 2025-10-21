@@ -15,8 +15,8 @@ router.get('/settings', authenticateToken, async (req, res) => {
   }
 });
 
-// Update organization settings (Admin only)
-router.put('/settings', authenticateToken, authorize('admin'), async (req, res) => {
+// Update organization settings (Admin and HR Admin only)
+router.put('/settings', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
   try {
     const { settings } = req.body;
     const updatedBy = req.user._id;
@@ -30,6 +30,43 @@ router.put('/settings', authenticateToken, authorize('admin'), async (req, res) 
   } catch (error) {
     console.error('Update organization settings error:', error);
     res.status(500).json({ message: 'Failed to update organization settings', error: error.message });
+  }
+});
+
+// Update work start time (Admin and HR Admin only)
+router.put('/work-start-time', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const { workStartTime } = req.body;
+    const updatedBy = req.user._id;
+
+    // Validate time format (HH:mm)
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(workStartTime)) {
+      return res.status(400).json({ message: 'Invalid time format. Please use HH:mm format (e.g., 09:00)' });
+    }
+
+    // Get current settings
+    const currentSettings = await Organization.getSettings();
+    
+    // Update only the work start time
+    const updatedSettings = {
+      ...currentSettings,
+      workingHours: {
+        ...currentSettings.workingHours,
+        start: workStartTime
+      }
+    };
+
+    const organization = await Organization.updateSettings(updatedSettings, updatedBy);
+
+    res.json({
+      message: 'Work start time updated successfully',
+      workStartTime: organization.settings.workingHours.start,
+      settings: organization.settings
+    });
+  } catch (error) {
+    console.error('Update work start time error:', error);
+    res.status(500).json({ message: 'Failed to update work start time', error: error.message });
   }
 });
 

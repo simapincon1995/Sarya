@@ -1,56 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Dropdown } from 'primereact/dropdown';
 import { Checkbox } from 'primereact/checkbox';
-import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Tag } from 'primereact/tag';
-import { useRef } from 'react';
 import { dashboardService } from '../services/dashboardService';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
 import './DashboardWidgetManagement.css';
 
 const DashboardWidgetManagement = () => {
-  const [widgets, setWidgets] = useState([]);
   const [performerOfDay, setPerformerOfDay] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showPerformerDialog, setShowPerformerDialog] = useState(false);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingWidget, setEditingWidget] = useState(null);
+  const [showTeamDataForm, setShowTeamDataForm] = useState(false);
+  const [showPerformersForm, setShowPerformersForm] = useState(false);
   const toast = useRef(null);
 
-  // Performer of Day form data
-  const [performerForm, setPerformerForm] = useState({
-    employeeName: '',
-    department: '',
-    achievement: '',
-    reason: '',
+  // Team data form
+  const [teamDataForm, setTeamDataForm] = useState({
+    teamAlpha: {
+      name: 'Team Alpha',
+      actualCalls: 0,
+      expectedCalls: 0
+    },
+    teamBeta: {
+      name: 'Team Beta', 
+      actualCalls: 0,
+      expectedCalls: 0
+    },
     isVisible: true
   });
 
-  // Widget form data
-  const [widgetForm, setWidgetForm] = useState({
-    name: '',
-    type: 'announcement',
-    title: '',
-    description: '',
-    data: {},
-    isVisible: true,
-    isPublic: false
+  // Performers form
+  const [performersForm, setPerformersForm] = useState({
+    performers: [{ name: '' }],
+    isVisible: true
   });
-
-  const widgetTypes = [
-    { label: 'Announcement', value: 'announcement' },
-    { label: 'Metric', value: 'metric' },
-    { label: 'Chart', value: 'chart' },
-    { label: 'Table', value: 'table' },
-    { label: 'Custom', value: 'custom' }
-  ];
 
   useEffect(() => {
     loadData();
@@ -59,12 +43,10 @@ const DashboardWidgetManagement = () => {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [widgetsResponse, performerResponse] = await Promise.all([
-        dashboardService.getDashboardWidgets(),
-        dashboardService.getPerformerOfDay()
-      ]);
+      const performerResponse = await dashboardService.getPerformerOfDay();
       
-      setWidgets(widgetsResponse.widgets);
+      console.log('Performer response:', performerResponse); // Debug log
+      
       setPerformerOfDay(performerResponse.widget);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -78,43 +60,6 @@ const DashboardWidgetManagement = () => {
     }
   };
 
-  const handlePerformerSubmit = async () => {
-    try {
-      if (!performerForm.employeeName || !performerForm.department || !performerForm.achievement) {
-        toast.current?.show({
-          severity: 'warn',
-          summary: 'Validation Error',
-          detail: 'Please fill in all required fields'
-        });
-        return;
-      }
-
-      await dashboardService.updatePerformerOfDay(performerForm);
-      
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Performer of the day updated successfully'
-      });
-
-      setShowPerformerDialog(false);
-      setPerformerForm({
-        employeeName: '',
-        department: '',
-        achievement: '',
-        reason: '',
-        isVisible: true
-      });
-      loadData();
-    } catch (error) {
-      console.error('Error updating performer of day:', error);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to update performer of the day'
-      });
-    }
-  };
 
   const handleHidePerformer = async () => {
     try {
@@ -128,7 +73,7 @@ const DashboardWidgetManagement = () => {
 
       loadData();
     } catch (error) {
-      console.error('Error hiding performer of day:', error);
+      console.error('Error hiding performer:', error);
       toast.current?.show({
         severity: 'error',
         summary: 'Error',
@@ -137,133 +82,156 @@ const DashboardWidgetManagement = () => {
     }
   };
 
-  const handleWidgetSubmit = async () => {
+  // Team data management functions
+  const handleTeamDataSubmit = async () => {
     try {
-      if (!widgetForm.name || !widgetForm.title) {
-        toast.current?.show({
-          severity: 'warn',
-          summary: 'Validation Error',
-          detail: 'Please fill in all required fields'
-        });
-        return;
-      }
-
-      if (editingWidget) {
-        await dashboardService.updateDashboardWidget(editingWidget._id, widgetForm);
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Widget updated successfully'
-        });
-      } else {
-        await dashboardService.createDashboardWidget(widgetForm);
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Widget created successfully'
-        });
-      }
-
-      setShowCreateDialog(false);
-      setEditingWidget(null);
-      setWidgetForm({
-        name: '',
-        type: 'announcement',
-        title: '',
-        description: '',
-        data: {},
-        isVisible: true,
-        isPublic: false
-      });
-      loadData();
-    } catch (error) {
-      console.error('Error saving widget:', error);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to save widget'
-      });
-    }
-  };
-
-  const handleEditWidget = (widget) => {
-    setEditingWidget(widget);
-    setWidgetForm({
-      name: widget.name,
-      type: widget.type,
-      title: widget.title,
-      description: widget.description || '',
-      data: widget.data || {},
-      isVisible: widget.isVisible,
-      isPublic: widget.isPublic
-    });
-    setShowCreateDialog(true);
-  };
-
-  const handleDeleteWidget = async (widgetId) => {
-    try {
-      await dashboardService.deleteDashboardWidget(widgetId);
+      await dashboardService.updateTeamData(teamDataForm);
       
       toast.current?.show({
         severity: 'success',
         summary: 'Success',
-        detail: 'Widget deleted successfully'
+        detail: 'Team data updated successfully'
       });
 
+      setShowTeamDataForm(false);
       loadData();
     } catch (error) {
-      console.error('Error deleting widget:', error);
+      console.error('Error updating team data:', error);
       toast.current?.show({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to delete widget'
+        detail: 'Failed to update team data'
       });
     }
   };
 
-  const getStatusSeverity = (isVisible) => {
-    return isVisible ? 'success' : 'danger';
+  const updateTeamData = (team, field, value) => {
+    setTeamDataForm(prev => ({
+      ...prev,
+      [team]: {
+        ...prev[team],
+        [field]: value
+      }
+    }));
   };
 
-  const getStatusLabel = (isVisible) => {
-    return isVisible ? 'Visible' : 'Hidden';
+  // Performers form management functions
+  const addPerformer = () => {
+    setPerformersForm(prev => ({
+      ...prev,
+      performers: [...prev.performers, { name: '' }]
+    }));
+  };
+
+  const removePerformer = (index) => {
+    if (performersForm.performers.length > 1) {
+      setPerformersForm(prev => ({
+        ...prev,
+        performers: prev.performers.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const updatePerformer = (index, name) => {
+    setPerformersForm(prev => ({
+      ...prev,
+      performers: prev.performers.map((performer, i) => 
+        i === index ? { ...performer, name } : performer
+      )
+    }));
+  };
+
+  const handlePerformersSubmit = async () => {
+    try {
+      // Filter out empty performer names
+      const validPerformers = performersForm.performers.filter(performer => 
+        performer.name && performer.name.trim()
+      );
+
+      if (validPerformers.length === 0) {
+        toast.current?.show({
+          severity: 'warn',
+          summary: 'Warning',
+          detail: 'Please enter at least one performer name'
+        });
+        return;
+      }
+
+      await dashboardService.updatePerformerOfDay({
+        performers: validPerformers,
+        isVisible: performersForm.isVisible
+      });
+      
+      toast.current?.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Performers of the day updated successfully'
+      });
+
+      setShowPerformersForm(false);
+      loadData();
+    } catch (error) {
+      console.error('Error updating performers:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to update performers of the day'
+      });
+    }
+  };
+
+  const openPerformersForm = () => {
+    if (performerOfDay) {
+      // Edit existing performers
+      setPerformersForm({
+        performers: performerOfDay.performerData.performers.map(p => ({ name: p.name })),
+        isVisible: performerOfDay.isVisible
+      });
+    } else {
+      // Add new performers
+      setPerformersForm({
+        performers: [{ name: '' }],
+        isVisible: true
+      });
+    }
+    setShowPerformersForm(true);
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading dashboard widgets..." />;
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="dashboard-widget-management">
-      <Toast ref={toast} />
-      
       <div className="page-header">
-        <h1>Dashboard Widget Management</h1>
-        <p>Manage dashboard widgets and performer of the day</p>
+        <h1>Dashboard Management</h1>
+        <p>Manage performers of the day and team performance data</p>
       </div>
 
       {/* Performer of the Day Section */}
-      <Card title="Performer of the Day" className="performer-section">
+      <Card title="Performers of the Day" className="performer-section">
         <div className="performer-content">
+          {console.log('Rendering performerOfDay in management:', performerOfDay)}
           {performerOfDay ? (
             <div className="current-performer">
               <div className="performer-info">
-                <h3>{performerOfDay.performerData.employeeName}</h3>
-                <p className="department">{performerOfDay.performerData.department}</p>
-                <p className="achievement">{performerOfDay.performerData.achievement}</p>
-                {performerOfDay.performerData.reason && (
-                  <p className="reason">{performerOfDay.performerData.reason}</p>
-                )}
+                <h3>Today's Performers</h3>
+                {/* <div className="performers-list">
+                  {performerOfDay.performerData.performers.map((performer, index) => (
+                    <div key={index} className="performer-item">
+                      <span className="performer-name">{performer.name}</span>
+                    </div>
+                  ))}
+                </div> */}
                 <p className="updated-info">
                   Updated by: {performerOfDay.performerData.updatedBy} on {new Date(performerOfDay.performerData.updatedAt).toLocaleDateString()}
                 </p>
               </div>
               <div className="performer-actions">
                 <Button
-                  label="Update"
-                  icon="pi pi-pencil"
-                  className="p-button-outlined"
-                  onClick={() => setShowPerformerDialog(true)}
+                  label="Configure Performers of the Day"
+                  icon="pi pi-cog"
+                  onClick={openPerformersForm}
                 />
                 <Button
                   label="Hide"
@@ -275,250 +243,215 @@ const DashboardWidgetManagement = () => {
             </div>
           ) : (
             <div className="no-performer">
-              <p>No performer of the day set</p>
+              <p>No performers of the day set</p>
               <Button
-                label="Set Performer of the Day"
-                icon="pi pi-plus"
-                onClick={() => setShowPerformerDialog(true)}
+                label="Configure Performers of the Day"
+                icon="pi pi-cog"
+                onClick={openPerformersForm}
               />
             </div>
           )}
         </div>
-      </Card>
 
-      {/* Widgets Management Section */}
-      <Card title="Dashboard Widgets" className="widgets-section">
-        <div className="widgets-header">
-          <Button
-            label="Create Widget"
-            icon="pi pi-plus"
-            onClick={() => {
-              setEditingWidget(null);
-              setShowCreateDialog(true);
-            }}
-          />
-        </div>
-
-        <DataTable
-          value={widgets}
-          paginator
-          rows={10}
-          rowsPerPageOptions={[5, 10, 25]}
-          className="widgets-table"
-        >
-          <Column field="name" header="Name" sortable />
-          <Column field="type" header="Type" sortable />
-          <Column field="title" header="Title" sortable />
-          <Column 
-            field="isVisible" 
-            header="Status" 
-            body={(rowData) => (
-              <Tag 
-                value={getStatusLabel(rowData.isVisible)} 
-                severity={getStatusSeverity(rowData.isVisible)} 
+        {/* Performers Form Card */}
+        {showPerformersForm && (
+          <div className="performers-form-card">
+            <div className="form-header">
+              <h4>{performerOfDay ? 'Update Performers of the Day' : 'Set Performers of the Day'}</h4>
+              <Button
+                icon="pi pi-times"
+                className="p-button-text p-button-sm"
+                onClick={() => setShowPerformersForm(false)}
               />
-            )}
-          />
-          <Column 
-            field="isPublic" 
-            header="Public" 
-            body={(rowData) => (
-              <Tag 
-                value={rowData.isPublic ? 'Yes' : 'No'} 
-                severity={rowData.isPublic ? 'success' : 'info'} 
-              />
-            )}
-          />
-          <Column 
-            field="createdBy.firstName" 
-            header="Created By" 
-            body={(rowData) => `${rowData.createdBy?.firstName} ${rowData.createdBy?.lastName}`}
-          />
-          <Column 
-            header="Actions" 
-            body={(rowData) => (
-              <div className="action-buttons">
+            </div>
+            <div className="performers-form">
+              <div className="form-section">
+                <h4>Performer Names</h4>
+                {performersForm.performers.map((performer, index) => (
+                  <div key={index} className="performer-form-row">
+                    <div className="form-group performer-input-group">
+                      <InputText
+                        value={performer.name}
+                        onChange={(e) => updatePerformer(index, e.target.value)}
+                        placeholder={`Performer ${index + 1} name`}
+                        className="performer-input"
+                      />
+                      {performersForm.performers.length > 1 && (
+                        <Button
+                          icon="pi pi-trash"
+                          className="p-button-danger p-button-sm"
+                          onClick={() => removePerformer(index)}
+                          tooltip="Remove performer"
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
                 <Button
-                  icon="pi pi-pencil"
-                  className="p-button-text p-button-sm"
-                  onClick={() => handleEditWidget(rowData)}
-                  tooltip="Edit"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  className="p-button-text p-button-sm p-button-danger"
-                  onClick={() => handleDeleteWidget(rowData._id)}
-                  tooltip="Delete"
+                  label="Add Performer"
+                  icon="pi pi-plus"
+                  className="p-button-outlined p-button-sm"
+                  onClick={addPerformer}
                 />
               </div>
-            )}
-          />
-        </DataTable>
+
+              <div className="form-group">
+                <div className="checkbox-group">
+                  <Checkbox
+                    inputId="performersVisible"
+                    checked={performersForm.isVisible}
+                    onChange={(e) => setPerformersForm({ ...performersForm, isVisible: e.checked })}
+                  />
+                  <label htmlFor="performersVisible">Make visible on live dashboard</label>
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <Button
+                  label="Cancel"
+                  icon="pi pi-times"
+                  className="p-button-text"
+                  onClick={() => setShowPerformersForm(false)}
+                />
+                <Button
+                  label={performerOfDay ? "Update Performers" : "Set Performers"}
+                  icon="pi pi-check"
+                  onClick={handlePerformersSubmit}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
-      {/* Performer of Day Dialog */}
-      <Dialog
-        header="Set Performer of the Day"
-        visible={showPerformerDialog}
-        style={{ width: '50vw' }}
-        onHide={() => setShowPerformerDialog(false)}
-      >
-        <div className="performer-form">
-          <div className="form-group">
-            <label htmlFor="employeeName">Employee Name *</label>
-            <InputText
-              id="employeeName"
-              value={performerForm.employeeName}
-              onChange={(e) => setPerformerForm({ ...performerForm, employeeName: e.target.value })}
-              placeholder="Enter employee name"
-            />
+      {/* Team Data Management Section */}
+      <Card title="Team Data Management" className="team-data-section">
+        <div className="team-data-content">
+          <div className="team-data-info">
+            <h3>Team Performance Data</h3>
+            <p>Configure team Alpha and Beta data for donut charts showing actual vs expected calls per day</p>
           </div>
-
-          <div className="form-group">
-            <label htmlFor="department">Department *</label>
-            <InputText
-              id="department"
-              value={performerForm.department}
-              onChange={(e) => setPerformerForm({ ...performerForm, department: e.target.value })}
-              placeholder="Enter department"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="achievement">Achievement *</label>
-            <InputText
-              id="achievement"
-              value={performerForm.achievement}
-              onChange={(e) => setPerformerForm({ ...performerForm, achievement: e.target.value })}
-              placeholder="Enter achievement"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="reason">Reason (Optional)</label>
-            <InputTextarea
-              id="reason"
-              value={performerForm.reason}
-              onChange={(e) => setPerformerForm({ ...performerForm, reason: e.target.value })}
-              placeholder="Enter reason for selection"
-              rows={3}
-            />
-          </div>
-
-          <div className="form-group">
-            <div className="checkbox-group">
-              <Checkbox
-                inputId="isVisible"
-                checked={performerForm.isVisible}
-                onChange={(e) => setPerformerForm({ ...performerForm, isVisible: e.checked })}
-              />
-              <label htmlFor="isVisible">Make visible on live dashboard</label>
-            </div>
-          </div>
-
-          <div className="dialog-actions">
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              className="p-button-text"
-              onClick={() => setShowPerformerDialog(false)}
-            />
-            <Button
-              label="Save"
-              icon="pi pi-check"
-              onClick={handlePerformerSubmit}
+          <div className="team-data-actions">
+          <Button
+              label="Configure Team Data"
+              icon="pi pi-cog"
+              onClick={() => setShowTeamDataForm(true)}
             />
           </div>
         </div>
-      </Dialog>
 
-      {/* Create/Edit Widget Dialog */}
-      <Dialog
-        header={editingWidget ? "Edit Widget" : "Create Widget"}
-        visible={showCreateDialog}
-        style={{ width: '60vw' }}
-        onHide={() => setShowCreateDialog(false)}
-      >
-        <div className="widget-form">
-          <div className="form-row">
+        {/* Team Data Form Card */}
+        {showTeamDataForm && (
+          <div className="team-data-form-card">
+            <div className="form-header">
+              <h4>Configure Team Data</h4>
+                <Button
+                icon="pi pi-times"
+                  className="p-button-text p-button-sm"
+                onClick={() => setShowTeamDataForm(false)}
+                />
+              </div>
+            <div className="team-data-form">
+              <div className="form-section">
+                <h4>Team Alpha Configuration</h4>
+                <div className="form-row">
+          <div className="form-group">
+                    <label htmlFor="teamAlphaName">Team Name</label>
+            <InputText
+                      id="teamAlphaName"
+                      value={teamDataForm.teamAlpha.name}
+                      onChange={(e) => updateTeamData('teamAlpha', 'name', e.target.value)}
+                      placeholder="Team Alpha"
+            />
+          </div>
+          <div className="form-group">
+                    <label htmlFor="teamAlphaActual">Actual Calls Today</label>
+            <InputText
+                      id="teamAlphaActual"
+                      type="number"
+                      value={teamDataForm.teamAlpha.actualCalls}
+                      onChange={(e) => updateTeamData('teamAlpha', 'actualCalls', parseInt(e.target.value) || 0)}
+                      placeholder="0"
+            />
+          </div>
+          <div className="form-group">
+                    <label htmlFor="teamAlphaExpected">Expected Calls Today</label>
+            <InputText
+                      id="teamAlphaExpected"
+                      type="number"
+                      value={teamDataForm.teamAlpha.expectedCalls}
+                      onChange={(e) => updateTeamData('teamAlpha', 'expectedCalls', parseInt(e.target.value) || 0)}
+                      placeholder="0"
+            />
+          </div>
+            </div>
+          </div>
+
+              <div className="form-section">
+                <h4>Team Beta Configuration</h4>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="teamBetaName">Team Name</label>
+                    <InputText
+                      id="teamBetaName"
+                      value={teamDataForm.teamBeta.name}
+                      onChange={(e) => updateTeamData('teamBeta', 'name', e.target.value)}
+                      placeholder="Team Beta"
+            />
+          </div>
             <div className="form-group">
-              <label htmlFor="widgetName">Name *</label>
+                    <label htmlFor="teamBetaActual">Actual Calls Today</label>
               <InputText
-                id="widgetName"
-                value={widgetForm.name}
-                onChange={(e) => setWidgetForm({ ...widgetForm, name: e.target.value })}
-                placeholder="Enter widget name"
+                      id="teamBetaActual"
+                      type="number"
+                      value={teamDataForm.teamBeta.actualCalls}
+                      onChange={(e) => updateTeamData('teamBeta', 'actualCalls', parseInt(e.target.value) || 0)}
+                      placeholder="0"
               />
             </div>
-
             <div className="form-group">
-              <label htmlFor="widgetType">Type *</label>
-              <Dropdown
-                id="widgetType"
-                value={widgetForm.type}
-                options={widgetTypes}
-                onChange={(e) => setWidgetForm({ ...widgetForm, type: e.value })}
-                placeholder="Select widget type"
+                    <label htmlFor="teamBetaExpected">Expected Calls Today</label>
+                    <InputText
+                      id="teamBetaExpected"
+                      type="number"
+                      value={teamDataForm.teamBeta.expectedCalls}
+                      onChange={(e) => updateTeamData('teamBeta', 'expectedCalls', parseInt(e.target.value) || 0)}
+                      placeholder="0"
               />
             </div>
+          </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="widgetTitle">Title *</label>
-            <InputText
-              id="widgetTitle"
-              value={widgetForm.title}
-              onChange={(e) => setWidgetForm({ ...widgetForm, title: e.target.value })}
-              placeholder="Enter widget title"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="widgetDescription">Description</label>
-            <InputTextarea
-              id="widgetDescription"
-              value={widgetForm.description}
-              onChange={(e) => setWidgetForm({ ...widgetForm, description: e.target.value })}
-              placeholder="Enter widget description"
-              rows={3}
-            />
-          </div>
-
-          <div className="form-row">
             <div className="checkbox-group">
               <Checkbox
-                inputId="isVisible"
-                checked={widgetForm.isVisible}
-                onChange={(e) => setWidgetForm({ ...widgetForm, isVisible: e.checked })}
-              />
-              <label htmlFor="isVisible">Visible</label>
-            </div>
-
-            <div className="checkbox-group">
-              <Checkbox
-                inputId="isPublic"
-                checked={widgetForm.isPublic}
-                onChange={(e) => setWidgetForm({ ...widgetForm, isPublic: e.checked })}
-              />
-              <label htmlFor="isPublic">Public (Show on live dashboard)</label>
+                    inputId="teamDataVisible"
+                    checked={teamDataForm.isVisible}
+                    onChange={(e) => setTeamDataForm({ ...teamDataForm, isVisible: e.checked })}
+                  />
+                  <label htmlFor="teamDataVisible">Make visible on live dashboard</label>
             </div>
           </div>
 
-          <div className="dialog-actions">
+              <div className="form-actions">
             <Button
               label="Cancel"
               icon="pi pi-times"
               className="p-button-text"
-              onClick={() => setShowCreateDialog(false)}
+                  onClick={() => setShowTeamDataForm(false)}
             />
             <Button
-              label={editingWidget ? "Update" : "Create"}
+                  label="Save Team Data"
               icon="pi pi-check"
-              onClick={handleWidgetSubmit}
+                  onClick={handleTeamDataSubmit}
             />
           </div>
         </div>
-      </Dialog>
+          </div>
+        )}
+      </Card>
+
+      <Toast ref={toast} />
     </div>
   );
 };

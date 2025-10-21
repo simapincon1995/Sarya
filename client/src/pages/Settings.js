@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 import { Password } from 'primereact/password';
 import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
+import { Toast } from 'primereact/toast';
+import { useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLocalization } from '../contexts/LocalizationContext';
@@ -22,6 +25,8 @@ const Settings = () => {
     getAvailableTimezones 
   } = useLocalization();
   
+  const toast = useRef(null);
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -38,6 +43,26 @@ const Settings = () => {
     workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
     workingHours: { start: '09:00', end: '18:00' }
   });
+
+  const [workStartTime, setWorkStartTime] = useState('09:00');
+  const [isUpdatingWorkTime, setIsUpdatingWorkTime] = useState(false);
+
+  // Load organization settings on component mount
+  useEffect(() => {
+    const loadOrganizationSettings = async () => {
+      try {
+        const settings = await organizationService.getSettings();
+        setOrganizationSettings(settings);
+        setWorkStartTime(settings.workingHours?.start || '09:00');
+      } catch (error) {
+        console.error('Failed to load organization settings:', error);
+      }
+    };
+
+    if (user?.role === 'admin' || user?.role === 'hr_admin') {
+      loadOrganizationSettings();
+    }
+  }, [user]);
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -64,9 +89,43 @@ const Settings = () => {
     e.preventDefault();
     try {
       await organizationService.updateSettings(organizationSettings);
-      console.log('Organization settings updated successfully');
+      toast.current.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Organization settings updated successfully',
+        life: 3000
+      });
     } catch (error) {
       console.error('Failed to update organization settings:', error);
+      toast.current.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: error.response?.data?.message || 'Failed to update organization settings',
+        life: 3000
+      });
+    }
+  };
+
+  const handleWorkStartTimeUpdate = async () => {
+    setIsUpdatingWorkTime(true);
+    try {
+      await organizationService.updateWorkStartTime(workStartTime);
+      toast.current.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Work start time updated successfully',
+        life: 3000
+      });
+    } catch (error) {
+      console.error('Failed to update work start time:', error);
+      toast.current.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: error.response?.data?.message || 'Failed to update work start time',
+        life: 3000
+      });
+    } finally {
+      setIsUpdatingWorkTime(false);
     }
   };
 
@@ -103,6 +162,8 @@ const Settings = () => {
 
   return (
     <div className="settings-container">
+      <Toast ref={toast} />
+      
       {/* Header */}
       <div className="settings-header">
         <h1 className="settings-title">Settings</h1>
@@ -271,13 +332,47 @@ const Settings = () => {
       </div>
 
       {/* Organization Settings */}
-      {user?.role === 'admin' && (
+      {(user?.role === 'admin' || user?.role === 'hr_admin') && (
         <div className="settings-card org-settings-card">
           <div className="settings-card-title">
             <div className="settings-card-icon">
               <i className="pi pi-building"></i>
             </div>
             Organization Settings
+          </div>
+          
+          {/* Work Start Time Section */}
+          <div className="work-time-section">
+            <div className="settings-field">
+              <label htmlFor="workStartTime" className="settings-label">
+                Work Start Time
+              </label>
+              <div className="work-time-input-group">
+                <InputText
+                  id="workStartTime"
+                  type="time"
+                  value={workStartTime}
+                  onChange={(e) => setWorkStartTime(e.target.value)}
+                  className="settings-input work-time-input"
+                />
+                <Button
+                  label="Update Work Time"
+                  icon="pi pi-clock"
+                  onClick={handleWorkStartTimeUpdate}
+                  loading={isUpdatingWorkTime}
+                  className="work-time-button"
+                />
+              </div>
+              <div className="settings-info-box">
+                <div className="settings-info-title">
+                  Current Work Start Time: {workStartTime}
+                </div>
+                <p className="settings-info-text">
+                  Employees who check in after this time will be marked as late. 
+                  This setting affects all employees in the organization.
+                </p>
+              </div>
+            </div>
           </div>
           
           <form onSubmit={handleOrganizationSettingsSubmit}>

@@ -18,7 +18,7 @@ const Dashboard = () => {
   const [chartData, setChartData] = useState({});
   const [lastRequestTime, setLastRequestTime] = useState(0);
   const { user } = useAuth();
-  const { realtimeData } = useSocket();
+  const { realtimeData, socketEnabled } = useSocket();
 
   useEffect(() => {
     loadDashboardData();
@@ -26,12 +26,12 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (realtimeData.attendance) {
+    if (realtimeData.attendance && socketEnabled) {
       // Update dashboard with real-time data
       loadDashboardData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [realtimeData]);
+  }, [realtimeData, socketEnabled]);
 
   const loadDashboardData = async () => {
     const now = Date.now();

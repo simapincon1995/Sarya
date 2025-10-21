@@ -16,9 +16,15 @@ router.post('/', authenticateToken, async (req, res) => {
       reason,
       isHalfDay,
       halfDayType,
+      halfDayPeriod, // Support both field names for compatibility
       emergencyContact,
       workHandover
     } = req.body;
+
+    // Validate required fields
+    if (!leaveType || !startDate || !endDate || !reason) {
+      return res.status(400).json({ message: 'Missing required fields: leaveType, startDate, endDate, reason' });
+    }
 
     const employeeId = req.user._id;
 
@@ -30,7 +36,9 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'End date must be after start date' });
     }
 
-    if (start < new Date()) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (start < today) {
       return res.status(400).json({ message: 'Cannot apply for leave in the past' });
     }
 
@@ -57,6 +65,23 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     }
 
+    // Handle half day type compatibility
+    const finalHalfDayType = halfDayType || halfDayPeriod;
+    
+    // Calculate total days as a fallback
+    const timeDiff = end.getTime() - start.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+    const calculatedTotalDays = isHalfDay ? 0.5 : daysDiff;
+    
+    console.log('Leave application data:', {
+      startDate: start,
+      endDate: end,
+      isHalfDay,
+      calculatedTotalDays,
+      timeDiff,
+      daysDiff
+    });
+    
     const leave = new Leave({
       employee: employeeId,
       leaveType,
@@ -64,7 +89,8 @@ router.post('/', authenticateToken, async (req, res) => {
       endDate: end,
       reason,
       isHalfDay,
-      halfDayType,
+      halfDayType: finalHalfDayType,
+      totalDays: calculatedTotalDays, // Explicitly set totalDays
       emergencyContact,
       workHandover
     });
@@ -407,7 +433,9 @@ router.put('/:leaveId', authenticateToken, async (req, res) => {
         return res.status(400).json({ message: 'End date must be after start date' });
       }
 
-      if (start < new Date()) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (start < today) {
         return res.status(400).json({ message: 'Cannot apply for leave in the past' });
       }
 
@@ -435,12 +463,27 @@ router.put('/:leaveId', authenticateToken, async (req, res) => {
     }
 
     // Update allowed fields
-    const allowedUpdates = ['leaveType', 'startDate', 'endDate', 'reason', 'isHalfDay', 'halfDayType'];
+    const allowedUpdates = ['leaveType', 'startDate', 'endDate', 'reason', 'isHalfDay', 'halfDayType', 'halfDayPeriod'];
     allowedUpdates.forEach(field => {
       if (updateData[field] !== undefined) {
-        leave[field] = updateData[field];
+        if (field === 'halfDayPeriod') {
+          leave.halfDayType = updateData[field];
+        } else {
+          leave[field] = updateData[field];
+        }
       }
     });
+
+    // Recalculate totalDays if dates or halfDay status changed
+    if (updateData.startDate || updateData.endDate || updateData.isHalfDay !== undefined) {
+      const start = updateData.startDate ? new Date(updateData.startDate) : leave.startDate;
+      const end = updateData.endDate ? new Date(updateData.endDate) : leave.endDate;
+      const isHalfDay = updateData.isHalfDay !== undefined ? updateData.isHalfDay : leave.isHalfDay;
+      
+      const timeDiff = end.getTime() - start.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+      leave.totalDays = isHalfDay ? 0.5 : daysDiff;
+    }
 
     await leave.save();
 

@@ -17,14 +17,23 @@ if (buildType === 'widget') {
   // Run the build
   execSync('react-scripts build', { stdio: 'inherit' });
   
-  // Rename index.html to widget.html
+  // Copy widget.html to build directory
   const buildDir = path.join(__dirname, 'build');
-  const indexPath = path.join(buildDir, 'index.html');
-  const widgetPath = path.join(buildDir, 'widget.html');
+  const publicWidgetPath = path.join(__dirname, 'public', 'widget.html');
+  const buildWidgetPath = path.join(buildDir, 'widget.html');
   
-  if (fs.existsSync(indexPath)) {
-    fs.copyFileSync(indexPath, widgetPath);
-    console.log('Created widget.html');
+  if (fs.existsSync(publicWidgetPath)) {
+    fs.copyFileSync(publicWidgetPath, buildWidgetPath);
+    console.log('Copied widget.html to build directory');
+  }
+  
+  // Copy preload script to build directory
+  const publicPreloadPath = path.join(__dirname, 'public', 'preload-widget.js');
+  const buildPreloadPath = path.join(buildDir, 'preload-widget.js');
+  
+  if (fs.existsSync(publicPreloadPath)) {
+    fs.copyFileSync(publicPreloadPath, buildPreloadPath);
+    console.log('Copied preload-widget.js to build directory');
   }
   
   console.log('Widget build completed!');

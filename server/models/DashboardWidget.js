@@ -8,7 +8,7 @@ const dashboardWidgetSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['chart', 'table', 'metric', 'announcement', 'custom'],
+    enum: ['chart', 'table', 'metric', 'announcement', 'custom', 'team-pie-chart', 'team-donut-chart', 'performer-of-day', 'team-data'],
     required: true
   },
   title: {
@@ -71,10 +71,45 @@ const dashboardWidgetSchema = new mongoose.Schema({
     rows: [mongoose.Schema.Types.Mixed]
   },
   performerData: {
-    employeeName: String,
-    department: String,
-    achievement: String,
-    reason: String,
+    performers: [{
+      name: {
+        type: String,
+        required: true
+      }
+    }],
+    date: String,
+    updatedBy: String,
+    updatedAt: String
+  },
+  teamData: {
+    teamAlpha: {
+      name: {
+        type: String,
+        default: 'Team Alpha'
+      },
+      actualCalls: {
+        type: Number,
+        default: 0
+      },
+      expectedCalls: {
+        type: Number,
+        default: 0
+      }
+    },
+    teamBeta: {
+      name: {
+        type: String,
+        default: 'Team Beta'
+      },
+      actualCalls: {
+        type: Number,
+        default: 0
+      },
+      expectedCalls: {
+        type: Number,
+        default: 0
+      }
+    },
     date: String,
     updatedBy: String,
     updatedAt: String

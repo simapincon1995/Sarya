@@ -21,6 +21,16 @@ export const organizationService = {
     }
   },
 
+  // Update work start time
+  async updateWorkStartTime(workStartTime) {
+    try {
+      const response = await api.put('/organization/work-start-time', { workStartTime });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get organization information
   async getOrganization() {
     try {

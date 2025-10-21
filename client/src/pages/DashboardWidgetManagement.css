@@ -166,6 +166,265 @@
   border-top: 1px solid #e0e0e0;
 }
 
+/* Team Pie Chart Configuration */
+.team-pie-chart-config {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.team-pie-chart-config h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #4CAF50;
+  padding-bottom: 0.5rem;
+}
+
+.team-pie-chart-config .form-row {
+  margin-bottom: 0.75rem;
+}
+
+.team-pie-chart-config .form-group {
+  margin-bottom: 0.75rem;
+}
+
+.team-pie-chart-config .form-group label {
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+}
+
+/* Multiple Performers Form Styles */
+.performers-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.performer-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.performer-name-input {
+  flex: 1;
+}
+
+.performers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.performer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.performer-name {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Team Data Management Styles */
+.team-data-section {
+  margin-bottom: 2rem;
+}
+
+.team-data-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.team-data-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.team-data-info p {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.team-data-form {
+  padding: 1rem 0;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.form-section h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #4CAF50;
+  padding-bottom: 0.5rem;
+}
+
+/* Team Donut Chart Configuration */
+.team-donut-chart-config {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.team-donut-chart-config h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #4CAF50;
+  padding-bottom: 0.5rem;
+}
+
+.team-donut-chart-config .form-row {
+  margin-bottom: 0.75rem;
+}
+
+.team-donut-chart-config .form-group {
+  margin-bottom: 0.75rem;
+}
+
+.team-donut-chart-config .form-group label {
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+}
+
+/* Card Layout Styles */
+.performer-form-card,
+.team-data-form-card,
+.widget-form-card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #4CAF50;
+}
+
+.form-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Widgets List Styles */
+.widgets-list {
+  margin-top: 1.5rem;
+}
+
+.widget-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.widget-info h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.widget-info p {
+  margin: 0 0 0.75rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.widget-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.widget-type,
+.widget-status,
+.widget-visibility {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.widget-type {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.widget-status.visible {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.widget-status.hidden {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.widget-visibility.public {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.widget-visibility.private {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.widget-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .dashboard-widget-management {
@@ -207,4 +466,106 @@
   .performer-info .achievement {
     font-size: 1rem;
   }
+}
+
+/* Enhanced Performer Section Styles - Similar to Team Data Management */
+.performer-section {
+  margin-bottom: 2rem;
+}
+
+.performer-content {
+  padding: 1rem 0;
+}
+
+.current-performer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.performer-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.performer-info .performers-list {
+  margin-bottom: 0.75rem;
+}
+
+.performer-info .performer-item {
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #e0e0e0;
+}
+
+.performer-info .performer-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.updated-info {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.performer-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.performer-actions .p-button {
+  min-width: 100px;
+}
+
+.no-performer {
+  text-align: center;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
+.no-performer p {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+/* Performers Form Styles */
+.performers-form-card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.performers-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.performer-form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.performer-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.performer-input {
+  flex: 1;
 }

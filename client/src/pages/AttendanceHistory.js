@@ -293,9 +293,16 @@ const AttendanceHistory = () => {
               style={{ minWidth: '100px' }}
             />
             <Column 
-              field="notes" 
-              header="Notes" 
-              style={{ minWidth: '200px' }}
+              field="totalBreakTime" 
+              header="Break Hours" 
+              body={(rowData) => {
+                if (!rowData.totalBreakTime) return '-';
+                const hours = Math.floor(rowData.totalBreakTime / 60);
+                const minutes = rowData.totalBreakTime % 60;
+                return `${hours}h ${minutes}m`;
+              }}
+              sortable
+              style={{ minWidth: '120px' }}
             />
             <Column
               header="Actions"

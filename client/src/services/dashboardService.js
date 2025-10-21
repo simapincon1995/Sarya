@@ -79,5 +79,25 @@ export const dashboardService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Update Team Data
+  async updateTeamData(teamData) {
+    try {
+      const response = await api.post('/dashboard/team-data', teamData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get Team Data
+  async getTeamData() {
+    try {
+      const response = await api.get('/dashboard/team-data');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
