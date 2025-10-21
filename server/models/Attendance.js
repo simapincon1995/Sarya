@@ -45,7 +45,7 @@ const attendanceSchema = new mongoose.Schema({
       required: true
     },
     endTime: Date,
-    duration: Number, // in minutes
+    duration: Number,
     reason: String,
     isActive: {
       type: Boolean,
@@ -54,11 +54,11 @@ const attendanceSchema = new mongoose.Schema({
   }],
   totalWorkingHours: {
     type: Number,
-    default: 0 // in minutes
+    default: 0
   },
   totalBreakTime: {
     type: Number,
-    default: 0 // in minutes
+    default: 0
   },
   status: {
     type: String,
@@ -75,7 +75,7 @@ const attendanceSchema = new mongoose.Schema({
   },
   overtime: {
     type: Number,
-    default: 0 // in minutes
+    default: 0
   },
   notes: String,
   activityNotes: [{
@@ -112,24 +112,20 @@ const attendanceSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better performance
 attendanceSchema.index({ employee: 1, date: 1 });
 attendanceSchema.index({ date: 1 });
 attendanceSchema.index({ status: 1 });
 
-// Virtual for formatted date
 attendanceSchema.virtual('formattedDate').get(function() {
   return this.date.toISOString().split('T')[0];
 });
 
-// Calculate total working hours before saving
 attendanceSchema.pre('save', function(next) {
   if (this.checkIn && this.checkOut) {
     const checkInTime = new Date(this.checkIn.time);
     const checkOutTime = new Date(this.checkOut.time);
     const totalMinutes = (checkOutTime - checkInTime) / (1000 * 60);
     
-    // Subtract break time
     const breakTime = this.breaks.reduce((total, breakItem) => {
       if (breakItem.endTime) {
         const breakStart = new Date(breakItem.startTime);
@@ -145,7 +141,6 @@ attendanceSchema.pre('save', function(next) {
   next();
 });
 
-// Static method to get attendance summary
 attendanceSchema.statics.getAttendanceSummary = async function(employeeId, startDate, endDate) {
   const attendance = await this.find({
     employee: employeeId,

@@ -7,10 +7,9 @@ const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
-// Dashboard-specific rate limiter
 const dashboardLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500 // Higher limit for dashboard API calls
+  windowMs: 15 * 60 * 1000,
+  max: 500
 });
 
 // Check in
@@ -19,18 +18,12 @@ router.post('/checkin', authenticateToken, async (req, res) => {
     const userId = req.user._id;
     const { location, ipAddress, deviceInfo } = req.body;
 
-    console.log('Check-in attempt:', { userId, location, ipAddress, deviceInfo });
-    console.log('User info:', { id: req.user._id, email: req.user.email, department: req.user.department });
-
-    // Validate required fields
     if (!location || !ipAddress || !deviceInfo) {
-      console.log('Missing required fields');
       return res.status(400).json({ 
         message: 'Missing required fields: location, ipAddress, and deviceInfo are required' 
       });
     }
 
-    // Check if already checked in today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -41,23 +34,13 @@ router.post('/checkin', authenticateToken, async (req, res) => {
       date: { $gte: today, $lt: tomorrow }
     });
 
-    console.log('Existing attendance check:', {
-      found: !!existingAttendance,
-      hasCheckIn: existingAttendance?.checkIn ? true : false,
-      attendanceId: existingAttendance?._id
-    });
-
     if (existingAttendance && existingAttendance.checkIn && existingAttendance.checkIn.time) {
-      console.log('Already checked in today - returning 400');
       return res.status(400).json({ message: 'Already checked in today' });
     }
 
-    // Check if it's a holiday - make it optional in case holiday check fails
     try {
       const isHoliday = await Holiday.isHoliday(today, req.user.department);
-      console.log('Holiday check result:', isHoliday);
       if (isHoliday) {
-        console.log('Holiday detected, blocking check-in');
         return res.status(400).json({ message: 'Cannot check in on a holiday' });
       }
     } catch (holidayError) {
@@ -66,12 +49,8 @@ router.post('/checkin', authenticateToken, async (req, res) => {
 
     let attendance;
     if (existingAttendance) {
-      console.log('Updating existing attendance record');
-      // Update existing record
       attendance = existingAttendance;
     } else {
-      console.log('Creating new attendance record');
-      // Create new record
       attendance = new Attendance({
         employee: userId,
         date: today
@@ -85,7 +64,6 @@ router.post('/checkin', authenticateToken, async (req, res) => {
       deviceInfo
     };
 
-    // Check if late - make this optional to avoid blocking check-in
     try {
       const user = await User.findById(userId);
       if (user && user.shift && user.shift.startTime) {
@@ -104,9 +82,6 @@ router.post('/checkin', authenticateToken, async (req, res) => {
 
     await attendance.save();
 
-    console.log('Attendance saved successfully:', attendance);
-
-    // Emit real-time update (optional, don't fail if io is not available)
     try {
       if (req.io) {
         req.io.to('dashboard').emit('attendance-update', {
@@ -185,15 +160,21 @@ router.post('/checkout', authenticateToken, async (req, res) => {
     await attendance.save();
 
     // Emit real-time update
-    req.io.to('dashboard').emit('attendance-update', {
-      type: 'checkout',
-      employee: {
-        id: req.user._id,
-        name: req.user.fullName,
-        employeeId: req.user.employeeId
-      },
-      time: attendance.checkOut.time
-    });
+    try {
+      if (req.io) {
+        req.io.to('dashboard').emit('attendance-update', {
+          type: 'checkout',
+          employee: {
+            id: req.user._id,
+            name: req.user.fullName,
+            employeeId: req.user.employeeId
+          },
+          time: attendance.checkOut.time
+        });
+      }
+    } catch (ioError) {
+      console.warn('Real-time update failed:', ioError.message);
+    }
 
     res.json({
       message: 'Checked out successfully',
@@ -252,16 +233,22 @@ router.post('/break/start', authenticateToken, async (req, res) => {
     await attendance.save();
 
     // Emit real-time update
-    req.io.to('dashboard').emit('attendance-update', {
-      type: 'break-start',
-      employee: {
-        id: req.user._id,
-        name: req.user.fullName,
-        employeeId: req.user.employeeId
-      },
-      breakType,
-      time: newBreak.startTime
-    });
+    try {
+      if (req.io) {
+        req.io.to('dashboard').emit('attendance-update', {
+          type: 'break-start',
+          employee: {
+            id: req.user._id,
+            name: req.user.fullName,
+            employeeId: req.user.employeeId
+          },
+          breakType,
+          time: newBreak.startTime
+        });
+      }
+    } catch (ioError) {
+      console.warn('Real-time update failed:', ioError.message);
+    }
 
     res.json({
       message: 'Break started successfully',
@@ -306,15 +293,21 @@ router.post('/break/end', authenticateToken, async (req, res) => {
     await attendance.save();
 
     // Emit real-time update
-    req.io.to('dashboard').emit('attendance-update', {
-      type: 'break-end',
-      employee: {
-        id: req.user._id,
-        name: req.user.fullName,
-        employeeId: req.user.employeeId
-      },
-      time: activeBreak.endTime
-    });
+    try {
+      if (req.io) {
+        req.io.to('dashboard').emit('attendance-update', {
+          type: 'break-end',
+          employee: {
+            id: req.user._id,
+            name: req.user.fullName,
+            employeeId: req.user.employeeId
+          },
+          time: activeBreak.endTime
+        });
+      }
+    } catch (ioError) {
+      console.warn('Real-time update failed:', ioError.message);
+    }
 
     res.json({
       message: 'Break ended successfully',
@@ -381,7 +374,6 @@ router.get('/', authenticateToken, async (req, res) => {
 // Get today's attendance status
 router.get('/today', authenticateToken, async (req, res) => {
   try {
-    debugger;
     const userId = req.user._id;
     const today = new Date();
     today.setHours(0, 0, 0, 0);

@@ -4,7 +4,6 @@ export const attendanceService = {
   // Check in
   async checkIn(location, ipAddress, deviceInfo) {
     try {
-      console.log('Sending check-in request:', { location, ipAddress, deviceInfo });
       const response = await api.post('/attendance/checkin', {
         location,
         ipAddress,
@@ -12,7 +11,6 @@ export const attendanceService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Check-in service error:', error);
       if (error.response?.status === 400) {
         console.error('Bad request details:', error.response.data);
       }

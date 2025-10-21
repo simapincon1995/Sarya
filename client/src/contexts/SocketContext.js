@@ -30,7 +30,10 @@ export const SocketProvider = ({ children }) => {
       const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
         auth: {
           token: localStorage.getItem('token')
-        }
+        },
+        transports: ['websocket', 'polling'],
+        timeout: 20000,
+        forceNew: true
       });
 
       newSocket.on('connect', () => {
@@ -48,6 +51,20 @@ export const SocketProvider = ({ children }) => {
 
       newSocket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
+        setIsConnected(false);
+      });
+
+      newSocket.on('reconnect', (attemptNumber) => {
+        console.log('Socket reconnected after', attemptNumber, 'attempts');
+        setIsConnected(true);
+      });
+
+      newSocket.on('reconnect_error', (error) => {
+        console.error('Socket reconnection error:', error);
+      });
+
+      newSocket.on('reconnect_failed', () => {
+        console.error('Socket reconnection failed');
         setIsConnected(false);
       });
 

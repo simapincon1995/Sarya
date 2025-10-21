@@ -37,17 +37,27 @@ const Login = () => {
       const result = await login(formData.email, formData.password);
       if (result.success) {
         toast.current.show({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 1500 });
-        // Auto Check-In on successful login (best-effort; ignore errors such as already checked in)
-        try {
-          await attendanceService.checkIn(
-            { latitude: 0, longitude: 0, address: 'Office' },
-            '127.0.0.1',
-            'Electron/Desktop'
-          );
-        } catch (e) {
-          // ignore check-in errors (e.g., already checked in, holiday)
+        // Check if we're in widget mode
+        const isWidgetMode = localStorage.getItem('WIDGET_MODE') === 'true' || 
+                            new URLSearchParams(window.location.search).get('widget') === 'true' ||
+                            process.env.REACT_APP_ENTRY_POINT === 'widget';
+        
+        if (isWidgetMode) {
+          // Auto Check-In on successful login in widget mode (best-effort; ignore errors such as already checked in)
+          try {
+            await attendanceService.checkIn(
+              { latitude: 0, longitude: 0, address: 'Office' },
+              '127.0.0.1',
+              'Electron/Desktop'
+            );
+          } catch (e) {
+            // ignore check-in errors (e.g., already checked in, holiday)
+          }
+          navigate('/attendance', { replace: true });
+        } else {
+          // Regular browser login - go to dashboard
+          navigate('/dashboard', { replace: true });
         }
-        navigate('/attendance', { replace: true });
       } else {
         toast.current.show({ severity: 'error', summary: 'Error', detail: result.message || 'Login failed', life: 5000 });
       }
@@ -68,7 +78,7 @@ const Login = () => {
       <div className="login-left-panel">
         <div className="brand-logo">
           <img src="/assets/logo.jfif" alt="SaryaHR" className="logo-image" />
-          <span className="logo-text">SaryaHR</span>
+          <span className="logo-text">Sarya</span>
         </div>
 
         <div className="process-steps">

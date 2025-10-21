@@ -72,17 +72,23 @@ router.post('/', authenticateToken, async (req, res) => {
     await leave.save();
 
     // Emit real-time update
-    req.io.to('dashboard').emit('leave-update', {
-      type: 'new-application',
-      leave: {
-        id: leave._id,
-        employee: req.user.fullName,
-        leaveType,
-        startDate,
-        endDate,
-        status: 'pending'
+    try {
+      if (req.io) {
+        req.io.to('dashboard').emit('leave-update', {
+          type: 'new-application',
+          leave: {
+            id: leave._id,
+            employee: req.user.fullName,
+            leaveType,
+            startDate,
+            endDate,
+            status: 'pending'
+          }
+        });
       }
-    });
+    } catch (ioError) {
+      console.warn('Real-time update failed:', ioError.message);
+    }
 
     res.status(201).json({
       message: 'Leave application submitted successfully',
@@ -239,15 +245,21 @@ router.put('/:leaveId/approve', authenticateToken, authorize('admin', 'hr_admin'
     await leave.save();
 
     // Emit real-time update
-    req.io.to('dashboard').emit('leave-update', {
-      type: 'status-change',
-      leave: {
-        id: leave._id,
-        employee: leave.employee.fullName,
-        status: leave.status,
-        approvedBy: user.fullName
+    try {
+      if (req.io) {
+        req.io.to('dashboard').emit('leave-update', {
+          type: 'status-change',
+          leave: {
+            id: leave._id,
+            employee: leave.employee.fullName,
+            status: leave.status,
+            approvedBy: user.fullName
+          }
+        });
       }
-    });
+    } catch (ioError) {
+      console.warn('Real-time update failed:', ioError.message);
+    }
 
     res.json({
       message: `Leave ${status} successfully`,

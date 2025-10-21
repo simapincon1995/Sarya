@@ -4,9 +4,7 @@
   "description": "Backend server for Sarya Connective HR Management System",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "test": "jest"
+    "start": "node index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -26,7 +24,6 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
     "nodemon": "^3.0.2"
   }
 }

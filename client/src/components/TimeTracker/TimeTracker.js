@@ -36,17 +36,6 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
   const checkOutTime = attendanceData?.checkOut?.time || attendanceData?.checkOut || attendanceData?.checkOutTime;
   const hasWorkingTime = workingTime && workingTime !== '00:00:00';
   
-  // Debug logging
-  console.log('TimeTracker Debug:', {
-    attendanceStatus,
-    attendanceData,
-    checkInTime,
-    checkOutTime,
-    apiStatus: attendanceStatus?.status,
-    hasWorkingTime
-  });
-  
-  // More robust check-in detection - only check actual check-in time
   const isCheckedIn = (() => {
     // Only consider checked in if we have a valid check-in time and no check-out time
     if (checkInTime && !checkOutTime) return true;
@@ -217,7 +206,6 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
     
     setIsLoading(true);
     try {
-      console.log('Attempting check-in...');
       await attendanceService.checkIn(
         { latitude: 0, longitude: 0, address: 'Office' },
         '127.0.0.1',
@@ -234,8 +222,6 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
       // Only refresh status after successful check-in
       onStatusUpdate();
     } catch (error) {
-      console.error('Check-in error:', error);
-      console.error('Error response:', error.response?.data);
       const errorMessage = error.response?.data?.message || 'Failed to check in. Please try again.';
       
       // If already checked in, refresh status to show correct state
@@ -291,7 +277,6 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
           
           onStatusUpdate();
         } catch (error) {
-          console.error('Check-out error:', error);
           toast.current?.show({
             severity: 'error',
             summary: 'Check-out Failed',
@@ -325,7 +310,6 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
       setBreakType('lunch');
       onStatusUpdate();
     } catch (error) {
-      console.error('Start break error:', error);
       toast.current?.show({
         severity: 'error',
         summary: 'Failed to Start Break',
@@ -354,7 +338,6 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
       
       onStatusUpdate();
     } catch (error) {
-      console.error('End break error:', error);
       toast.current?.show({
         severity: 'error',
         summary: 'Failed to End Break',

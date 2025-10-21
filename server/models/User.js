@@ -9,10 +9,8 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     default: function() {
-      // Only generate UUID if no value is provided
       return uuidv4();
     }
-    // Removed strict UUID validation to allow existing legacy IDs
   },
   firstName: {
     type: String,
@@ -93,7 +91,7 @@ const userSchema = new mongoose.Schema({
   shift: {
     startTime: String,
     endTime: String,
-    workingDays: [String] // ['monday', 'tuesday', etc.]
+    workingDays: [String]
   },
   theme: {
     type: String,
@@ -108,23 +106,20 @@ const userSchema = new mongoose.Schema({
     createdAt: {
       type: Date,
       default: Date.now,
-      expires: 604800 // 7 days
+      expires: 604800
     }
   }]
 }, {
   timestamps: true
 });
 
-// Index for better performance (employeeId and email already have unique indexes)
 userSchema.index({ role: 1 });
 userSchema.index({ department: 1 });
 
-// Virtual for full name
 userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
@@ -137,12 +132,10 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Remove password from JSON output
 userSchema.methods.toJSON = function() {
   const user = this.toObject();
   delete user.password;

@@ -5,7 +5,6 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Generate JWT token
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d'
@@ -25,21 +24,19 @@ router.post('/signup', async (req, res) => {
       phone
     } = req.body;
 
-    // Validate required fields
     if (!firstName || !lastName || !email || !password || !department || !designation) {
       return res.status(400).json({ 
         message: 'All required fields must be provided' 
       });
     }
 
-    // Validate email domain - only @hrms.com allowed
     if (!email.toLowerCase().endsWith('@hrms.com')) {
       return res.status(400).json({ 
         message: 'Only @hrms.com email addresses are allowed for admin signup' 
       });
     }
 
-    // Check if user already exists
+
     const existingUser = await User.findOne({ email: email.toLowerCase() });
 
     if (existingUser) {
@@ -48,17 +45,16 @@ router.post('/signup', async (req, res) => {
       });
     }
 
-    // Create new admin user
     const user = new User({
       firstName,
       lastName,
       email: email.toLowerCase(),
       password,
-      role: 'admin', // Force admin role for signup
+      role: 'admin',
       department,
       designation,
       phone,
-      salary: 0 // Default salary, can be updated later
+      salary: 0
     });
 
     await user.save();

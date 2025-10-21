@@ -24,7 +24,6 @@ const Attendance = () => {
       loadingRef.current = true;
       setIsLoading(true);
       const data = await attendanceService.getTodayAttendance();
-      console.log('Attendance API Response:', data);
       setAttendanceStatus(data);
       setHasInitialLoad(true);
     } catch (error) {
