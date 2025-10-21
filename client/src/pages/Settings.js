@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
-import { Card } from 'primereact/card';
-import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { Password } from 'primereact/password';
 import { InputText } from 'primereact/inputtext';
-// import { InputTextarea } from 'primereact/inputtextarea';
-// import { Calendar } from 'primereact/calendar';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLocalization } from '../contexts/LocalizationContext';
 import { organizationService } from '../services/organizationService';
+import './Settings.css';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -105,100 +102,124 @@ const Settings = () => {
   ];
 
   return (
-    <div className="grid">
-      {/* Theme Settings */}
-      <div className="col-12 lg:col-6">
-        <Card title={t('settings.themeSettings')}>
-          <div className="flex flex-column gap-4">
-            <div className="field">
-              <label htmlFor="theme" className="block text-sm font-medium mb-2">
-                {t('settings.selectTheme')}
-              </label>
-              <Dropdown
-                id="theme"
-                value={currentTheme}
-                options={themeOptions}
-                onChange={(e) => changeTheme(e.value)}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="p-3 border-1 surface-border border-round">
-              <h4 className="mb-2">
-                {t('settings.currentTheme')}: {themes.find(t => t.key === currentTheme)?.name}
-              </h4>
-              <p className="text-sm text-color-secondary mb-0">
-                The theme affects the overall appearance of the application including colors, 
-                spacing, and component styling.
-              </p>
-            </div>
-          </div>
-        </Card>
+    <div className="settings-container">
+      {/* Header */}
+      <div className="settings-header">
+        <h1 className="settings-title">Settings</h1>
+        <p className="settings-subtitle">Customize your application preferences and manage your account settings</p>
       </div>
 
-      {/* Language Settings */}
-      <div className="col-12 lg:col-6">
-        <Card title={t('settings.languageSettings')}>
-          <div className="flex flex-column gap-4">
-            <div className="field">
-              <label htmlFor="language" className="block text-sm font-medium mb-2">
-                {t('settings.selectLanguage')}
-              </label>
-              <Dropdown
-                id="language"
-                value={currentLanguage}
-                options={languageOptions}
-                onChange={(e) => changeLanguage(e.value)}
-                className="w-full"
-              />
+      {/* Settings Grid */}
+      <div className="settings-grid">
+        {/* Theme Settings */}
+        <div className="settings-card">
+          <div className="settings-card-title">
+            <div className="settings-card-icon">
+              <i className="pi pi-palette"></i>
             </div>
-            
-            <div className="p-3 border-1 surface-border border-round">
-              <h4 className="mb-2">
-                {t('settings.currentLanguage')}: {getAvailableLanguages().find(l => l.code === currentLanguage)?.nativeName}
-              </h4>
-              <p className="text-sm text-color-secondary mb-0">
-                Change the language of the application interface.
-              </p>
-            </div>
+            {t('settings.themeSettings')}
           </div>
-        </Card>
-      </div>
-
-      {/* Timezone Settings */}
-      <div className="col-12 lg:col-6">
-        <Card title={t('settings.timezoneSettings')}>
-          <div className="flex flex-column gap-4">
-            <div className="field">
-              <label htmlFor="timezone" className="block text-sm font-medium mb-2">
-                {t('settings.selectTimezone')}
-              </label>
-              <Dropdown
-                id="timezone"
-                value={timezone}
-                options={timezoneOptions}
-                onChange={(e) => changeTimezone(e.value)}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="p-3 border-1 surface-border border-round">
-              <h4 className="mb-2">
-                {t('settings.currentTimezone')}: {timezoneOptions.find(tz => tz.value === timezone)?.label}
-              </h4>
-              <p className="text-sm text-color-secondary mb-0">
-                Current time: {formatTime(new Date())}
-              </p>
-            </div>
+          
+          <div className="settings-field">
+            <label htmlFor="theme" className="settings-label">
+              {t('settings.selectTheme')}
+            </label>
+            <Dropdown
+              id="theme"
+              value={currentTheme}
+              options={themeOptions}
+              onChange={(e) => changeTheme(e.value)}
+              className="settings-dropdown"
+            />
           </div>
-        </Card>
-      </div>
+          
+          <div className="settings-info-box">
+            <div className="settings-info-title">
+              {t('settings.currentTheme')}: {themes.find(t => t.key === currentTheme)?.name}
+            </div>
+            <p className="settings-info-text">
+              The theme affects the overall appearance of the application including colors, 
+              spacing, and component styling.
+            </p>
+          </div>
+        </div>
 
-      <div className="col-12 lg:col-6">
-        <Card title="Change Password">
-          <form onSubmit={handlePasswordSubmit} className="flex flex-column gap-4">
-            <div className="field">
-              <label htmlFor="currentPassword" className="block text-sm font-medium mb-2">
+        {/* Language Settings */}
+        <div className="settings-card">
+          <div className="settings-card-title">
+            <div className="settings-card-icon">
+              <i className="pi pi-globe"></i>
+            </div>
+            {t('settings.languageSettings')}
+          </div>
+          
+          <div className="settings-field">
+            <label htmlFor="language" className="settings-label">
+              {t('settings.selectLanguage')}
+            </label>
+            <Dropdown
+              id="language"
+              value={currentLanguage}
+              options={languageOptions}
+              onChange={(e) => changeLanguage(e.value)}
+              className="settings-dropdown"
+            />
+          </div>
+          
+          <div className="settings-info-box">
+            <div className="settings-info-title">
+              {t('settings.currentLanguage')}: {getAvailableLanguages().find(l => l.code === currentLanguage)?.nativeName}
+            </div>
+            <p className="settings-info-text">
+              Change the language of the application interface.
+            </p>
+          </div>
+        </div>
+
+        {/* Timezone Settings */}
+        <div className="settings-card">
+          <div className="settings-card-title">
+            <div className="settings-card-icon">
+              <i className="pi pi-clock"></i>
+            </div>
+            {t('settings.timezoneSettings')}
+          </div>
+          
+          <div className="settings-field">
+            <label htmlFor="timezone" className="settings-label">
+              {t('settings.selectTimezone')}
+            </label>
+            <Dropdown
+              id="timezone"
+              value={timezone}
+              options={timezoneOptions}
+              onChange={(e) => changeTimezone(e.value)}
+              className="settings-dropdown"
+            />
+          </div>
+          
+          <div className="settings-info-box">
+            <div className="settings-info-title">
+              {t('settings.currentTimezone')}: {timezoneOptions.find(tz => tz.value === timezone)?.label}
+            </div>
+            <p className="settings-info-text">
+              Current time: {formatTime(new Date())}
+            </p>
+          </div>
+        </div>
+
+        {/* Change Password */}
+        <div className="settings-card">
+          <div className="settings-card-title">
+            <div className="settings-card-icon">
+              <i className="pi pi-key"></i>
+            </div>
+            Change Password
+          </div>
+          
+          <form onSubmit={handlePasswordSubmit}>
+            <div className="settings-field">
+              <label htmlFor="currentPassword" className="settings-label">
                 Current Password
               </label>
               <Password
@@ -206,14 +227,14 @@ const Settings = () => {
                 name="currentPassword"
                 value={passwordData.currentPassword}
                 onChange={handlePasswordChange}
-                className="w-full"
+                className="settings-password"
                 feedback={false}
-                toggleMask
+                toggleMask={false}
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="newPassword" className="block text-sm font-medium mb-2">
+            <div className="settings-field">
+              <label htmlFor="newPassword" className="settings-label">
                 New Password
               </label>
               <Password
@@ -221,13 +242,13 @@ const Settings = () => {
                 name="newPassword"
                 value={passwordData.newPassword}
                 onChange={handlePasswordChange}
-                className="w-full"
-                toggleMask
+                className="settings-password"
+                toggleMask={false}
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
+            <div className="settings-field">
+              <label htmlFor="confirmPassword" className="settings-label">
                 Confirm New Password
               </label>
               <Password
@@ -235,138 +256,134 @@ const Settings = () => {
                 name="confirmPassword"
                 value={passwordData.confirmPassword}
                 onChange={handlePasswordChange}
-                className="w-full"
+                className="settings-password"
                 feedback={false}
-                toggleMask
+                toggleMask={false}
               />
             </div>
 
-            <Button
-              type="submit"
-              label="Change Password"
-              icon="pi pi-key"
-              className="p-button-primary"
-            />
+            <button type="submit" className="settings-button">
+              <i className="pi pi-key settings-button-icon"></i>
+              Change Password
+            </button>
           </form>
-        </Card>
+        </div>
       </div>
 
       {/* Organization Settings */}
       {user?.role === 'admin' && (
-        <div className="col-12">
-          <Card title="Organization Settings">
-            <form onSubmit={handleOrganizationSettingsSubmit} className="flex flex-column gap-4">
-              <div className="grid">
-                <div className="col-12 md:col-6">
-                  <div className="field">
-                    <label htmlFor="orgName" className="block text-sm font-medium mb-2">
-                      Organization Name
-                    </label>
-                    <InputText
-                      id="orgName"
-                      value={organizationSettings.name}
-                      onChange={(e) => handleOrganizationSettingsChange('name', e.target.value)}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                <div className="col-12 md:col-6">
-                  <div className="field">
-                    <label htmlFor="currency" className="block text-sm font-medium mb-2">
-                      Default Currency
-                    </label>
-                    <Dropdown
-                      id="currency"
-                      value={organizationSettings.currency}
-                      options={currencyOptions}
-                      onChange={(e) => handleOrganizationSettingsChange('currency', e.value)}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
+        <div className="settings-card org-settings-card">
+          <div className="settings-card-title">
+            <div className="settings-card-icon">
+              <i className="pi pi-building"></i>
+            </div>
+            Organization Settings
+          </div>
+          
+          <form onSubmit={handleOrganizationSettingsSubmit}>
+            <div className="org-settings-grid">
+              <div className="settings-field">
+                <label htmlFor="orgName" className="settings-label">
+                  Organization Name
+                </label>
+                <InputText
+                  id="orgName"
+                  value={organizationSettings.name}
+                  onChange={(e) => handleOrganizationSettingsChange('name', e.target.value)}
+                  className="settings-input"
+                />
               </div>
-
-              <div className="grid">
-                <div className="col-12 md:col-6">
-                  <div className="field">
-                    <label htmlFor="dateFormat" className="block text-sm font-medium mb-2">
-                      Date Format
-                    </label>
-                    <Dropdown
-                      id="dateFormat"
-                      value={organizationSettings.dateFormat}
-                      options={dateFormatOptions}
-                      onChange={(e) => handleOrganizationSettingsChange('dateFormat', e.value)}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                <div className="col-12 md:col-6">
-                  <div className="field">
-                    <label htmlFor="timeFormat" className="block text-sm font-medium mb-2">
-                      Time Format
-                    </label>
-                    <Dropdown
-                      id="timeFormat"
-                      value={organizationSettings.timeFormat}
-                      options={timeFormatOptions}
-                      onChange={(e) => handleOrganizationSettingsChange('timeFormat', e.value)}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
+              
+              <div className="settings-field">
+                <label htmlFor="currency" className="settings-label">
+                  Default Currency
+                </label>
+                <Dropdown
+                  id="currency"
+                  value={organizationSettings.currency}
+                  options={currencyOptions}
+                  onChange={(e) => handleOrganizationSettingsChange('currency', e.value)}
+                  className="settings-dropdown"
+                />
               </div>
+              
+              <div className="settings-field">
+                <label htmlFor="dateFormat" className="settings-label">
+                  Date Format
+                </label>
+                <Dropdown
+                  id="dateFormat"
+                  value={organizationSettings.dateFormat}
+                  options={dateFormatOptions}
+                  onChange={(e) => handleOrganizationSettingsChange('dateFormat', e.value)}
+                  className="settings-dropdown"
+                />
+              </div>
+              
+              <div className="settings-field">
+                <label htmlFor="timeFormat" className="settings-label">
+                  Time Format
+                </label>
+                <Dropdown
+                  id="timeFormat"
+                  value={organizationSettings.timeFormat}
+                  options={timeFormatOptions}
+                  onChange={(e) => handleOrganizationSettingsChange('timeFormat', e.value)}
+                  className="settings-dropdown"
+                />
+              </div>
+            </div>
 
-              <Button
-                type="submit"
-                label="Update Organization Settings"
-                icon="pi pi-save"
-                className="p-button-primary"
-              />
-            </form>
-          </Card>
+            <button type="submit" className="settings-button">
+              <i className="pi pi-save settings-button-icon"></i>
+              Update Organization Settings
+            </button>
+          </form>
         </div>
       )}
 
-      <div className="col-12">
-        <Card title="Application Information">
-          <div className="grid">
-            <div className="col-12 md:col-6">
-              <div className="flex flex-column gap-3">
-                <div className="flex justify-content-between">
-                  <span className="text-sm font-medium">Application Name:</span>
-                  <span className="text-sm">Sarya Connective</span>
-                </div>
-                <div className="flex justify-content-between">
-                  <span className="text-sm font-medium">Version:</span>
-                  <span className="text-sm">1.0.0</span>
-                </div>
-                <div className="flex justify-content-between">
-                  <span className="text-sm font-medium">Build Date:</span>
-                  <span className="text-sm">{new Date().toLocaleDateString()}</span>
-                </div>
-              </div>
+      {/* Application Information */}
+      <div className="settings-card app-info-card">
+        <div className="settings-card-title">
+          <div className="settings-card-icon">
+            <i className="pi pi-info-circle"></i>
+          </div>
+          Application Information
+        </div>
+        
+        <div className="app-info-grid">
+          <div className="app-info-section">
+            <div className="app-info-item">
+              <span className="app-info-label">Application Name</span>
+              <span className="app-info-value">Sarya Connective</span>
             </div>
-            <div className="col-12 md:col-6">
-              <div className="flex flex-column gap-3">
-                <div className="flex justify-content-between">
-                  <span className="text-sm font-medium">User Role:</span>
-                  <span className="text-sm capitalize">{user?.role?.replace('_', ' ')}</span>
-                </div>
-                <div className="flex justify-content-between">
-                  <span className="text-sm font-medium">Department:</span>
-                  <span className="text-sm">{user?.department}</span>
-                </div>
-                <div className="flex justify-content-between">
-                  <span className="text-sm font-medium">Last Login:</span>
-                  <span className="text-sm">
-                    {user?.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}
-                  </span>
-                </div>
-              </div>
+            <div className="app-info-item">
+              <span className="app-info-label">Version</span>
+              <span className="app-info-value">1.0.0</span>
+            </div>
+            <div className="app-info-item">
+              <span className="app-info-label">Build Date</span>
+              <span className="app-info-value">{new Date().toLocaleDateString()}</span>
             </div>
           </div>
-        </Card>
+          
+          <div className="app-info-section">
+            <div className="app-info-item">
+              <span className="app-info-label">User Role</span>
+              <span className="app-info-value capitalize">{user?.role?.replace('_', ' ')}</span>
+            </div>
+            <div className="app-info-item">
+              <span className="app-info-label">Department</span>
+              <span className="app-info-value">{user?.department}</span>
+            </div>
+            <div className="app-info-item">
+              <span className="app-info-label">Last Login</span>
+              <span className="app-info-value">
+                {user?.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
