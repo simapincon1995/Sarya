@@ -6,8 +6,6 @@ yarn-error.log*
 
 # Production builds
 build/
-dist/
-dist-widget/
 *.asar
 
 # Logs
