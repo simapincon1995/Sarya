@@ -46,4 +46,8 @@ services:
         value: 100
       - key: SESSION_SECRET
         sync: false
+      - key: REACT_APP_API_URL
+        value: https://sarya.onrender.com/api
+      - key: REACT_APP_SOCKET_URL
+        value: https://sarya.onrender.com
 

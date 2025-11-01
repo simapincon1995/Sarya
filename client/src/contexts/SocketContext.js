@@ -29,10 +29,11 @@ export const SocketProvider = ({ children }) => {
     if (isAuthenticated && user && socketEnabled) {
       // Initialize socket connection with error handling
       try {
-        // In production, use relative path when served from same server
-        // Otherwise use environment variable or localhost for development
-        const apiUrl = process.env.REACT_APP_API_URL || 
-          (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000');
+        // Use REACT_APP_SOCKET_URL if set, otherwise derive from API URL or use defaults
+        // REACT_APP_SOCKET_URL should be set to: https://sarya.onrender.com
+        const apiUrl = process.env.REACT_APP_SOCKET_URL || 
+          (process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 
+          (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000'));
         const newSocket = io(apiUrl, {
           auth: {
             token: localStorage.getItem('token')

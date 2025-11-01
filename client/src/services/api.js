@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// In production, use relative path when served from same server
-// Otherwise use environment variable or localhost for development
+// Use REACT_APP_API_URL if set, otherwise fallback to defaults
+// REACT_APP_API_URL should be set to: https://sarya.onrender.com/api
 const API_URL = process.env.REACT_APP_API_URL || 
   (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api');
 
