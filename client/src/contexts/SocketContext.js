@@ -29,7 +29,10 @@ export const SocketProvider = ({ children }) => {
     if (isAuthenticated && user && socketEnabled) {
       // Initialize socket connection with error handling
       try {
-        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        // In production, use relative path when served from same server
+        // Otherwise use environment variable or localhost for development
+        const apiUrl = process.env.REACT_APP_API_URL || 
+          (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000');
         const newSocket = io(apiUrl, {
           auth: {
             token: localStorage.getItem('token')

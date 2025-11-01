@@ -12,9 +12,13 @@ const NetworkTest = () => {
     setIsLoading(true);
     setResults([]);
     
+    // Get API base URL - use relative path in production, localhost in development
+    const API_BASE_URL = process.env.REACT_APP_API_URL || 
+      (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api');
+    
     // Test 1: Basic server connection
     try {
-      const response = await fetch('http://localhost:5000/api/test');
+      const response = await fetch(`${API_BASE_URL}/test`);
       const data = await response.json();
       setResults(prev => [...prev, { test: 'Server Connection', status: 'SUCCESS', message: data.message }]);
     } catch (error) {
@@ -23,7 +27,7 @@ const NetworkTest = () => {
 
     // Test 2: Check-in endpoint (without auth)
     try {
-      const response = await fetch('http://localhost:5000/api/test-checkin', {
+      const response = await fetch(`${API_BASE_URL}/test-checkin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,7 +51,7 @@ const NetworkTest = () => {
       
       // Test 4: Authenticated request
       try {
-        const response = await fetch('http://localhost:5000/api/attendance/today', {
+        const response = await fetch(`${API_BASE_URL}/attendance/today`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
