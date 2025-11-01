@@ -73,14 +73,55 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sarya_connective', {
+// MongoDB connection with better error handling
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/sarya_connective';
+
+// Log connection attempt (hide credentials in production)
+if (process.env.NODE_ENV !== 'production') {
+  const maskedUri = mongoUri.replace(/:([^:@]+)@/, ':****@');
+  console.log(`🔌 Attempting to connect to MongoDB: ${maskedUri}`);
+}
+
+mongoose.connect(mongoUri, {
+  serverSelectionTimeoutMS: 10000, // 10 second timeout
+  socketTimeoutMS: 45000,
 })
 .then(() => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('✅ MongoDB connected successfully');
-  }
+  const dbName = mongoose.connection.db?.databaseName || 'unknown';
+  console.log(`✅ MongoDB connected successfully to database: ${dbName}`);
 })
-.catch(err => console.error('❌ MongoDB connection error:', err));
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err.message);
+  
+  // Provide helpful error messages based on error type
+  if (err.code === 8000 || err.codeName === 'AtlasError') {
+    console.error('\n💡 MongoDB Atlas Authentication Failed. Please check:');
+    console.error('   1. Username and password in connection string are correct');
+    console.error('   2. Database user has proper permissions');
+    console.error('   3. IP address is whitelisted in Atlas Network Access');
+    console.error('   4. Connection string format is correct:');
+    console.error('      mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority');
+  } else if (err.name === 'MongoServerSelectionError') {
+    console.error('\n💡 Cannot reach MongoDB server. Please check:');
+    console.error('   1. Server is running and accessible');
+    console.error('   2. Network connection is active');
+    console.error('   3. Firewall allows MongoDB connections');
+    console.error('   4. Connection string host and port are correct');
+  } else if (err.message.includes('authentication')) {
+    console.error('\n💡 Authentication Failed. Please check:');
+    console.error('   1. Username and password are correct');
+    console.error('   2. authSource parameter if using custom auth database');
+    console.error('   3. User has permissions on the database');
+  }
+  
+  console.error('\n📝 Current connection string (masked):', 
+    mongoUri.replace(/:([^:@]+)@/, ':****@'));
+  
+  // Don't exit in production to allow for retries/restarts
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
+});
 
 io.on('connection', (socket) => {
   if (process.env.NODE_ENV !== 'production') {
