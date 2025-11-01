@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { organizationService } from '../services/organizationService';
 
 const LocalizationContext = createContext();
 
@@ -384,15 +385,46 @@ const translations = {
 
 export const LocalizationProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en');
-  const [timezone, setTimezone] = useState('Asia/Kolkata');
+  const [timezone, setTimezone] = useState('America/New_York'); // Default to EST/ET
+  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY');
+  const [timeFormat, setTimeFormat] = useState('hh:mm A');
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Load organization settings (including timezone) on mount
   useEffect(() => {
-    // Load saved language and timezone from localStorage
+    const loadOrganizationSettings = async () => {
+      try {
+        const settings = await organizationService.getSettings();
+        if (settings) {
+          setTimezone(settings.timezone || 'America/New_York');
+          setDateFormat(settings.dateFormat || 'MM/DD/YYYY');
+          setTimeFormat(settings.timeFormat || 'hh:mm A');
+          
+          // Also save to localStorage for quick access
+          localStorage.setItem('timezone', settings.timezone || 'America/New_York');
+          localStorage.setItem('dateFormat', settings.dateFormat || 'MM/DD/YYYY');
+          localStorage.setItem('timeFormat', settings.timeFormat || 'hh:mm A');
+        }
+      } catch (error) {
+        console.error('Failed to load organization settings:', error);
+        // Fallback to localStorage or defaults
+        const savedTimezone = localStorage.getItem('timezone') || 'America/New_York';
+        const savedDateFormat = localStorage.getItem('dateFormat') || 'MM/DD/YYYY';
+        const savedTimeFormat = localStorage.getItem('timeFormat') || 'hh:mm A';
+        
+        setTimezone(savedTimezone);
+        setDateFormat(savedDateFormat);
+        setTimeFormat(savedTimeFormat);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Load saved language from localStorage
     const savedLanguage = localStorage.getItem('language') || 'en';
-    const savedTimezone = localStorage.getItem('timezone') || 'Asia/Kolkata';
-    
     setCurrentLanguage(savedLanguage);
-    setTimezone(savedTimezone);
+
+    loadOrganizationSettings();
   }, []);
 
   const changeLanguage = (language) => {
@@ -436,10 +468,11 @@ export const LocalizationProvider = ({ children }) => {
     return translation || key;
   };
 
-  const formatDate = (date, format = 'DD/MM/YYYY') => {
+  const formatDate = (date, formatOverride = null) => {
     if (!date) return '';
     
     const d = new Date(date);
+    const formatToUse = formatOverride || dateFormat;
     const options = {
       timeZone: timezone,
       year: 'numeric',
@@ -447,34 +480,53 @@ export const LocalizationProvider = ({ children }) => {
       day: '2-digit'
     };
     
-    if (format === 'DD/MM/YYYY') {
+    if (formatToUse === 'DD/MM/YYYY') {
       return d.toLocaleDateString('en-GB', options);
-    } else if (format === 'MM/DD/YYYY') {
+    } else if (formatToUse === 'MM/DD/YYYY') {
       return d.toLocaleDateString('en-US', options);
-    } else if (format === 'YYYY-MM-DD') {
+    } else if (formatToUse === 'YYYY-MM-DD') {
       return d.toISOString().split('T')[0];
     }
     
     return d.toLocaleDateString('en-GB', options);
   };
 
-  const formatTime = (date, format = 'HH:mm') => {
+  const formatTime = (date, formatOverride = null) => {
     if (!date) return '';
     
     const d = new Date(date);
+    const formatToUse = formatOverride || timeFormat;
     const options = {
       timeZone: timezone,
       hour: '2-digit',
       minute: '2-digit'
     };
     
-    if (format === 'HH:mm') {
+    if (formatToUse === 'HH:mm') {
       return d.toLocaleTimeString('en-GB', options);
-    } else if (format === 'hh:mm A') {
+    } else if (formatToUse === 'hh:mm A') {
       return d.toLocaleTimeString('en-US', { ...options, hour12: true });
     }
     
     return d.toLocaleTimeString('en-GB', options);
+  };
+
+  // Refresh organization settings when they might be updated
+  const refreshSettings = async () => {
+    try {
+      const settings = await organizationService.getSettings();
+      if (settings) {
+        setTimezone(settings.timezone || 'America/New_York');
+        setDateFormat(settings.dateFormat || 'MM/DD/YYYY');
+        setTimeFormat(settings.timeFormat || 'hh:mm A');
+        
+        localStorage.setItem('timezone', settings.timezone || 'America/New_York');
+        localStorage.setItem('dateFormat', settings.dateFormat || 'MM/DD/YYYY');
+        localStorage.setItem('timeFormat', settings.timeFormat || 'hh:mm A');
+      }
+    } catch (error) {
+      console.error('Failed to refresh organization settings:', error);
+    }
   };
 
   const formatCurrency = (amount, currency = 'INR') => {
@@ -506,8 +558,12 @@ export const LocalizationProvider = ({ children }) => {
   const value = {
     currentLanguage,
     timezone,
+    dateFormat,
+    timeFormat,
+    isLoading,
     changeLanguage,
     changeTimezone,
+    refreshSettings,
     t,
     formatDate,
     formatTime,

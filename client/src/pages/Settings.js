@@ -19,6 +19,7 @@ const Settings = () => {
     timezone, 
     changeLanguage, 
     changeTimezone, 
+    refreshSettings,
     t, 
     formatTime,
     getAvailableLanguages,
@@ -89,6 +90,12 @@ const Settings = () => {
     e.preventDefault();
     try {
       await organizationService.updateSettings(organizationSettings);
+      
+      // Refresh localization settings after updating organization settings
+      if (refreshSettings) {
+        await refreshSettings();
+      }
+      
       toast.current.show({
         severity: 'success',
         summary: 'Success',

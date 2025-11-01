@@ -509,14 +509,44 @@ router.get('/dashboard/public', dashboardLimiter, async (req, res) => {
       if (!a.employee) return false; // Skip if employee is null
       const activeBreak = a.breaks.find(breakItem => breakItem.isActive && !breakItem.endTime);
       return !!activeBreak;
-    }).map(a => ({
-      id: a.employee._id,
-      name: `${a.employee.firstName} ${a.employee.lastName}`.trim(),
-      employeeId: a.employee.employeeId,
-      department: a.employee.department,
-      breakType: (a.breaks.find(b => b.isActive && !b.endTime) || {}).breakType,
-      startTime: (a.breaks.find(b => b.isActive && !b.endTime) || {}).startTime
-    }));
+    }).map(a => {
+      const activeBreak = a.breaks.find(b => b.isActive && !b.endTime) || {};
+      
+      // Calculate total break duration for the day
+      let totalBreakDurationMs = 0;
+      
+      // Sum all completed breaks
+      a.breaks.forEach(breakItem => {
+        if (breakItem.endTime) {
+          // Completed break - use duration if available, otherwise calculate
+          if (breakItem.duration) {
+            totalBreakDurationMs += breakItem.duration * 60000; // Convert minutes to ms
+          } else {
+            const start = new Date(breakItem.startTime);
+            const end = new Date(breakItem.endTime);
+            totalBreakDurationMs += (end - start);
+          }
+        }
+      });
+      
+      // Add current active break duration (if any)
+      if (activeBreak.startTime) {
+        const activeBreakStart = new Date(activeBreak.startTime);
+        const now = new Date();
+        totalBreakDurationMs += (now - activeBreakStart);
+      }
+      
+      return {
+        id: a.employee._id,
+        name: `${a.employee.firstName} ${a.employee.lastName}`.trim(),
+        employeeId: a.employee.employeeId,
+        department: a.employee.department,
+        breakType: activeBreak.breakType,
+        startTime: activeBreak.startTime,
+        allBreaks: a.breaks, // Include all breaks for reference
+        totalBreakDurationMs: Math.floor(totalBreakDurationMs / 1000 / 60) // Total in minutes
+      };
+    });
     const onBreak = onBreakEmployees.length;
     const late = todayAttendance.filter(a => a.isLate).length;
 
@@ -601,14 +631,44 @@ router.get('/dashboard/overview', authenticateToken, dashboardLimiter, async (re
       if (!a.employee) return false; // Skip if employee is null
       const activeBreak = a.breaks.find(breakItem => breakItem.isActive && !breakItem.endTime);
       return !!activeBreak;
-    }).map(a => ({
-      id: a.employee._id,
-      name: `${a.employee.firstName} ${a.employee.lastName}`.trim(),
-      employeeId: a.employee.employeeId,
-      department: a.employee.department,
-      breakType: (a.breaks.find(b => b.isActive && !b.endTime) || {}).breakType,
-      startTime: (a.breaks.find(b => b.isActive && !b.endTime) || {}).startTime
-    }));
+    }).map(a => {
+      const activeBreak = a.breaks.find(b => b.isActive && !b.endTime) || {};
+      
+      // Calculate total break duration for the day
+      let totalBreakDurationMs = 0;
+      
+      // Sum all completed breaks
+      a.breaks.forEach(breakItem => {
+        if (breakItem.endTime) {
+          // Completed break - use duration if available, otherwise calculate
+          if (breakItem.duration) {
+            totalBreakDurationMs += breakItem.duration * 60000; // Convert minutes to ms
+          } else {
+            const start = new Date(breakItem.startTime);
+            const end = new Date(breakItem.endTime);
+            totalBreakDurationMs += (end - start);
+          }
+        }
+      });
+      
+      // Add current active break duration (if any)
+      if (activeBreak.startTime) {
+        const activeBreakStart = new Date(activeBreak.startTime);
+        const now = new Date();
+        totalBreakDurationMs += (now - activeBreakStart);
+      }
+      
+      return {
+        id: a.employee._id,
+        name: `${a.employee.firstName} ${a.employee.lastName}`.trim(),
+        employeeId: a.employee.employeeId,
+        department: a.employee.department,
+        breakType: activeBreak.breakType,
+        startTime: activeBreak.startTime,
+        allBreaks: a.breaks, // Include all breaks for reference
+        totalBreakDurationMs: Math.floor(totalBreakDurationMs / 1000 / 60) // Total in minutes
+      };
+    });
     const onBreak = onBreakEmployees.length;
     const late = todayAttendance.filter(a => a.isLate).length;
 

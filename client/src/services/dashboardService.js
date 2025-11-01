@@ -81,7 +81,37 @@ export const dashboardService = {
     }
   },
 
-  // Update Team Data
+  // Get Teams (for admin)
+  async getTeams() {
+    try {
+      const response = await api.get('/dashboard/teams');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Update Teams (add/update/delete teams)
+  async updateTeams(teamsData) {
+    try {
+      const response = await api.post('/dashboard/teams', teamsData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get Public Teams Data (for live dashboard)
+  async getPublicTeams() {
+    try {
+      const response = await api.get('/dashboard/teams/public');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Legacy - Update Team Data (for backward compatibility)
   async updateTeamData(teamData) {
     try {
       const response = await api.post('/dashboard/team-data', teamData);
@@ -91,7 +121,7 @@ export const dashboardService = {
     }
   },
 
-  // Get Team Data
+  // Legacy - Get Team Data (for backward compatibility)
   async getTeamData() {
     try {
       const response = await api.get('/dashboard/team-data');

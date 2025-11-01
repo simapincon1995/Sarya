@@ -569,3 +569,332 @@
 .performer-input {
   flex: 1;
 }
+
+.add-performer-btn {
+  margin-top: 0.75rem;
+}
+
+/* Teams Management Styles */
+.teams-section {
+  margin-bottom: 2rem;
+}
+
+.teams-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.max-teams-message {
+  color: #666;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+
+.no-teams {
+  text-align: center;
+  padding: 3rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
+.no-teams p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.teams-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.team-card {
+  margin-bottom: 1rem;
+}
+
+.team-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.team-card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.team-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.team-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.team-summary-item {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.team-summary-item strong {
+  color: #333;
+  margin-right: 0.5rem;
+}
+
+/* Team Form Overlay */
+.team-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.team-form-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.team-form {
+  padding: 1rem 0;
+}
+
+.form-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-section-header label {
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.checkbox-label {
+  font-weight: 400;
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.form-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.form-group-header label {
+  margin: 0;
+  font-weight: 500;
+  color: #333;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Field Visibility Configuration Styles */
+.field-visibility-description {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.field-visibility-warning {
+  font-size: 0.85rem;
+  color: #4CAF50;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: #e8f5e9;
+  border-radius: 4px;
+  border-left: 3px solid #4CAF50;
+}
+
+.visibility-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.visibility-section {
+  padding: 1rem;
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.visibility-section:hover:not(.disabled) {
+  border-color: #4CAF50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+}
+
+.visibility-section.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.visibility-section.disabled:hover {
+  border-color: #e0e0e0;
+  box-shadow: none;
+}
+
+.visibility-section-header {
+  margin-bottom: 0.75rem;
+}
+
+.visibility-section-header .section-checkbox {
+  font-weight: 600;
+}
+
+.visibility-section-header .section-title-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.visibility-section-fields {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.visibility-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  transition: all 0.2s ease;
+}
+
+.visibility-item:hover {
+  background: #f8f9fa;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  border-radius: 4px;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+/* Custom Checkbox Styles */
+.custom-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 2px solid #ced4da;
+  border-radius: 4px;
+  background-color: #ffffff;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.custom-checkbox:hover {
+  border-color: #4CAF50;
+  background-color: #f8f9fa;
+}
+
+.custom-checkbox:checked {
+  background-color: #4CAF50;
+  border-color: #4CAF50;
+}
+
+.custom-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.custom-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.custom-checkbox:disabled:hover {
+  border-color: #d0d0d0;
+  background-color: #f5f5f5;
+}
+
+.checkbox-text {
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.5;
+  flex: 1;
+}
+
+/* Responsive adjustments for team form */
+@media (max-width: 768px) {
+  .team-form-overlay {
+    padding: 1rem;
+  }
+
+  .teams-list {
+    grid-template-columns: 1fr;
+  }
+
+  .team-form-card {
+    max-width: 100%;
+  }
+
+  .visibility-sections {
+    grid-template-columns: 1fr;
+  }
+}

@@ -59,5 +59,15 @@ export const organizationService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Get public organization settings (timezone, date/time formats - no auth required)
+  async getPublicSettings() {
+    try {
+      const response = await api.get('/organization/settings/public');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };

@@ -81,35 +81,73 @@ const dashboardWidgetSchema = new mongoose.Schema({
     updatedBy: String,
     updatedAt: String
   },
+  teams: [{
+    teamId: {
+      type: String,
+      required: true,
+      unique: true
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    performers: [{
+      name: {
+        type: String,
+        required: true,
+        trim: true
+      }
+    }],
+    expectedCalls: {
+      type: Number,
+      default: 0
+    },
+    actualCalls: {
+      type: Number,
+      default: 0
+    },
+    expectedCandidates: {
+      type: Number,
+      default: 0
+    },
+    actualCandidates: {
+      type: Number,
+      default: 0
+    },
+    expectedCallDuration: {
+      type: Number,
+      default: 0 // in minutes
+    },
+    actualCallDuration: {
+      type: Number,
+      default: 0 // in minutes
+    },
+    expectedJobApplications: {
+      type: Number,
+      default: 0
+    },
+    actualJobApplications: {
+      type: Number,
+      default: 0
+    },
+    fieldVisibility: {
+      performers: { type: Boolean, default: true },
+      expectedCalls: { type: Boolean, default: true },
+      actualCalls: { type: Boolean, default: true },
+      expectedCandidates: { type: Boolean, default: true },
+      actualCandidates: { type: Boolean, default: true },
+      expectedCallDuration: { type: Boolean, default: true },
+      actualCallDuration: { type: Boolean, default: true },
+      expectedJobApplications: { type: Boolean, default: true },
+      actualJobApplications: { type: Boolean, default: true }
+    },
+    isVisible: {
+      type: Boolean,
+      default: true
+    }
+  }],
   teamData: {
-    teamAlpha: {
-      name: {
-        type: String,
-        default: 'Team Alpha'
-      },
-      actualCalls: {
-        type: Number,
-        default: 0
-      },
-      expectedCalls: {
-        type: Number,
-        default: 0
-      }
-    },
-    teamBeta: {
-      name: {
-        type: String,
-        default: 'Team Beta'
-      },
-      actualCalls: {
-        type: Number,
-        default: 0
-      },
-      expectedCalls: {
-        type: Number,
-        default: 0
-      }
-    },
     date: String,
     updatedBy: String,
     updatedAt: String

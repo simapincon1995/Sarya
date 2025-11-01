@@ -239,18 +239,21 @@
 
 /* Performer of the Day Card - Now in stats grid */
 .performer-stat-card {
-  border-radius: 8px;
-  padding: 0.75rem;
+  border-radius: 16px;
+  padding: 1.25rem;
   text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   height: 100%;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   grid-column: span 2;
-  
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
 }
 
 .performer-stat-card::before {
@@ -259,14 +262,15 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #FF6B6B, #FFB347, #FF8C00);
+  height: 4px;
+  background: linear-gradient(90deg, #FF6B6B 0%, #FF8E53 50%, #FFA500 100%);
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
 .performer-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #FF6B6B;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+  border-color: rgba(255, 107, 107, 0.3);
 }
 
 .performer-card {
@@ -287,40 +291,218 @@
 .performer-stat-content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
   height: 100%;
-  text-align: center;
+  text-align: left;
   position: relative;
   z-index: 1;
+  padding: 0;
+  width: 100%;
+}
+
+.teams-performers-card {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.teams-performers-card .performer-stat-content {
+  padding: 0;
+  align-items: flex-start;
+}
+
+.teams-performers-card .performer-stat-title {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+.teams-performers-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+  margin-top: 0;
+  padding: 0.25rem;
+}
+
+.team-performer-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 1rem 1.125rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 140px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+}
+
+.team-performer-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #4CAF50 50%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.team-performer-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  border-color: rgba(76, 175, 80, 0.2);
+}
+
+.team-performer-card:hover::before {
+  opacity: 1;
+}
+
+.team-name-header {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 0.625rem;
+  text-align: left;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.team-green-line {
+  height: 3px;
+  background: linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%);
+  width: 100%;
+  margin-bottom: 1rem;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(76, 175, 80, 0.2);
+}
+
+.performers-of-day-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding-left: 1rem;
+  min-height: 70px;
+}
+
+.performers-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555555;
+  text-align: left;
+  margin-bottom: 0.75rem;
+  position: relative;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.performers-vertical-line {
+  position: absolute;
+  left: -1rem;
+  top: 1.75rem;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #4CAF50 0%, #66BB6A 100%);
+  border-radius: 3px;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.3);
+}
+
+.team-performers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 0.125rem;
+}
+
+.performer-pill-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+  background-size: 200% 200%;
+  color: #FFFFFF;
+  border-radius: 24px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.35), 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.performer-pill-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.performer-pill-button:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45), 0 2px 6px rgba(0, 0, 0, 0.15);
+  background-position: 100% 0;
+}
+
+.performer-pill-button:hover::before {
+  left: 100%;
 }
 
 .performer-stat-icon {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 1rem;
+  right: 1rem;
   font-size: 1.5rem;
-  opacity: 0.9;
+  opacity: 0.85;
   z-index: 2;
-  background: linear-gradient(135deg, rgba(26, 26, 46, 0.2) 0%, rgba(26, 26, 46, 0.1) 100%);
-  border-radius: 15px;
-  width: 2.5rem;
-  height: 2.5rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  width: 2.75rem;
+  height: 2.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(26, 26, 46, 0.3);
-  box-shadow: 0 2px 8px rgba(26, 26, 46, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.performer-stat-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+  opacity: 1;
 }
 
 .performer-stat-title {
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #2C2C2C;
-  margin-bottom: 0.5rem;
-  line-height: 1.1;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+  color: #1A1A1A;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
   text-align: center;
+  letter-spacing: -0.02em;
 }
 
 .performers-list {
@@ -1322,4 +1504,98 @@
   .team-donut-chart-widget-content .chart-subtext {
     font-size: 0.5rem;
   }
+
+  .teams-display-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* New Teams Display Styles */
+.teams-display-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.team-display-card {
+  background: #F8F9FA;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #E0E0E0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.team-display-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.team-display-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #4CAF50;
+}
+
+.team-display-header h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333333;
+}
+
+.team-display-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.team-metric {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid #4CAF50;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666666;
+  margin-bottom: 0.5rem;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 0.25rem;
+}
+
+.metric-suffix {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #666666;
+}
+
+.metric-subtext {
+  font-size: 0.75rem;
+  color: #999999;
+}
+
+.performers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.performer-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
 }

@@ -263,39 +263,134 @@ router.put('/performer-of-day/hide', authenticateToken, authorize('admin', 'hr_a
   }
 });
 
-// Create or update Team Data widget
-router.post('/team-data', authenticateToken, authorize('admin', 'hr_admin', 'manager'), async (req, res) => {
+// Get Teams Management widget (for admin)
+router.get('/teams', authenticateToken, authorize('admin', 'hr_admin', 'manager'), async (req, res) => {
   try {
-    const { teamAlpha, teamBeta, isVisible } = req.body;
-    const userId = req.user._id;
+    let widget = await DashboardWidget.findOne({ name: 'teams-management' });
 
-    if (!teamAlpha || !teamBeta) {
-      return res.status(400).json({ 
-        message: 'Team Alpha and Team Beta data are required' 
+    if (!widget) {
+      // Create initial widget if it doesn't exist
+      widget = new DashboardWidget({
+        name: 'teams-management',
+        type: 'team-data',
+        title: 'Teams Management',
+        description: 'Manage teams and their performance metrics',
+        teams: [],
+        teamData: {
+          date: new Date().toISOString().split('T')[0],
+          updatedBy: req.user.fullName || `${req.user.firstName} ${req.user.lastName}`,
+          updatedAt: new Date().toISOString()
+        },
+        isVisible: true,
+        isPublic: true,
+        createdBy: req.user._id
+      });
+      await widget.save();
+    }
+
+    await widget.populate('createdBy', 'firstName lastName email');
+
+    res.json({ widget });
+  } catch (error) {
+    console.error('Get teams error:', error);
+    res.status(500).json({ message: 'Failed to fetch teams', error: error.message });
+  }
+});
+
+// Get Teams Data widget (for public dashboard)
+router.get('/teams/public', dashboardLimiter, async (req, res) => {
+  try {
+    const widget = await DashboardWidget.findOne({ 
+      name: 'teams-management',
+      isVisible: true,
+      isPublic: true
+    });
+
+    if (!widget || !widget.teams || widget.teams.length === 0) {
+      return res.json({ 
+        message: 'No teams data available',
+        widget: null 
       });
     }
 
-    // Check if team data widget already exists
-    let widget = await DashboardWidget.findOne({ name: 'team-data' });
+    // Filter to only visible teams
+    const visibleTeams = widget.teams.filter(team => team.isVisible !== false);
+
+    res.json({ 
+      widget: {
+        ...widget.toObject(),
+        teams: visibleTeams
+      }
+    });
+  } catch (error) {
+    console.error('Get public teams error:', error);
+    res.status(500).json({ message: 'Failed to fetch teams data', error: error.message });
+  }
+});
+
+// Create or update Teams (add/update/delete teams)
+router.post('/teams', authenticateToken, authorize('admin', 'hr_admin', 'manager'), async (req, res) => {
+  try {
+    const { teams, isVisible } = req.body;
+    const userId = req.user._id;
+
+    if (!teams || !Array.isArray(teams)) {
+      return res.status(400).json({ 
+        message: 'Teams array is required' 
+      });
+    }
+
+    // Check if teams widget already exists
+    let widget = await DashboardWidget.findOne({ name: 'teams-management' });
+
+    // Generate teamIds for new teams
+    const teamsWithIds = teams.map(team => {
+      if (!team.teamId) {
+        team.teamId = `team-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      }
+      
+      // Ensure fieldVisibility exists with defaults
+      if (!team.fieldVisibility) {
+        team.fieldVisibility = {
+          performers: true,
+          expectedCalls: true,
+          actualCalls: true,
+          expectedCandidates: true,
+          actualCandidates: true,
+          expectedCallDuration: true,
+          actualCallDuration: true,
+          expectedJobApplications: true,
+          actualJobApplications: true
+        };
+      }
+
+      // Ensure all numeric fields have defaults
+      return {
+        teamId: team.teamId,
+        name: team.name || 'Unnamed Team',
+        performers: team.performers || [],
+        expectedCalls: team.expectedCalls || 0,
+        actualCalls: team.actualCalls || 0,
+        expectedCandidates: team.expectedCandidates || 0,
+        actualCandidates: team.actualCandidates || 0,
+        expectedCallDuration: team.expectedCallDuration || 0,
+        actualCallDuration: team.actualCallDuration || 0,
+        expectedJobApplications: team.expectedJobApplications || 0,
+        actualJobApplications: team.actualJobApplications || 0,
+        fieldVisibility: team.fieldVisibility,
+        isVisible: team.isVisible !== undefined ? team.isVisible : true
+      };
+    });
 
     const teamData = {
-      teamAlpha: {
-        name: teamAlpha.name || 'Team Alpha',
-        actualCalls: teamAlpha.actualCalls || 0,
-        expectedCalls: teamAlpha.expectedCalls || 0
-      },
-      teamBeta: {
-        name: teamBeta.name || 'Team Beta',
-        actualCalls: teamBeta.actualCalls || 0,
-        expectedCalls: teamBeta.expectedCalls || 0
-      },
-      date: new Date().toISOString().split('T')[0], // Today's date
+      date: new Date().toISOString().split('T')[0],
       updatedBy: req.user.fullName || `${req.user.firstName} ${req.user.lastName}`,
       updatedAt: new Date().toISOString()
     };
 
     if (widget) {
       // Update existing widget
+      widget.teams = teamsWithIds;
       widget.teamData = teamData;
       widget.isVisible = isVisible !== undefined ? isVisible : true;
       widget.isPublic = true; // Always public for live dashboard
@@ -304,10 +399,11 @@ router.post('/team-data', authenticateToken, authorize('admin', 'hr_admin', 'man
     } else {
       // Create new widget
       widget = new DashboardWidget({
-        name: 'team-data',
-        type: 'team-donut-chart',
-        title: 'Team Performance',
-        description: 'Team Alpha and Beta call performance',
+        name: 'teams-management',
+        type: 'team-data',
+        title: 'Teams Management',
+        description: 'Manage teams and their performance metrics',
+        teams: teamsWithIds,
         teamData: teamData,
         isVisible: isVisible !== undefined ? isVisible : true,
         isPublic: true,
@@ -320,20 +416,20 @@ router.post('/team-data', authenticateToken, authorize('admin', 'hr_admin', 'man
     await widget.populate('createdBy', 'firstName lastName email');
 
     res.json({
-      message: 'Team data updated successfully',
+      message: 'Teams updated successfully',
       widget
     });
   } catch (error) {
-    console.error('Create/update team data error:', error);
-    res.status(500).json({ message: 'Failed to update team data', error: error.message });
+    console.error('Create/update teams error:', error);
+    res.status(500).json({ message: 'Failed to update teams', error: error.message });
   }
 });
 
-// Get Team Data widget
+// Legacy endpoint for backward compatibility - Get Team Data widget
 router.get('/team-data', dashboardLimiter, async (req, res) => {
   try {
     const widget = await DashboardWidget.findOne({ 
-      name: 'team-data',
+      name: 'teams-management',
       isVisible: true,
       isPublic: true
     });
@@ -341,14 +437,6 @@ router.get('/team-data', dashboardLimiter, async (req, res) => {
     if (!widget) {
       return res.json({ 
         message: 'No team data set',
-        widget: null 
-      });
-    }
-
-    // Check if widget has actual team data
-    if (!widget.teamData || !widget.teamData.teamAlpha || !widget.teamData.teamBeta) {
-      return res.json({ 
-        message: 'No team data available',
         widget: null 
       });
     }

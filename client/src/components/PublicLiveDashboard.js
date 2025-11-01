@@ -5,6 +5,7 @@ import { Chart } from 'primereact/chart';
 import { useSocket } from '../contexts/SocketContext';
 import { attendanceService } from '../services/attendanceService';
 import { dashboardService } from '../services/dashboardService';
+import { organizationService } from '../services/organizationService';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
 import './PublicLiveDashboard.css';
 
@@ -17,6 +18,8 @@ const PublicLiveDashboard = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [lastRequestTime, setLastRequestTime] = useState({});
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [orgTimezone, setOrgTimezone] = useState('America/New_York');
+  const [timeFormat, setTimeFormat] = useState('hh:mm A');
   const { realtimeData } = useSocket();
 
   // Throttle function to prevent too frequent API calls
@@ -74,15 +77,15 @@ const PublicLiveDashboard = () => {
     if (!throttleRequest('team', 10000)) return; // Min 10 seconds between team data calls
     
     try {
-      const response = await dashboardService.getTeamData();
-      console.log('Team data response:', response); // Debug log
-      if (response.widget && response.widget.teamData) {
-        setTeamData(response.widget.teamData);
+      const response = await dashboardService.getPublicTeams();
+      console.log('Teams response:', response); // Debug log
+      if (response.widget && response.widget.teams && response.widget.teams.length > 0) {
+        setTeamData(response.widget.teams);
       } else {
         setTeamData(null);
       }
     } catch (error) {
-      console.error('Error loading team data:', error);
+      console.error('Error loading teams data:', error);
       setTeamData(null);
     }
   }, [throttleRequest]);
@@ -111,6 +114,22 @@ const PublicLiveDashboard = () => {
       setCustomWidgets([]);
     }
   }, [throttleRequest]);
+
+  // Load organization timezone settings
+  useEffect(() => {
+    const loadOrgSettings = async () => {
+      try {
+        const settings = await organizationService.getPublicSettings();
+        if (settings) {
+          setOrgTimezone(settings.timezone || 'America/New_York');
+          setTimeFormat(settings.timeFormat || 'hh:mm A');
+        }
+      } catch (error) {
+        console.error('Failed to load organization settings:', error);
+      }
+    };
+    loadOrgSettings();
+  }, []);
 
   useEffect(() => {
     loadDashboardData();
@@ -260,19 +279,24 @@ const PublicLiveDashboard = () => {
     return <LoadingSpinner message="Loading live dashboard..." />;
   }
 
-  // Chart configuration for team performance
+  // Chart configuration for team performance (for backward compatibility if needed)
   const getTeamChartData = () => {
-    if (!teamData) return null;
+    if (!teamData || !Array.isArray(teamData) || teamData.length === 0) return null;
+    
+    // Use first two teams for chart
+    const teamsForChart = teamData.slice(0, 2);
     
     return {
-      labels: [teamData.teamAlpha?.name || 'Team Alpha', teamData.teamBeta?.name || 'Team Beta'],
+      labels: teamsForChart.map(team => team.name || 'Unnamed Team'),
       datasets: [{
-        data: [
-          teamData.teamAlpha?.actualCalls || 0,
-          teamData.teamBeta?.actualCalls || 0
-        ],
-        backgroundColor: ['#4CAF50', '#2196F3'],
-        borderColor: ['#4CAF50', '#2196F3'],
+        data: teamsForChart.map(team => {
+          if (team.fieldVisibility?.actualCalls !== false) {
+            return team.actualCalls || 0;
+          }
+          return 0;
+        }),
+        backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336'],
+        borderColor: ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336'],
         borderWidth: 2
       }]
     };
@@ -295,20 +319,59 @@ const PublicLiveDashboard = () => {
     cutout: '60%'
   };
 
-  // Helper function to calculate break duration
-  const calculateBreakDuration = (startTime) => {
-    if (!startTime) return 'N/A';
+  // Helper function to calculate total break duration for the day
+  const calculateBreakDuration = (employee) => {
+    if (!employee) return 'N/A';
     
-    const start = new Date(startTime);
-    const now = currentTime;
-    const diffMs = now - start;
-    const diffMins = Math.floor(diffMs / 60000);
+    let totalMins = 0;
     
-    if (diffMins < 60) {
-      return `${diffMins}m`;
+    // If we have all breaks, calculate from all breaks for accurate real-time updates
+    if (employee.allBreaks && Array.isArray(employee.allBreaks)) {
+      employee.allBreaks.forEach(breakItem => {
+        if (breakItem.endTime) {
+          // Completed break - use duration if available, otherwise calculate
+          if (breakItem.duration) {
+            totalMins += breakItem.duration;
+          } else {
+            const start = new Date(breakItem.startTime);
+            const end = new Date(breakItem.endTime);
+            totalMins += Math.floor((end - start) / (1000 * 60));
+          }
+        } else if (breakItem.isActive && breakItem.startTime) {
+          // Active break - calculate duration from start to current time
+          const start = new Date(breakItem.startTime);
+          const now = currentTime;
+          totalMins += Math.floor((now - start) / (1000 * 60));
+        }
+      });
+    } else if (employee.totalBreakDurationMs !== undefined && employee.startTime) {
+      // Use backend calculation as base, but update active break to current time
+      // Backend calculation includes active break up to request time
+      // We need to update it to current time for real-time display
+      const activeBreakStart = new Date(employee.startTime);
+      const now = currentTime;
+      
+      // Estimate what backend calculated (assume it was calculated at request time)
+      // We'll use totalBreakDurationMs as base and adjust the active portion
+      // For simplicity, recalculate completed breaks + current active break
+      // Since we don't have allBreaks, use the backend total and just update active portion
+      totalMins = employee.totalBreakDurationMs;
+      // The backend already included the active break up to its calculation time
+      // For real-time updates, we'd need the exact backend calculation time, but
+      // since we update currentTime every 30 seconds, the difference should be minimal
+    } else if (employee.startTime) {
+      // Fallback: if we only have startTime, calculate from startTime to now
+      // This shouldn't happen with the updated backend, but keeping for compatibility
+      const start = new Date(employee.startTime);
+      const now = currentTime;
+      totalMins = Math.floor((now - start) / (1000 * 60));
+    }
+    
+    if (totalMins < 60) {
+      return `${totalMins}m`;
     } else {
-      const hours = Math.floor(diffMins / 60);
-      const minutes = diffMins % 60;
+      const hours = Math.floor(totalMins / 60);
+      const minutes = totalMins % 60;
       return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
     }
   };
@@ -400,27 +463,36 @@ const PublicLiveDashboard = () => {
               </div>
             </Card>
             
-            {/* Performer of the Day Card in Statistics Row */}
-            {performerOfDay ? (
-              <Card className="performer-stat-card">
+            {/* Performer of the Day Card - Shows Teams with Performers */}
+            {teamData && Array.isArray(teamData) && teamData.filter(team => 
+              team.performers && team.performers.length > 0
+            ).length > 0 ? (
+              <Card className="performer-stat-card teams-performers-card">
                 <div className="performer-stat-icon">
                   <i className="pi pi-trophy" style={{ color: '#2C2C2C' }}></i>
                 </div>
                 <div className="performer-stat-content">
-                  <div className="performer-stat-title">Today's Performers</div>
-                  <div className="performers-list">
-                    {performerOfDay.performerData.performers.slice(-3).map((performer, index) => (
-                      <div key={index}>
-                        {performer.name}
-                      </div>
-                    ))}
-                    {performerOfDay.performerData.performers.length > 3 && (
-                      <div className="more-performers-indicator">
-                        +{performerOfDay.performerData.performers.length - 3} more
-                      </div>
-                    )}
+                  <div className="performer-stat-title">Performer of the Day</div>
+                  <div className="teams-performers-container">
+                    {teamData
+                      .filter(team => team.performers && team.performers.length > 0)
+                      .map((team, index) => (
+                        <div key={team.teamId || index} className="team-performer-card">
+                          <div className="team-name-header">{team.name}</div>
+                          <div className="team-green-line"></div>
+                          <div className="performers-of-day-section">
+                            <div className="performers-vertical-line"></div>
+                            <div className="team-performers-list">
+                              {team.performers.map((performer, pIdx) => (
+                                <div key={pIdx} className="performer-pill-button">
+                                  {performer.name}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                   </div>
-           
                 </div>
               </Card>
             ) : (
@@ -430,7 +502,7 @@ const PublicLiveDashboard = () => {
                 </div>
                 <div className="stat-content">
                   <div className="stat-value" style={{ fontSize: '1.2rem', color: '#666' }}>No Performers</div>
-                  <div className="stat-label">Performers of the Day</div>
+                  <div className="stat-label">Performer of the Day</div>
                   <div className="stat-comparison">
                     <i className="pi pi-info-circle"></i>
                     Not Set
@@ -462,11 +534,12 @@ const PublicLiveDashboard = () => {
                             {employee.startTime ? new Date(employee.startTime).toLocaleTimeString('en-US', {
                               hour: '2-digit',
                               minute: '2-digit',
-                              hour12: true
+                              hour12: timeFormat === 'hh:mm A',
+                              timeZone: orgTimezone
                             }) : 'N/A'}
                           </td>
                           <td>
-                            {calculateBreakDuration(employee.startTime)}
+                            {calculateBreakDuration(employee)}
                           </td>
                         </tr>
                       ))}
@@ -478,40 +551,102 @@ const PublicLiveDashboard = () => {
               </Card>
             </div>
 
-            {/* Team Performance Widget */}
+            {/* Teams Performance Widget */}
             <div className="team-performance-widget">
-              <Card title="Team Performance" className="widget-card">
-                {teamData ? (
-                  <div className="team-chart-container">
-                    <Chart 
-                      type="doughnut" 
-                      data={getTeamChartData()} 
-                      options={chartOptions}
-                      style={{ height: '200px', marginTop: '3rem' }}
-                    />
-                    <div className="team-stats">
-                      <div className="team-stat">
-                        <div className="team-stat-label">{teamData.teamAlpha?.name || 'Team Alpha'}</div>
-                        <div className="team-stat-value">
-                          {teamData.teamAlpha?.actualCalls || 0} / {teamData.teamAlpha?.expectedCalls || 0}
+              <Card title="Teams Performance" className="widget-card">
+                {teamData && Array.isArray(teamData) && teamData.length > 0 ? (
+                  <div className="teams-display-container">
+                    {teamData.map((team, index) => (
+                      <div key={team.teamId || index} className="team-display-card">
+                        <div className="team-display-header">
+                          <h4>{team.name}</h4>
                         </div>
-                        <div className="team-stat-subtext">Actual / Expected Calls</div>
-                      </div>
-                      <div className="team-stat">
-                        <div className="team-stat-label">{teamData.teamBeta?.name || 'Team Beta'}</div>
-                        <div className="team-stat-value">
-                          {teamData.teamBeta?.actualCalls || 0} / {teamData.teamBeta?.expectedCalls || 0}
+                        <div className="team-display-content">
+                          {/* Calls */}
+                          {(team.fieldVisibility?.expectedCalls || team.fieldVisibility?.actualCalls) && (
+                            <div className="team-metric">
+                              <div className="metric-label">Calls</div>
+                              <div className="metric-value">
+                                {team.fieldVisibility?.actualCalls !== false && (team.actualCalls || 0)}
+                                {team.fieldVisibility?.expectedCalls !== false && (
+                                  <span> / {team.expectedCalls || 0}</span>
+                                )}
+                                {team.fieldVisibility?.expectedCalls === false && (
+                                  <span className="metric-suffix"> (Actual)</span>
+                                )}
+                              </div>
+                              {team.fieldVisibility?.expectedCalls !== false && (
+                                <div className="metric-subtext">Actual / Expected</div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Candidates */}
+                          {(team.fieldVisibility?.expectedCandidates || team.fieldVisibility?.actualCandidates) && (
+                            <div className="team-metric">
+                              <div className="metric-label">Candidates</div>
+                              <div className="metric-value">
+                                {team.fieldVisibility?.actualCandidates !== false && (team.actualCandidates || 0)}
+                                {team.fieldVisibility?.expectedCandidates !== false && (
+                                  <span> / {team.expectedCandidates || 0}</span>
+                                )}
+                                {team.fieldVisibility?.expectedCandidates === false && (
+                                  <span className="metric-suffix"> (Actual)</span>
+                                )}
+                              </div>
+                              {team.fieldVisibility?.expectedCandidates !== false && (
+                                <div className="metric-subtext">Actual / Expected</div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Call Duration */}
+                          {(team.fieldVisibility?.expectedCallDuration || team.fieldVisibility?.actualCallDuration) && (
+                            <div className="team-metric">
+                              <div className="metric-label">Call Duration (min)</div>
+                              <div className="metric-value">
+                                {team.fieldVisibility?.actualCallDuration !== false && (team.actualCallDuration || 0)}
+                                {team.fieldVisibility?.expectedCallDuration !== false && (
+                                  <span> / {team.expectedCallDuration || 0}</span>
+                                )}
+                                {team.fieldVisibility?.expectedCallDuration === false && (
+                                  <span className="metric-suffix"> (Actual)</span>
+                                )}
+                              </div>
+                              {team.fieldVisibility?.expectedCallDuration !== false && (
+                                <div className="metric-subtext">Actual / Expected</div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Job Applications */}
+                          {(team.fieldVisibility?.expectedJobApplications || team.fieldVisibility?.actualJobApplications) && (
+                            <div className="team-metric">
+                              <div className="metric-label">Job Applications</div>
+                              <div className="metric-value">
+                                {team.fieldVisibility?.actualJobApplications !== false && (team.actualJobApplications || 0)}
+                                {team.fieldVisibility?.expectedJobApplications !== false && (
+                                  <span> / {team.expectedJobApplications || 0}</span>
+                                )}
+                                {team.fieldVisibility?.expectedJobApplications === false && (
+                                  <span className="metric-suffix"> (Actual)</span>
+                                )}
+                              </div>
+                              {team.fieldVisibility?.expectedJobApplications !== false && (
+                                <div className="metric-subtext">Actual / Expected</div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div className="team-stat-subtext">Actual / Expected Calls</div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="no-team-data">
                     <div className="no-data-icon">
                       <i className="pi pi-chart-pie"></i>
                     </div>
-                    <div className="no-data-text">Team Performance Data</div>
+                    <div className="no-data-text">Teams Performance Data</div>
                     <div className="no-data-subtext">Configure via Admin</div>
                   </div>
                 )}
@@ -543,7 +678,8 @@ const PublicLiveDashboard = () => {
                             {activity.checkIn ? new Date(activity.checkIn).toLocaleTimeString('en-US', {
                               hour: '2-digit',
                               minute: '2-digit',
-                              hour12: true
+                              hour12: timeFormat === 'hh:mm A',
+                              timeZone: orgTimezone
                             }) : 'N/A'}
                           </td>
                           <td>

@@ -4,6 +4,27 @@ const { authenticateToken, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Get organization settings (public - for timezone only)
+router.get('/settings/public', async (req, res) => {
+  try {
+    const settings = await Organization.getSettings();
+    // Return only timezone and date/time formats (safe public info)
+    res.json({ 
+      timezone: settings.timezone || 'America/New_York',
+      dateFormat: settings.dateFormat || 'MM/DD/YYYY',
+      timeFormat: settings.timeFormat || 'hh:mm A'
+    });
+  } catch (error) {
+    console.error('Get public organization settings error:', error);
+    // Return defaults if error
+    res.json({ 
+      timezone: 'America/New_York',
+      dateFormat: 'MM/DD/YYYY',
+      timeFormat: 'hh:mm A'
+    });
+  }
+});
+
 // Get organization settings
 router.get('/settings', authenticateToken, async (req, res) => {
   try {
