@@ -5,24 +5,34 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let mainWindow;
 
 function createWindow() {
-  // Create the browser window
+  // Create the browser window with widget-style properties
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    width: 350,
+    height: 400,
+    maxWidth: 400,
+    maxHeight: 600,
+    minWidth: 300,
+    minHeight: 350,
+    resizable: true,
+    frame: false, // Frameless window for widget
+    transparent: true, // Transparent background
+    alwaysOnTop: true, // Always on top
+    skipTaskbar: false, // Show in taskbar
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      webSecurity: true
+      webSecurity: true,
+      sandbox: false
     },
     icon: path.join(__dirname, 'assets/icon.png'),
     show: false,
-    titleBarStyle: 'default'
+    titleBarStyle: 'hidden',
+    vibrancy: 'under-window', // macOS vibrancy effect
+    visualEffectState: 'active'
   });
 
-  // Load the app
+  // Load the app (which will detect Electron and load WidgetApp)
   const startUrl = isDev 
     ? 'http://localhost:3000' 
     : `file://${path.join(__dirname, '../build/index.html')}`;
@@ -32,6 +42,15 @@ function createWindow() {
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    
+    // Position window at top-right of screen for widget
+    const { screen } = require('electron');
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width } = primaryDisplay.workAreaSize;
+    mainWindow.setPosition(width - 400, 50);
+    
+    // Set opacity for widget
+    mainWindow.setOpacity(0.9);
     
     // Open DevTools in development
     if (isDev) {

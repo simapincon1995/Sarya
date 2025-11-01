@@ -14,7 +14,8 @@
     "widget-build": "cd client && npm run widget-build",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install",
     "docker:build": "docker build -t sarya-connective .",
-    "docker:run": "docker run -p 5000:5000 -p 3000:3000 sarya-connective"
+    "docker:run": "docker run -p 5000:5000 -p 3000:3000 sarya-connective",
+    "heroku-postbuild": "cd client && npm install && npm run build"
   },
   "keywords": [
     "hr",

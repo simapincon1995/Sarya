@@ -16,6 +16,7 @@ const PublicLiveDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [lastRequestTime, setLastRequestTime] = useState({});
+  const [currentTime, setCurrentTime] = useState(new Date());
   const { realtimeData } = useSocket();
 
   // Throttle function to prevent too frequent API calls
@@ -130,6 +131,14 @@ const PublicLiveDashboard = () => {
       loadDashboardData();
     }
   }, [realtimeData, loadDashboardData]);
+
+  // Update current time every 30 seconds to refresh break durations
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30000); // Update every 30 seconds for smoother duration updates
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleFullscreen = async () => {
     console.log('PublicLiveDashboard: toggleFullscreen called'); // Debug log
@@ -276,7 +285,7 @@ const PublicLiveDashboard = () => {
       legend: {
         position: 'bottom',
         labels: {
-          color: '#B0B0B0',
+          color: '#666666',
           font: {
             size: 12
           }
@@ -284,6 +293,24 @@ const PublicLiveDashboard = () => {
       }
     },
     cutout: '60%'
+  };
+
+  // Helper function to calculate break duration
+  const calculateBreakDuration = (startTime) => {
+    if (!startTime) return 'N/A';
+    
+    const start = new Date(startTime);
+    const now = currentTime;
+    const diffMs = now - start;
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 60) {
+      return `${diffMins}m`;
+    } else {
+      const hours = Math.floor(diffMins / 60);
+      const minutes = diffMins % 60;
+      return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    }
   };
 
   if (!dashboardData) {
@@ -373,25 +400,6 @@ const PublicLiveDashboard = () => {
               </div>
             </Card>
             
-            {/* Static Attendance Rate Card */}
-            <Card className="stat-card attendance-rate-stat-card">
-              <div className="stat-icon">
-                <i className="pi pi-percentage" style={{ color: '#4CAF50' }}></i>
-              </div>
-              <div className="stat-content">
-                <div className="stat-value">
-                  {dashboardData.overview.totalEmployees > 0 
-                    ? Math.round((dashboardData.overview.presentToday / dashboardData.overview.totalEmployees) * 100)
-                    : 0}%
-                </div>
-                <div className="stat-label">Attendance Rate</div>
-                <div className="stat-comparison">
-                  <i className="pi pi-chart-pie"></i>
-                  Overall Rate
-                </div>
-              </div>
-            </Card>
-            
             {/* Performer of the Day Card in Statistics Row */}
             {performerOfDay ? (
               <Card className="performer-stat-card">
@@ -442,21 +450,23 @@ const PublicLiveDashboard = () => {
                     <thead>
                       <tr>
                         <th>Employee</th>
-                        <th>Department</th>
                         <th>Break Time</th>
+                        <th>Total Break Duration</th>
                       </tr>
                     </thead>
                     <tbody>
                       {dashboardData.onBreakEmployees.slice(0, 8).map((employee, index) => (
                         <tr key={index}>
                           <td>{employee.name || 'Unknown Employee'}</td>
-                          <td>{employee.department || 'N/A'}</td>
                           <td>
                             {employee.startTime ? new Date(employee.startTime).toLocaleTimeString('en-US', {
                               hour: '2-digit',
                               minute: '2-digit',
                               hour12: true
                             }) : 'N/A'}
+                          </td>
+                          <td>
+                            {calculateBreakDuration(employee.startTime)}
                           </td>
                         </tr>
                       ))}
@@ -516,13 +526,12 @@ const PublicLiveDashboard = () => {
                     <thead>
                       <tr>
                         <th>Employee</th>
-                        <th>Department</th>
                         <th>Time</th>
                         <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {dashboardData.recentActivity.slice(0, 3).map((activity, index) => (
+                      {dashboardData.recentActivity.slice(0, 4).map((activity, index) => (
                         <tr key={index}>
                           <td>
                             {activity.employee?.firstName && activity.employee?.lastName 
@@ -530,7 +539,6 @@ const PublicLiveDashboard = () => {
                               : activity.employee?.name || 'Unknown Employee'
                             }
                           </td>
-                          <td>{activity.employee?.department || 'N/A'}</td>
                           <td className="activity-time">
                             {activity.checkIn ? new Date(activity.checkIn).toLocaleTimeString('en-US', {
                               hour: '2-digit',

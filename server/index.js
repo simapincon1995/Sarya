@@ -23,20 +23,40 @@ const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ["http://localhost:3000"];
 
-const io = new Server(server, {
-  cors: {
-    origin: corsOrigins,
-    methods: ["GET", "POST"],
-    credentials: true
+// Enhanced CORS configuration with better local network support
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in the allowed list
+    if (corsOrigins.includes(origin)) {
+      callback(null, true);
+    } 
+    // In development, allow local network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    else if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+      const localNetworkPattern = /^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+)(:\d+)?$/;
+      if (localNetworkPattern.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
   },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+};
+
+const io = new Server(server, {
+  cors: corsOptions,
   allowEIO3: true
 });
 
 app.use(helmet());
-app.use(cors({
-  origin: corsOrigins,
-  credentials: true
-}));
+app.use(cors(corsOptions));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

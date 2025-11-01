@@ -6,8 +6,10 @@ import App from './App';
 import WidgetApp from './WidgetApp';
 import './index.css';
 
-// Check if we're building the widget version
-const isWidgetBuild = process.env.REACT_APP_ENTRY_POINT === 'widget';
+// Check if running in Electron
+// Electron user agent always contains "Electron"
+const isElectron = typeof window !== 'undefined' && 
+  window.navigator.userAgent.indexOf('Electron') !== -1;
 
 // PrimeReact configuration
 const value = {
@@ -23,8 +25,8 @@ const value = {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-if (isWidgetBuild) {
-  // Load the attendance widget
+if (isElectron) {
+  // Load the attendance widget in Electron
   root.render(
     <React.StrictMode>
       <PrimeReactProvider value={value}>
@@ -33,7 +35,7 @@ if (isWidgetBuild) {
     </React.StrictMode>
   );
 } else {
-  // Load the full HRMS application
+  // Load the full HRMS application in browser
   root.render(
     <React.StrictMode>
       <BrowserRouter>
