@@ -210,31 +210,88 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve static files from React app in production
+// IMPORTANT: This must come AFTER all API routes but BEFORE the catch-all route
 if (process.env.NODE_ENV === 'production') {
   const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
-  app.use(express.static(clientBuildPath));
   
-  // Serve React app for all non-API routes
-  app.get('*', (req, res) => {
-    // Don't serve React app for API routes
+  // Check if build directory exists
+  const fs = require('fs');
+  if (!fs.existsSync(clientBuildPath)) {
+    console.warn('⚠️  Warning: React build directory not found at:', clientBuildPath);
+    console.warn('   Make sure to run: npm run build in the client directory');
+  }
+  
+  // Serve static files (CSS, JS, images, etc.) - must be before catch-all route
+  app.use(express.static(clientBuildPath, {
+    maxAge: '1y',
+    etag: false,
+    index: false // Don't serve index.html from static - we'll handle it explicitly
+  }));
+  
+  // Catch-all handler: Serve index.html for all non-API routes
+  // This allows React Router to handle client-side routing
+  app.get('*', (req, res, next) => {
+    // Skip API routes - they should have been handled above
     if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ message: 'Route not found' });
+      return res.status(404).json({ message: 'API route not found' });
     }
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
+    
+    // For all other routes, serve index.html
+    // React Router will handle the routing on the client side
+    const indexPath = path.join(clientBuildPath, 'index.html');
+    
+    // Check if file exists
+    if (!fs.existsSync(indexPath)) {
+      console.error('❌ index.html not found at:', indexPath);
+      return res.status(500).send('React build files not found. Please build the client app.');
+    }
+    
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('❌ Error sending index.html:', err);
+        res.status(500).send('Error loading application');
+      }
+    });
   });
 } else {
   // In development, return 404 for non-API routes
-  app.use('*', (req, res) => {
+  // (React dev server handles these routes)
+  app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {
-      res.status(404).json({ message: 'Route not found' });
+      res.status(404).json({ message: 'API route not found' });
     } else {
-      res.status(404).json({ message: 'Route not found. In development, use React dev server on port 3000' });
+      res.status(404).json({ 
+        message: 'Route not found. In development, use React dev server on port 3000',
+        hint: 'Start the React dev server with: cd client && npm start'
+      });
     }
   });
 }
 
+// Error handler - must be last
 app.use((err, req, res, next) => {
   console.error('❌ Error:', err.stack);
+  
+  // For API routes, return JSON error
+  if (req.path && req.path.startsWith('/api/')) {
+    return res.status(500).json({ 
+      message: 'Something went wrong!',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+    });
+  }
+  
+  // For non-API routes in production, try to serve index.html
+  // This prevents the app from breaking if there's an error
+  if (process.env.NODE_ENV === 'production') {
+    const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
+    const indexPath = path.join(clientBuildPath, 'index.html');
+    
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+  }
+  
+  // Fallback error response
   res.status(500).json({ 
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
