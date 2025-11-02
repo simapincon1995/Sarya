@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setOpacity: (opacity) => ipcRenderer.invoke('widget-set-opacity', opacity),
   getSettings: () => ipcRenderer.invoke('widget-get-settings'),
   toggleAutoLaunch: () => ipcRenderer.invoke('widget-toggle-auto-launch'),
+  moveWindow: (deltaX, deltaY) => ipcRenderer.invoke('widget-move-window', deltaX, deltaY),
   
   // Platform info
   platform: process.platform,

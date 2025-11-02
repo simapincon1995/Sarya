@@ -30,34 +30,37 @@ function createWindow() {
   // Get saved window bounds or use defaults
   const savedBounds = store ? store.get('windowBounds') : { width: 350, height: 400, x: 0, y: 0 };
   
-  // Create the browser window - sticky note style
+  // Create the browser window - frameless widget style
   mainWindow = new BrowserWindow({
-    width: savedBounds.width,
-    height: savedBounds.height,
+    width: savedBounds.width || 350,
+    height: savedBounds.height || 500,
     x: savedBounds.x,
     y: savedBounds.y,
-    maxWidth: 400,
-    maxHeight: 600,
-    minWidth: 300,
-    minHeight: 350,
+    maxWidth: 450,
+    maxHeight: 700,
+    minWidth: 320,
+    minHeight: 400,
     resizable: true,
     frame: false, // Frameless window
-    transparent: true, // Transparent background
+    transparent: false, // Use solid background with blur
     alwaysOnTop: store ? store.get('alwaysOnTop') : true, // Always on top
-    skipTaskbar: true, // Don't show in taskbar
+    skipTaskbar: false, // Show in taskbar for better UX
+    backgroundColor: '#ffffff',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
       webSecurity: true,
       sandbox: false,
-      preload: path.join(__dirname, 'preload-widget.js') // Add preload script
+      preload: path.join(__dirname, 'preload-widget.js')
     },
     icon: path.join(__dirname, 'assets/icon.png'),
     show: false,
     titleBarStyle: 'hidden',
-    vibrancy: 'under-window', // macOS vibrancy effect
-    visualEffectState: 'active'
+    ...(process.platform === 'darwin' && {
+      vibrancy: 'under-window', // macOS vibrancy effect
+      visualEffectState: 'active'
+    })
   });
 
   // Load the widget app
@@ -181,6 +184,19 @@ ipcMain.handle('widget-toggle-auto-launch', () => {
     return newSetting;
   }
   return false;
+});
+
+ipcMain.handle('widget-move-window', (event, deltaX, deltaY) => {
+  if (mainWindow) {
+    const [x, y] = mainWindow.getPosition();
+    mainWindow.setPosition(x + deltaX, y + deltaY);
+    
+    // Save new position
+    if (store) {
+      const bounds = mainWindow.getBounds();
+      store.set('windowBounds', bounds);
+    }
+  }
 });
 
 // Create a minimal menu for the widget

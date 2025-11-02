@@ -1,8 +1,16 @@
 import React from 'react';
-import AttendanceWidget from './AttendanceWidget';
+import FramelessWidget from './components/FramelessWidget';
 import './index.css';
 
 function WidgetApp() {
+  // Check if running in Electron
+  const isElectron = typeof window !== 'undefined' && window.electronAPI;
+  
+  if (isElectron) {
+    return <FramelessWidget />;
+  }
+  
+  // Fallback for web browser
   return (
     <div style={{ 
       margin: 0, 
@@ -13,7 +21,7 @@ function WidgetApp() {
       justifyContent: 'center',
       alignItems: 'flex-start'
     }}>
-      <AttendanceWidget />
+      <FramelessWidget />
     </div>
   );
 }
