@@ -41,7 +41,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "node build-script.js web",
-    "postbuild": "cp public/_redirects build/_redirects || xcopy public\\_redirects build\\_redirects* /Y",
+    "postbuild": "node -e \"const fs=require('fs');const path=require('path');const src=path.join('public','_redirects');const dest=path.join('build','_redirects');if(fs.existsSync(src)){fs.copyFileSync(src,dest);console.log('Copied _redirects file');}else{console.log('No _redirects file found, skipping...');}\"",
     "build:widget": "node build-script.js widget",
     "electron": "electron .",
     "electron-build": "npm run build && electron-builder",
