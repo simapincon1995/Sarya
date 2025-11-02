@@ -65,12 +65,64 @@ function createWindow() {
 
   // Load the widget app
   if (isDev) {
-    mainWindow.loadURL('http://localhost:3001');
+    mainWindow.loadURL('http://localhost:3000');
     // Open DevTools in development
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../build/widget.html'));
+    // In production, load index.html which contains the React bundle
+    // Try multiple paths depending on how the app is packaged
+    let indexPath;
+    
+    const fs = require('fs');
+    
+    if (app.isPackaged) {
+      // When packaged by electron-builder, files are in resources/app/
+      // Try the standard electron-builder structure first
+      indexPath = path.join(process.resourcesPath, 'app', 'build', 'index.html');
+      
+      // Fallback to alternative paths
+      if (!fs.existsSync(indexPath)) {
+        // Try relative to executable
+        indexPath = path.join(path.dirname(process.execPath), 'resources', 'app', 'build', 'index.html');
+      }
+      if (!fs.existsSync(indexPath)) {
+        // Try relative to __dirname (for portable apps)
+        indexPath = path.join(__dirname, '..', 'build', 'index.html');
+      }
+    } else {
+      // Development build - files are relative to project root
+      indexPath = path.join(__dirname, '..', 'build', 'index.html');
+    }
+    
+    console.log('Loading widget from:', indexPath);
+    
+    // Verify file exists
+    if (!fs.existsSync(indexPath)) {
+      console.error('❌ index.html not found at:', indexPath);
+      console.error('Available paths:', {
+        resourcesPath: process.resourcesPath,
+        execPath: process.execPath,
+        __dirname: __dirname,
+        appIsPackaged: app.isPackaged
+      });
+      mainWindow.loadURL('data:text/html,<h1>Widget Error</h1><p>index.html not found. Please rebuild the widget.</p>');
+    } else {
+      mainWindow.loadFile(indexPath);
+    }
   }
+  
+  // Handle failed page loads
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('Failed to load:', validatedURL, errorCode, errorDescription);
+    mainWindow.loadURL('data:text/html,<h1>Widget Load Error</h1><p>Failed to load widget: ' + errorDescription + '</p><p>URL: ' + validatedURL + '</p>');
+  });
+  
+  // Log console messages for debugging
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    if (level === 'error') {
+      console.error('Renderer error:', message, 'at', sourceId, 'line', line);
+    }
+  });
 
   // Show window when ready
   mainWindow.once('ready-to-show', () => {

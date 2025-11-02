@@ -7,9 +7,10 @@ import WidgetApp from './WidgetApp';
 import './index.css';
 
 // Check if running in Electron
-// Electron user agent always contains "Electron"
+// Check both user agent and electronAPI (which is injected by preload script)
 const isElectron = typeof window !== 'undefined' && 
-  window.navigator.userAgent.indexOf('Electron') !== -1;
+  (window.navigator.userAgent.indexOf('Electron') !== -1 || 
+   typeof window.electronAPI !== 'undefined');
 
 // PrimeReact configuration
 const value = {
