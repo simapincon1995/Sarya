@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
-import { Chart } from 'primereact/chart';
 import { useSocket } from '../contexts/SocketContext';
 import { attendanceService } from '../services/attendanceService';
 import { dashboardService } from '../services/dashboardService';
@@ -11,7 +10,7 @@ import './PublicLiveDashboard.css';
 
 const PublicLiveDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
-  const [performerOfDay, setPerformerOfDay] = useState(null);
+  const [, setPerformerOfDay] = useState(null);
   const [customWidgets, setCustomWidgets] = useState([]);
   const [teamData, setTeamData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -279,46 +278,6 @@ const PublicLiveDashboard = () => {
     return <LoadingSpinner message="Loading live dashboard..." />;
   }
 
-  // Chart configuration for team performance (for backward compatibility if needed)
-  const getTeamChartData = () => {
-    if (!teamData || !Array.isArray(teamData) || teamData.length === 0) return null;
-    
-    // Use first two teams for chart
-    const teamsForChart = teamData.slice(0, 2);
-    
-    return {
-      labels: teamsForChart.map(team => team.name || 'Unnamed Team'),
-      datasets: [{
-        data: teamsForChart.map(team => {
-          if (team.fieldVisibility?.actualCalls !== false) {
-            return team.actualCalls || 0;
-          }
-          return 0;
-        }),
-        backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336'],
-        borderColor: ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336'],
-        borderWidth: 2
-      }]
-    };
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#666666',
-          font: {
-            size: 12
-          }
-        }
-      }
-    },
-    cutout: '60%'
-  };
-
   // Helper function to calculate total break duration for the day
   const calculateBreakDuration = (employee) => {
     if (!employee) return 'N/A';
@@ -348,9 +307,6 @@ const PublicLiveDashboard = () => {
       // Use backend calculation as base, but update active break to current time
       // Backend calculation includes active break up to request time
       // We need to update it to current time for real-time display
-      const activeBreakStart = new Date(employee.startTime);
-      const now = currentTime;
-      
       // Estimate what backend calculated (assume it was calculated at request time)
       // We'll use totalBreakDurationMs as base and adjust the active portion
       // For simplicity, recalculate completed breaks + current active break

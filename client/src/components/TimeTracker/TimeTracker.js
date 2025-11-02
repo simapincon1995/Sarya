@@ -34,7 +34,6 @@ const TimeTracker = ({ attendanceStatus, onStatusUpdate, showActivityLog = false
   const attendanceData = attendanceStatus?.attendance || attendanceStatus;
   const checkInTime = attendanceData?.checkIn?.time || attendanceData?.checkIn || attendanceData?.checkInTime;
   const checkOutTime = attendanceData?.checkOut?.time || attendanceData?.checkOut || attendanceData?.checkOutTime;
-  const hasWorkingTime = workingTime && workingTime !== '00:00:00';
   
   const isCheckedIn = (() => {
     // Only consider checked in if we have a valid check-in time and no check-out time
