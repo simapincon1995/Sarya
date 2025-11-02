@@ -10,35 +10,22 @@
     "public/preload-widget.js",
     "node_modules/**/*"
   ],
-  "mac": {
-    "category": "public.app-category.productivity",
-    "target": [
-      {
-        "target": "dmg",
-        "arch": ["x64", "arm64"]
-      }
-    ],
-    "icon": "public/assets/icon.icns"
-  },
   "win": {
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64", "ia32"]
+        "arch": ["x64"]
       }
     ],
     "icon": "public/assets/icon.ico",
     "publisherName": "Sarya Connective Team",
-    "verifyUpdateCodeSignature": false
-  },
-  "linux": {
-    "target": [
-      {
-        "target": "AppImage",
-        "arch": ["x64"]
-      }
-    ],
-    "icon": "public/assets/icon.png"
+    "verifyUpdateCodeSignature": false,
+    "sign": null,
+    "signingHashAlgorithms": [],
+    "signDlls": false,
+    "certificateFile": null,
+    "certificatePassword": null,
+    "timeStampServer": null
   },
   "nsis": {
     "oneClick": false,

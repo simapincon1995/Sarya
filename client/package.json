@@ -47,7 +47,8 @@
     "electron-build": "npm run build && electron-builder",
     "widget-electron": "cross-env ELECTRON_MAIN=public/electron-widget.js electron .",
     "clean-build": "node -e \"const fs=require('fs');const path=require('path');const dir='dist-widget';if(fs.existsSync(dir)){fs.rmSync(dir,{recursive:true,force:true});console.log('Cleaned dist-widget');}\"",
-    "widget-build": "npm run clean-build && npm run build:widget && cross-env ELECTRON_MAIN=public/electron-widget.js electron-builder --config electron-builder.json",
+    "clear-electron-cache": "node scripts/clear-electron-cache.js",
+    "widget-build": "npm run clear-electron-cache && npm run clean-build && npm run build:widget && cross-env ELECTRON_MAIN=public/electron-widget.js CSC_IDENTITY_AUTO_DISCOVERY=false WIN_CSC_IDENTITY_AUTO_DISCOVERY=false CSC_LINK= CSC_KEY_LINK= electron-builder --config electron-builder.json --win",
     "widget-build:clean": "node scripts/clean-electron.js && npm run widget-build",
     "widget-dev": "npm run build:widget && npm run widget-electron",
     "install-widget-deps": "npm install electron-auto-launch electron-store --save-optional"
