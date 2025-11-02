@@ -230,11 +230,16 @@ if (process.env.NODE_ENV === 'production') {
   
   // Catch-all handler: Serve index.html for all non-API routes
   // This allows React Router to handle client-side routing
-  app.get('*', (req, res, next) => {
+  // Use app.use instead of app.get to handle all HTTP methods
+  app.use('*', (req, res, next) => {
     // Skip API routes - they should have been handled above
-    if (req.path.startsWith('/api/')) {
+    if (req.path && req.path.startsWith('/api/')) {
       return res.status(404).json({ message: 'API route not found' });
     }
+    
+    // Skip static file requests - they should have been handled by express.static
+    // If we reach here for a static file request, it means the file doesn't exist
+    // So we'll serve index.html to let React Router handle it
     
     // For all other routes, serve index.html
     // React Router will handle the routing on the client side
@@ -246,10 +251,15 @@ if (process.env.NODE_ENV === 'production') {
       return res.status(500).send('React build files not found. Please build the client app.');
     }
     
-    res.sendFile(indexPath, (err) => {
+    // Resolve the absolute path for sendFile
+    const absoluteIndexPath = path.resolve(indexPath);
+    
+    res.sendFile(absoluteIndexPath, (err) => {
       if (err) {
         console.error('❌ Error sending index.html:', err);
-        res.status(500).send('Error loading application');
+        if (!res.headersSent) {
+          res.status(500).send('Error loading application');
+        }
       }
     });
   });
