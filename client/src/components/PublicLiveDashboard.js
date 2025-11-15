@@ -439,11 +439,16 @@ const PublicLiveDashboard = () => {
                           <div className="performers-of-day-section">
                             <div className="performers-vertical-line"></div>
                             <div className="team-performers-list">
-                              {team.performers.map((performer, pIdx) => (
+                              {team.performers.slice(0, 3).map((performer, pIdx) => (
                                 <div key={pIdx} className="performer-pill-button">
                                   {performer.name}
                                 </div>
                               ))}
+                              {team.performers.length > 3 && (
+                                <div className="performer-pill-button performer-count-indicator">
+                                  +{team.performers.length - 3}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

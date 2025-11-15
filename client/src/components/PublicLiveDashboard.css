@@ -146,6 +146,8 @@
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  max-height: 390px;
+  min-height: 250px;
 }
 
 .stat-card::before {
@@ -214,6 +216,8 @@
   border: 1px solid #E0E0E0;
   border-radius: 4px;
   height: 100%;
+  max-height: 390px;
+  min-height: 250px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -240,12 +244,14 @@
 /* Performer of the Day Card - Now in stats grid */
 .performer-stat-card {
   border-radius: 16px;
-  padding: 1.25rem;
+  /* padding: 1.25rem; */
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   height: 100%;
+  max-height: 390px;
+  min-height: 250px;
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -302,7 +308,7 @@
 }
 
 .teams-performers-card {
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
 }
 
@@ -467,6 +473,21 @@
 
 .performer-pill-button:hover::before {
   left: 100%;
+}
+
+/* Performer Count Indicator - Shows +X for remaining performers */
+.performer-count-indicator {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 50%, #4CAF50 100%) !important;
+  background-size: 200% 200%;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.performer-count-indicator:hover {
+  background-position: 100% 0;
+  opacity: 1;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.45), 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .performer-stat-icon {
@@ -1598,4 +1619,287 @@
   border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+/* ============================================
+   TV Screen Responsive Styles (44-inch TV)
+   ============================================ */
+
+/* Large Screens - Full HD and 4K TVs (1920px+ width) */
+@media (min-width: 1920px) {
+  /* Base container constraints */
+  .dashboard-content {
+    max-height: calc(100vh - 60px);
+    overflow: hidden;
+  }
+
+  /* Grid layout with constrained heights */
+  .dashboard-grid {
+    grid-template-rows: repeat(8, minmax(80px, 1fr));
+    max-height: calc(100vh - 60px);
+    height: 100%;
+  }
+
+  /* Statistics Grid - Top Row */
+  .stats-grid {
+    max-height: 390px;
+    min-height: 250px;
+    height: auto;
+  }
+
+  /* Stat Cards */
+  .stat-card {
+    max-height: 390px;
+    min-height: 250px;
+    padding: clamp(1rem, 2vh, 1.5rem);
+  }
+
+  .stat-content {
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  /* Font sizes optimized for TV viewing distance */
+  .stat-value {
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1;
+  }
+
+  .stat-label {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .stat-comparison {
+    font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+  }
+
+  .stat-icon {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  /* Performer Stat Card */
+  .performer-stat-card {
+    max-height: 390px;
+    min-height: 250px;
+    padding: clamp(1rem, 2vh, 1.25rem);
+  }
+
+  .performer-stat-content {
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  .performer-stat-title {
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    margin-bottom: clamp(0.5rem, 1vh, 0.75rem);
+  }
+
+  .performer-stat-icon {
+    width: clamp(2.5rem, 5vw, 3.5rem);
+    height: clamp(2.5rem, 5vw, 3.5rem);
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  }
+
+  /* Widget Cards */
+  .widget-card {
+    max-height: 390px;
+    min-height: 250px;
+    height: auto;
+  }
+
+  .widget-card .p-card-title {
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    padding-bottom: clamp(0.5rem, 1vh, 0.75rem);
+    margin-bottom: clamp(0.5rem, 1vh, 0.75rem);
+  }
+
+  /* Second Row Widgets */
+  .second-row-widgets {
+    max-height: 500px;
+    min-height: 300px;
+    height: auto;
+  }
+
+  /* Data Tables */
+  .data-table {
+    max-height: 100%;
+  }
+
+  .data-table tbody {
+    max-height: calc(100% - 3rem);
+    overflow-y: auto;
+  }
+
+  .data-table th {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    padding: clamp(0.5rem, 1vh, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
+  }
+
+  .data-table td {
+    font-size: clamp(0.875rem, 1.8vw, 1.125rem);
+    padding: clamp(0.5rem, 1vh, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
+  }
+
+  /* Team Display Cards */
+  .teams-display-container {
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  .team-display-card {
+    max-height: 390px;
+    padding: clamp(1rem, 2vh, 1.25rem);
+  }
+
+  .team-display-header h4 {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  }
+
+  .metric-value {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .metric-label {
+    font-size: clamp(1rem, 2vw, 1.125rem);
+  }
+
+  /* Team Performer Cards */
+  .team-performer-card {
+    min-height: 150px;
+    max-height: 250px;
+    padding: clamp(1rem, 2vh, 1.25rem);
+  }
+
+  .team-name-header {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+  }
+
+  .performer-pill-button {
+    font-size: clamp(0.875rem, 1.8vw, 1rem);
+    padding: clamp(0.5rem, 1vh, 0.625rem) clamp(0.875rem, 1.8vw, 1.125rem);
+  }
+
+  /* Custom Widgets */
+  .custom-widgets-area {
+    max-height: 600px;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .custom-widget {
+    max-height: 100%;
+    padding: clamp(1rem, 2vh, 1.25rem);
+  }
+
+  .custom-widget-title {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  }
+
+  .custom-widget-content {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+  }
+
+  /* Header Elements */
+  .company-name {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+  }
+
+  .dashboard-title {
+    font-size: clamp(1.125rem, 2.25vw, 1.375rem);
+  }
+
+  .company-logo {
+    width: clamp(40px, 8vw, 50px);
+    height: clamp(40px, 8vw, 50px);
+  }
+
+  /* Break Status */
+  .break-status {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    padding: clamp(0.375rem, 0.75vh, 0.5rem) clamp(0.875rem, 1.8vw, 1.125rem);
+  }
+
+  /* Activity Time */
+  .activity-time {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+  }
+
+  /* Status Badges */
+  .late-status-badge,
+  .ontime-status-badge {
+    font-size: clamp(0.875rem, 1.8vw, 1.125rem);
+    padding: clamp(0.375rem, 0.75vh, 0.5rem) clamp(0.75rem, 1.5vw, 1rem);
+  }
+}
+
+/* 4K UHD TV Screens (3840px+ width) */
+@media (min-width: 3840px) {
+  /* Further optimize for ultra-high resolution */
+  .dashboard-grid {
+    grid-template-rows: repeat(8, minmax(100px, 1fr));
+  }
+
+  .stats-grid {
+    max-height: 390px;
+    min-height: 250px;
+  }
+
+  .stat-card {
+    max-height: 390px;
+    min-height: 250px;
+  }
+
+  .performer-stat-card {
+    max-height: 390px;
+    min-height: 250px;
+  }
+
+  .widget-card {
+    max-height: 390px;
+    min-height: 250px;
+  }
+
+  .second-row-widgets {
+    max-height: 500px;
+    min-height: 300px;
+  }
+
+  /* Scale fonts appropriately for 4K */
+  .stat-value {
+    font-size: clamp(2.5rem, 3vw, 3.5rem);
+  }
+
+  .stat-label {
+    font-size: clamp(1.25rem, 1.8vw, 1.75rem);
+  }
+
+  .widget-card .p-card-title {
+    font-size: clamp(2rem, 2.5vw, 2.75rem);
+  }
+
+  .company-name {
+    font-size: clamp(2.5rem, 3vw, 3rem);
+  }
+}
+
+/* High DPI / Retina Displays */
+@media (min-resolution: 192dpi) and (min-width: 1920px) {
+  /* Ensure crisp rendering on high DPI displays */
+  .stat-card,
+  .widget-card,
+  .performer-stat-card {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Landscape TV Orientation (common for 44-inch TVs) */
+@media (min-width: 1920px) and (min-height: 1080px) and (orientation: landscape) {
+  .dashboard-content {
+    max-height: calc(100vh - 60px);
+  }
+
+  .dashboard-grid {
+    max-height: calc(100vh - 60px);
+  }
 }
