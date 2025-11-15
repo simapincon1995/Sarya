@@ -393,30 +393,35 @@ export const LocalizationProvider = ({ children }) => {
   // Load organization settings (including timezone) on mount
   useEffect(() => {
     const loadOrganizationSettings = async () => {
-      try {
-        const settings = await organizationService.getSettings();
-        if (settings) {
-          setTimezone(settings.timezone || 'America/New_York');
-          setDateFormat(settings.dateFormat || 'MM/DD/YYYY');
-          setTimeFormat(settings.timeFormat || 'hh:mm A');
-          
-          // Also save to localStorage for quick access
-          localStorage.setItem('timezone', settings.timezone || 'America/New_York');
-          localStorage.setItem('dateFormat', settings.dateFormat || 'MM/DD/YYYY');
-          localStorage.setItem('timeFormat', settings.timeFormat || 'hh:mm A');
+      // First, load from localStorage immediately (no API call needed)
+      const savedTimezone = localStorage.getItem('timezone') || 'America/New_York';
+      const savedDateFormat = localStorage.getItem('dateFormat') || 'MM/DD/YYYY';
+      const savedTimeFormat = localStorage.getItem('timeFormat') || 'hh:mm A';
+      
+      setTimezone(savedTimezone);
+      setDateFormat(savedDateFormat);
+      setTimeFormat(savedTimeFormat);
+      setIsLoading(false); // Set loading false immediately with defaults
+      
+      // Only fetch from API if user is authenticated (has a token)
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const settings = await organizationService.getSettings();
+          if (settings) {
+            setTimezone(settings.timezone || 'America/New_York');
+            setDateFormat(settings.dateFormat || 'MM/DD/YYYY');
+            setTimeFormat(settings.timeFormat || 'hh:mm A');
+            
+            // Update localStorage for future use
+            localStorage.setItem('timezone', settings.timezone || 'America/New_York');
+            localStorage.setItem('dateFormat', settings.dateFormat || 'MM/DD/YYYY');
+            localStorage.setItem('timeFormat', settings.timeFormat || 'hh:mm A');
+          }
+        } catch (error) {
+          // Silently fail - we already have defaults from localStorage
+          console.error('Failed to load organization settings:', error);
         }
-      } catch (error) {
-        console.error('Failed to load organization settings:', error);
-        // Fallback to localStorage or defaults
-        const savedTimezone = localStorage.getItem('timezone') || 'America/New_York';
-        const savedDateFormat = localStorage.getItem('dateFormat') || 'MM/DD/YYYY';
-        const savedTimeFormat = localStorage.getItem('timeFormat') || 'hh:mm A';
-        
-        setTimezone(savedTimezone);
-        setDateFormat(savedDateFormat);
-        setTimeFormat(savedTimeFormat);
-      } finally {
-        setIsLoading(false);
       }
     };
 

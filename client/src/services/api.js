@@ -36,8 +36,18 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
+      // Only redirect if not already on login/signup page to prevent infinite loops
+      const currentPath = window.location.pathname;
+      const isAuthPage = currentPath === '/login' || currentPath === '/signup';
+      
+      // Clear token regardless
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      
+      // Only force redirect if not on authentication pages
+      if (!isAuthPage) {
+        // Use replace to avoid adding to history
+        window.location.replace('/login');
+      }
     } else if (error.response?.status === 429) {
       // Rate limit exceeded
       console.warn('Rate limit exceeded. Please wait before making more requests.');
