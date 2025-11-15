@@ -17,7 +17,6 @@ const Employees = () => {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');
-  const { hasPermission } = useAuth();
 
   // CRUD UI state
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -25,6 +24,7 @@ const Employees = () => {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [managers, setManagers] = useState([]);
+  const { hasPermission, user } = useAuth();
   const [formData, setFormData] = useState({
     employeeId: '',
     firstName: '',
@@ -270,31 +270,39 @@ const Employees = () => {
             />
             <Column
               header="Actions"
-              body={(rowData) => (
-                <div className="flex gap-2">
-                  <Button
-                    icon="pi pi-eye"
-                    className="p-button-text p-button-sm"
-                    tooltip="View Details"
-                  />
-                  {hasPermission('manage_employees') && (
-                    <>
+              body={(rowData) => {
+                // HR Admin cannot edit/delete admin users
+                const canEdit = hasPermission('manage_employees') && 
+                  !(user?.role === 'hr_admin' && rowData.role === 'admin');
+                const canDelete = hasPermission('manage_employees') && 
+                  !(user?.role === 'hr_admin' && rowData.role === 'admin');
+                
+                return (
+                  <div className="flex gap-2">
+                    <Button
+                      icon="pi pi-eye"
+                      className="p-button-text p-button-sm"
+                      tooltip="View Details"
+                    />
+                    {canEdit && (
                       <Button
                         icon="pi pi-pencil"
                         className="p-button-text p-button-sm"
                         tooltip="Edit"
                         onClick={() => openEdit(rowData)}
                       />
+                    )}
+                    {canDelete && (
                       <Button
                         icon="pi pi-trash"
                         className="p-button-text p-button-sm p-button-danger"
                         tooltip="Delete"
                         onClick={() => deleteEmployee(rowData)}
                       />
-                    </>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                );
+              }}
               style={{ width: '120px' }}
             />
           </DataTable>
@@ -378,7 +386,15 @@ const Employees = () => {
                 <label htmlFor="role" className="block text-sm font-medium mb-2">
                   Role
                 </label>
-                <Dropdown id="role" className="w-full" value={formData.role} onChange={(e) => onFormChange('role', e.value)} options={[{ label: 'Admin', value: 'admin' }, { label: 'HR Admin', value: 'hr_admin' }, { label: 'Manager', value: 'manager' }, { label: 'Employee', value: 'employee' }]} />
+                <Dropdown 
+                  id="role" 
+                  className="w-full" 
+                  value={formData.role} 
+                  onChange={(e) => onFormChange('role', e.value)} 
+                  options={[{ label: 'Admin', value: 'admin' }, { label: 'HR Admin', value: 'hr_admin' }, { label: 'Manager', value: 'manager' }, { label: 'Employee', value: 'employee' }]}
+                  disabled={user?.role === 'hr_admin' && editingEmployee?.role === 'admin'}
+                  tooltip={user?.role === 'hr_admin' && editingEmployee?.role === 'admin' ? 'HR Admin cannot modify admin user roles' : ''}
+                />
               </div>
             </div>
             <div className="col-12 md:col-6">

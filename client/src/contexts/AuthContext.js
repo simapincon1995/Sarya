@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }) => {
     
     const permissions = {
       admin: ['all'],
-      hr_admin: ['manage_employees', 'manage_payroll', 'manage_templates', 'manage_holidays', 'view_reports'],
+      hr_admin: ['all'], // HR Admin has exact same permissions as Admin
       manager: ['manage_team', 'approve_leaves', 'view_team_reports'],
       employee: ['view_own_data', 'apply_leaves', 'mark_attendance']
     };

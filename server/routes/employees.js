@@ -194,11 +194,26 @@ router.put('/:employeeId', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Employee not found' });
     }
 
+    // HR Admin cannot edit/update admin users
+    if (user.role === 'hr_admin' && employee.role === 'admin') {
+      return res.status(403).json({ 
+        message: 'Access denied. HR Admin cannot edit admin user details.' 
+      });
+    }
+
     // Update fields
     if (firstName) employee.firstName = firstName;
     if (lastName) employee.lastName = lastName;
     if (email) employee.email = email;
-    if (role && ['admin', 'hr_admin'].includes(user.role)) employee.role = role;
+    // Only admin can change roles, HR Admin cannot change admin role
+    if (role) {
+      if (user.role === 'admin') {
+        employee.role = role;
+      } else if (user.role === 'hr_admin' && employee.role !== 'admin') {
+        // HR Admin can change roles but not for admin users (already checked above)
+        employee.role = role;
+      }
+    }
     if (department) employee.department = department;
     if (designation) employee.designation = designation;
     if (phone) employee.phone = phone;
@@ -261,11 +276,19 @@ router.put('/:employeeId', authenticateToken, async (req, res) => {
 router.delete('/:employeeId', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
   try {
     const { employeeId } = req.params;
+    const user = req.user;
 
     const employee = await User.findById(employeeId);
 
     if (!employee) {
       return res.status(404).json({ message: 'Employee not found' });
+    }
+
+    // HR Admin cannot delete admin users
+    if (user.role === 'hr_admin' && employee.role === 'admin') {
+      return res.status(403).json({ 
+        message: 'Access denied. HR Admin cannot delete admin users.' 
+      });
     }
 
     // Soft delete - deactivate instead of hard delete

@@ -83,12 +83,12 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// Register new user (Admin only)
+// Register new user (Admin, HR Admin)
 router.post('/register', authenticateToken, async (req, res) => {
   try {
-    // Check if user is admin
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Only admin can register new users' });
+    // Check if user is admin or hr_admin
+    if (!['admin', 'hr_admin'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Only admin or HR admin can register new users' });
     }
 
     const {

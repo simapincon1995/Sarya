@@ -91,7 +91,7 @@ router.put('/:widgetId', authenticateToken, authorize('admin', 'hr_admin', 'mana
     }
 
     // Check if user can edit this widget
-    if (!widget.canUserEdit(userId) && req.user.role !== 'admin') {
+    if (!widget.canUserEdit(userId) && !['admin', 'hr_admin'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -129,7 +129,7 @@ router.delete('/:widgetId', authenticateToken, authorize('admin', 'hr_admin', 'm
     }
 
     // Check if user can edit this widget
-    if (!widget.canUserEdit(userId) && req.user.role !== 'admin') {
+    if (!widget.canUserEdit(userId) && !['admin', 'hr_admin'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
 

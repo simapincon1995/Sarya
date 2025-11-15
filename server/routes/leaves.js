@@ -402,7 +402,7 @@ router.get('/balance/:employeeId', authenticateToken, canAccessEmployee, async (
   }
 });
 
-// Update leave application (only for pending leaves)
+// Update leave application
 router.put('/:leaveId', authenticateToken, async (req, res) => {
   try {
     const { leaveId } = req.params;
@@ -415,12 +415,14 @@ router.put('/:leaveId', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Leave not found' });
     }
 
-    // Check permissions - only employee can update their own pending leaves
-    if (leave.employee.toString() !== user._id.toString()) {
+    // Check permissions
+    // Admin and HR Admin can update any leave
+    // Employee can only update their own pending leaves
+    if (['admin', 'hr_admin'].includes(user.role)) {
+      // HR Admin and Admin can update any leave
+    } else if (leave.employee.toString() !== user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (leave.status !== 'pending') {
+    } else if (leave.status !== 'pending') {
       return res.status(400).json({ message: 'Can only update pending leave applications' });
     }
 

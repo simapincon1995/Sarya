@@ -108,8 +108,8 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Create organization (Admin only)
-router.post('/', authenticateToken, authorize('admin'), async (req, res) => {
+// Create organization (Admin, HR Admin)
+router.post('/', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
   try {
     const {
       name,
@@ -155,8 +155,8 @@ router.post('/', authenticateToken, authorize('admin'), async (req, res) => {
   }
 });
 
-// Update organization (Admin only)
-router.put('/:organizationId', authenticateToken, authorize('admin'), async (req, res) => {
+// Update organization (Admin, HR Admin)
+router.put('/:organizationId', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
   try {
     const { organizationId } = req.params;
     const {

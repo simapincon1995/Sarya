@@ -252,7 +252,7 @@ router.get('/type/:type', authenticateToken, canAccessTemplates, async (req, res
 });
 
 // Create default templates
-router.post('/create-defaults', authenticateToken, authorize('admin'), async (req, res) => {
+router.post('/create-defaults', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
   try {
     await Template.createDefaultTemplates(req.user._id);
 

@@ -374,27 +374,35 @@ const Leaves = () => {
                     tooltip="View Details"
                     onClick={() => openDetail(rowData)}
                   />
-                  {rowData.status === 'pending' && 
-                   (hasPermission('apply_leaves') || rowData.employee === user?.id) && (
+                  {(hasPermission('manage_leaves') || 
+                    (rowData.status === 'pending' && (hasPermission('apply_leaves') || rowData.employee === user?.id))) && (
                     <>
-                      <Button
-                        icon="pi pi-pencil"
-                        className="p-button-text p-button-sm"
-                        tooltip="Edit"
-                        onClick={() => openEdit(rowData)}
-                      />
-                      <Button
-                        icon="pi pi-times"
-                        className="p-button-text p-button-sm p-button-danger"
-                        tooltip="Cancel"
-                        onClick={() => confirmCancel(rowData)}
-                      />
-                      <Button
-                        icon="pi pi-trash"
-                        className="p-button-text p-button-sm p-button-danger"
-                        tooltip="Delete"
-                        onClick={() => confirmDelete(rowData)}
-                      />
+                      {(hasPermission('manage_leaves') || (rowData.status === 'pending' && rowData.employee === user?.id)) && (
+                        <Button
+                          icon="pi pi-pencil"
+                          className="p-button-text p-button-sm"
+                          tooltip="Edit"
+                          onClick={() => openEdit(rowData)}
+                        />
+                      )}
+                      {rowData.status === 'pending' && 
+                       (hasPermission('apply_leaves') || rowData.employee === user?.id) && (
+                        <Button
+                          icon="pi pi-times"
+                          className="p-button-text p-button-sm p-button-danger"
+                          tooltip="Cancel"
+                          onClick={() => confirmCancel(rowData)}
+                        />
+                      )}
+                      {(hasPermission('manage_leaves') || 
+                        (rowData.status === 'pending' && (hasPermission('apply_leaves') || rowData.employee === user?.id))) && (
+                        <Button
+                          icon="pi pi-trash"
+                          className="p-button-text p-button-sm p-button-danger"
+                          tooltip="Delete"
+                          onClick={() => confirmDelete(rowData)}
+                        />
+                      )}
                     </>
                   )}
                 </div>

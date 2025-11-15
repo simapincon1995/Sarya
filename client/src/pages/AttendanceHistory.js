@@ -22,7 +22,7 @@ const AttendanceHistory = () => {
   const [globalFilter, setGlobalFilter] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [employees, setEmployees] = useState([]);
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const toast = useRef(null);
 
   const loadEmployees = async () => {
@@ -148,18 +148,22 @@ const AttendanceHistory = () => {
   const actionBodyTemplate = (rowData) => {
     return (
       <div className="flex gap-2">
-        <Button
-          icon="pi pi-pencil"
-          className="p-button-rounded p-button-text p-button-info"
-          onClick={() => console.log('Edit:', rowData.id)}
-          tooltip="Edit Record"
-        />
-        <Button
-          icon="pi pi-trash"
-          className="p-button-rounded p-button-text p-button-danger"
-          onClick={() => confirmDelete(rowData.id)}
-          tooltip="Delete Record"
-        />
+        {hasPermission('manage_attendance') && (
+          <Button
+            icon="pi pi-pencil"
+            className="p-button-rounded p-button-text p-button-info"
+            onClick={() => console.log('Edit:', rowData.id)}
+            tooltip="Edit Record"
+          />
+        )}
+        {hasPermission('manage_attendance') && (
+          <Button
+            icon="pi pi-trash"
+            className="p-button-rounded p-button-text p-button-danger"
+            onClick={() => confirmDelete(rowData.id)}
+            tooltip="Delete Record"
+          />
+        )}
       </div>
     );
   };

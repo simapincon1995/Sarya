@@ -26,8 +26,8 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
       
     ];
 
-    // Employee Management
-    if (hasPermission('manage_employees') || hasPermission('view_own_data')) {
+    // Employee Management (Admin, HR Admin, Manager, Employee)
+    if (hasPermission('manage_employees') || hasPermission('view_own_data') || hasRole(['admin', 'hr_admin', 'manager', 'employee'])) {
       items.push({
         label: 'Employees',
         icon: 'pi pi-users',
@@ -37,16 +37,8 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
       });
     }
 
-    // Attendance
-    if (hasPermission('mark_attendance') || hasPermission('view_team_reports')) {
-      // items.push({
-      //   label: 'Attendance',
-      //   icon: 'pi pi-clock',
-      //   command: () => handleMenuClick('/attendance'),
-      //   className: location.pathname === '/attendance' ? 'active' : '',
-      //   title: 'Attendance'
-      // });
-      
+    // Attendance (Admin, HR Admin, Manager, Employee)
+    if (hasPermission('mark_attendance') || hasPermission('view_team_reports') || hasPermission('manage_attendance') || hasRole(['admin', 'hr_admin', 'manager', 'employee'])) {
       // Attendance History
       items.push({
         label: 'Attendance History',
@@ -56,12 +48,9 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
         title: 'Attendance History'
       });
     }
-    if (hasPermission('view_own_data')) {
-      
-    }
 
-    // Leave Management
-    if (hasPermission('apply_leaves') || hasPermission('approve_leaves')) {
+    // Leave Management (Admin, HR Admin, Manager, Employee)
+    if (hasPermission('apply_leaves') || hasPermission('approve_leaves') || hasPermission('manage_leaves') || hasRole(['admin', 'hr_admin', 'manager', 'employee'])) {
       items.push({
         label: 'Leaves',
         icon: 'pi pi-calendar',
@@ -71,30 +60,30 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
       });
     }
 
-    // Payroll (HR Admin only)
-    // if (hasPermission('manage_payroll')) {
-    //   items.push({
-    //     label: 'Payroll',
-    //     icon: 'pi pi-dollar',
-    //     command: () => handleMenuClick('/payroll'),
-    //     className: location.pathname === '/payroll' ? 'active' : '',
-    //     title: 'Payroll'
-    //   });
-    // }
+    // Payroll (Admin, HR Admin only)
+    if (hasPermission('manage_payroll') || hasRole(['admin', 'hr_admin'])) {
+      items.push({
+        label: 'Payroll',
+        icon: 'pi pi-dollar',
+        command: () => handleMenuClick('/payroll'),
+        className: location.pathname === '/payroll' ? 'active' : '',
+        title: 'Payroll'
+      });
+    }
 
-    // Templates (HR Admin only)
-    // if (hasPermission('manage_templates')) {
-    //   items.push({
-    //     label: 'Templates',
-    //     icon: 'pi pi-file-edit',
-    //     command: () => handleMenuClick('/templates'),
-    //     className: location.pathname === '/templates' ? 'active' : '',
-    //     title: 'Templates'
-    //   });
-    // }
+    // Templates (Admin, HR Admin only)
+    if (hasPermission('manage_templates') || hasRole(['admin', 'hr_admin'])) {
+      items.push({
+        label: 'Templates',
+        icon: 'pi pi-file-edit',
+        command: () => handleMenuClick('/templates'),
+        className: location.pathname === '/templates' ? 'active' : '',
+        title: 'Templates'
+      });
+    }
 
-    // Holidays
-    if (hasPermission('manage_holidays') || hasPermission('view_own_data')) {
+    // Holidays (Admin, HR Admin, Employee)
+    if (hasPermission('manage_holidays') || hasPermission('view_own_data') || hasRole(['admin', 'hr_admin', 'employee'])) {
       items.push({
         label: 'Holidays',
         icon: 'pi pi-calendar-plus',
