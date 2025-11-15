@@ -45,7 +45,6 @@ function createWindow() {
     transparent: false, // Use solid background with blur
     alwaysOnTop: store ? store.get('alwaysOnTop') : true, // Always on top
     skipTaskbar: false, // Show in taskbar for better UX
-    backgroundColor: '#ffffff',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

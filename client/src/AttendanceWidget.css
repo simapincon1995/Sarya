@@ -12,19 +12,20 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 16px;
-  text-align: center;
+  text-align: left;
   position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .widget-brand {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  flex: 1;
-  justify-content: center;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .widget-logo {
@@ -33,19 +34,20 @@
   border-radius: 4px;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
 }
 
 .widget-header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .connection-status {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  font-size: 12px;
+  font-size: 11px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -53,6 +55,8 @@
   padding: 4px 8px;
   border-radius: 12px;
   backdrop-filter: blur(10px);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .connection-status.online {

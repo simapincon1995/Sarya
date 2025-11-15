@@ -1,9 +1,11 @@
 import axios from 'axios';
+import PRODUCTION_CONFIG from '../config/production.config';
 
-// Use REACT_APP_API_URL if set, otherwise fallback to defaults
-// REACT_APP_API_URL should be set to: https://sarya.onrender.com/api
-const API_URL = process.env.REACT_APP_API_URL || 
-  (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api');
+// Use production config for Electron app, otherwise use environment variables
+const API_URL = window.electron 
+  ? PRODUCTION_CONFIG.API_URL 
+  : (process.env.REACT_APP_API_URL || 
+    (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'));
 
 // Create axios instance
 const api = axios.create({

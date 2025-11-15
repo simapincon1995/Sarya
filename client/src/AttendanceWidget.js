@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { attendanceService } from './services/attendanceService';
+import PRODUCTION_CONFIG from './config/production.config';
 import './AttendanceWidget.css';
 
 const ATTENDANCE_EVENTS = {
@@ -203,10 +204,11 @@ const AttendanceWidget = () => {
 
   const handleLogin = async () => {
     try {
-      // In production, use relative path when served from same server
-      // Otherwise use environment variable or localhost for development
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 
-        (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api');
+      // Use production config for Electron app, otherwise use environment variables
+      const API_BASE_URL = window.electron 
+        ? PRODUCTION_CONFIG.API_URL 
+        : (process.env.REACT_APP_API_URL || 
+          (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5000/api'));
       
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
@@ -456,13 +458,13 @@ const AttendanceWidget = () => {
             alt="Sarya Connective Logo" 
             className="widget-logo"
           />
-          <h3>Attendance Tracker</h3>
+          <h3>Sarya Connective Global</h3>
         </div>
         <div className={`connection-status ${isOnline ? 'online' : 'offline'}`}>
           {isOnline ? '🟢 Online' : '🔴 Offline'}
-          {pendingEvents.length > 0 && (
+          {/* {pendingEvents.length > 0 && (
             <span className="pending-sync">({pendingEvents.length} pending)</span>
-          )}
+          )} */}
         </div>
       </div>
 

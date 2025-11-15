@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import PRODUCTION_CONFIG from '../config/production.config';
 
 const SocketContext = createContext();
 
@@ -29,11 +30,12 @@ export const SocketProvider = ({ children }) => {
     if (isAuthenticated && user && socketEnabled) {
       // Initialize socket connection with error handling
       try {
-        // Use REACT_APP_SOCKET_URL if set, otherwise derive from API URL or use defaults
-        // REACT_APP_SOCKET_URL should be set to: https://sarya.onrender.com
-        const apiUrl = process.env.REACT_APP_SOCKET_URL || 
-          (process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 
-          (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000'));
+        // Use production config for Electron app, otherwise use environment variables
+        const apiUrl = window.electron 
+          ? PRODUCTION_CONFIG.SOCKET_URL 
+          : (process.env.REACT_APP_SOCKET_URL || 
+            (process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 
+            (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000')));
         const newSocket = io(apiUrl, {
           auth: {
             token: localStorage.getItem('token')
