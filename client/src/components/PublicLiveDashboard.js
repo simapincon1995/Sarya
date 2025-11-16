@@ -419,7 +419,7 @@ const PublicLiveDashboard = () => {
               </div>
             </Card>
             
-            {/* Performer of the Day Card - Shows Teams with Performers */}
+            {/* Performer of the Day Card - Single card with two teams side by side */}
             {teamData && Array.isArray(teamData) && teamData.filter(team => 
               team.performers && team.performers.length > 0
             ).length > 0 ? (

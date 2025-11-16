@@ -1,16 +1,30 @@
-/* Public Live Dashboard Styles */
+/* Public Live Dashboard Styles - Viewport based */
 .public-live-dashboard {
   height: 100vh;
   width: 100vw;
   background: #FFFFFF;
   color: #333333;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  font-size: 1rem;
+  font-size: clamp(0.9vh, 1.2vh, 1.5vh);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 0;
   margin: 0;
+  box-sizing: border-box;
+}
+
+/* Override PrimeReact Card padding for this page only */
+.public-live-dashboard .p-card {
+  padding: 0.25rem;
+}
+
+.public-live-dashboard .p-card .p-card-body {
+  padding: 0.25rem;
+}
+
+.public-live-dashboard .p-card .p-card-content {
+  padding: 0.25rem;
 }
 
 .public-live-dashboard.fullscreen {
@@ -35,14 +49,45 @@
   z-index: 10000;
 }
 
-/* Header Styles */
+/* Fix layout issues in fullscreen mode */
+.public-live-dashboard.fullscreen .dashboard-grid {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.public-live-dashboard.fullscreen .stats-grid {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.public-live-dashboard.fullscreen .second-row-widgets {
+  position: relative !important;
+  z-index: 1 !important;
+  overflow: visible !important;
+}
+
+.public-live-dashboard.fullscreen .recent-activity-widget {
+  position: relative !important;
+  z-index: 1 !important;
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+}
+
+.public-live-dashboard.fullscreen .performer-stat-card {
+  position: relative !important;
+  z-index: 2 !important;
+  overflow: hidden !important;
+}
+
+/* Header Styles - Viewport based */
 .public-dashboard-header {
   background: #FFFFFF;
   border-bottom: 1px solid #E0E0E0;
-  padding: 0.5rem 1rem;
+  padding: clamp(0.5vh, 0.8vh, 1vh) clamp(1vw, 1.5vw, 2vw);
   flex-shrink: 0;
-  height: 60px;
+  height: clamp(5vh, 6vh, 7vh);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .header-content {
@@ -60,8 +105,8 @@
 }
 
 .company-logo {
-  width: 35px;
-  height: 35px;
+  width: clamp(3vh, 4vh, 5vh);
+  height: clamp(3vh, 4vh, 5vh);
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(0, 0, 0, 0.1);
@@ -73,7 +118,7 @@
 }
 
 .company-name {
-  font-size: 1.75rem;
+  font-size: clamp(1.2vh, 2vh, 2.5vh);
   font-weight: 600;
   margin: 0;
   color: #333333;
@@ -81,7 +126,7 @@
 }
 
 .dashboard-title {
-  font-size: 1rem;
+  font-size: clamp(0.8vh, 1.2vh, 1.5vh);
   margin: 0;
   color: #666666;
   font-weight: 400;
@@ -103,41 +148,58 @@
   border-color: rgba(0, 0, 0, 0.25);
 }
 
-/* Main Content */
+/* Main Content - Viewport based */
 .dashboard-content {
-  padding: 0.75rem;
+  padding: clamp(0.6vh, 0.9vh, 1.2vh) clamp(0.6vw, 0.9vw, 1.2vw);
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px);
+  height: calc(100vh - clamp(5vh, 6vh, 7vh));
+  box-sizing: border-box;
+  max-width: 100vw;
+  width: 100%;
+  min-width: 0;
 }
 
-/* Dynamic Grid Layout */
+/* Dynamic Grid Layout - Viewport based */
+/* Calculates heights to fit: Header (~6vh) + Stats Row + Second Row = 100vh */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: repeat(8, 1fr);
-  gap: 0.75rem;
+  grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+  gap: clamp(0.6vh, 0.9vh, 1.2vh) clamp(0.6vw, 0.9vw, 1.2vw);
   height: 100%;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
 }
 
-/* Statistics Grid - Top Row */
+/* Statistics Grid - Top Row - Viewport based */
+/* 3 stat cards at 20% each + 1 performer card at 40% = 100% */
+/* Using fr units to account for gaps automatically */
 .stats-grid {
   grid-column: 1 / -1;
   grid-row: 1;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.75rem;
-  height: 100%;
+  grid-template-columns: 1fr 1fr 1fr 2fr;
+  gap: clamp(0.6vw, 0.9vw, 1.2vw);
+  height: auto;
+  max-height: 30vh;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .stat-card {
   background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
   border: 1px solid #E0E0E0;
-  border-radius: 8px;
-  padding: 0.75rem;
+  border-radius: clamp(0.5vh, 0.8vh, 1vh);
+  padding: clamp(0.5vh, 0.7vh, 0.9vh) clamp(0.5vw, 0.7vw, 0.9vw);
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -146,8 +208,12 @@
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  max-height: 390px;
-  min-height: 250px;
+  height: auto;
+  max-height: 100%;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .stat-card::before {
@@ -177,89 +243,95 @@
 
 .stat-icon {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  font-size: 1.5rem;
+  top: clamp(0.4vh, 0.6vh, 0.8vh);
+  right: clamp(0.5vw, 0.7vw, 0.9vw);
+  font-size: clamp(1.2vh, 1.8vh, 2.2vh);
   opacity: 0.7;
   z-index: 2;
 }
 
 .stat-value {
-  font-size: 2rem;
+  font-size: clamp(1.5vh, 2.2vh, 2.8vh);
   font-weight: 700;
-  margin-bottom: 0.25rem;
+  margin-bottom: clamp(0.2vh, 0.3vh, 0.4vh);
   color: #333333;
   line-height: 1.1;
 }
 
 .stat-label {
-  font-size: 1.5rem;
+  font-size: clamp(0.9vh, 1.3vh, 1.6vh);
   color: #666666;
   font-weight: 500;
-  margin-bottom: 0.15rem;
+  margin-bottom: clamp(0.1vh, 0.15vh, 0.2vh);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .stat-comparison {
-  font-size: 1rem;
+  font-size: clamp(0.7vh, 1vh, 1.2vh);
   color: #4CAF50;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: clamp(0.2vw, 0.3vw, 0.4vw);
 }
 
-/* Widget Base Styles */
+/* Widget Base Styles - Viewport based */
 .widget-card {
   background: #FFFFFF;
   border: 1px solid #E0E0E0;
-  border-radius: 4px;
+  border-radius: clamp(0.3vh, 0.5vh, 0.7vh);
   height: 100%;
-  max-height: 390px;
-  min-height: 250px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .widget-card .p-card-title {
   color: #333333;
-  font-size: 2rem;
+  font-size: clamp(1.3vh, 2vh, 2.5vh);
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: clamp(0.4vh, 0.6vh, 0.8vh);
+  padding: clamp(0.8vh, 1.2vh, 1.5vh) clamp(1vw, 1.5vw, 2vw);
+  padding-bottom: clamp(0.5vh, 0.7vh, 0.9vh);
   border-bottom: 1px solid #E0E0E0;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .widget-card .p-card-content {
   color: #333333;
-  padding: 0;
+  padding: 0.25rem;
   flex: 1;
   overflow: hidden;
+  box-sizing: border-box;
+  min-height: 0;
 }
 
-/* Performer of the Day Card - Now in stats grid */
+/* Performer of the Day Card - Now in stats grid - Viewport based */
+/* Takes 40% width (span 1 of the 40% column) with two teams side by side */
 .performer-stat-card {
-  border-radius: 16px;
-  /* padding: 1.25rem; */
+  border-radius: clamp(0.8vh, 1.2vh, 1.5vh);
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   height: 100%;
-  max-height: 390px;
-  min-height: 250px;
+  width: 100%;
+  max-width: 100%;
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  grid-column: span 2;
   background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(10px);
+  box-sizing: border-box;
+  grid-column: span 1;
+  min-width: 0;
 }
 
 .performer-stat-card::before {
@@ -303,8 +375,11 @@
   text-align: left;
   position: relative;
   z-index: 1;
-  padding: 0;
+  padding: clamp(1vh, 1.5vh, 2vh) clamp(1vw, 1.5vw, 2vw);
   width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .teams-performers-card {
@@ -313,15 +388,20 @@
 }
 
 .teams-performers-card .performer-stat-content {
-  padding: 0;
+  padding: clamp(0.8vh, 1.2vh, 1.5vh) clamp(0.8vw, 1.2vw, 1.5vw);
   align-items: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .teams-performers-card .performer-stat-title {
   width: 100%;
   text-align: center;
-  margin-bottom: 1.25rem;
-  font-size: 1.5rem;
+  margin-bottom: clamp(1vh, 1.5vh, 2vh);
+  font-size: clamp(1.2vh, 2vh, 2.5vh);
   font-weight: 700;
   background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
   -webkit-background-clip: text;
@@ -332,25 +412,35 @@
 
 .teams-performers-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.6vh, 0.9vh, 1.2vh) clamp(0.6vw, 0.9vw, 1.2vw);
   width: 100%;
+  max-width: 100%;
   margin-top: 0;
-  padding: 0.25rem;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100% - clamp(3vh, 4vh, 5vh));
+  min-width: 0;
 }
 
 .team-performer-card {
   background: #FFFFFF;
   border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  padding: 1rem 1.125rem;
+  border-radius: clamp(0.6vh, 0.8vh, 1vh);
+  padding: clamp(0.6vh, 0.9vh, 1.2vh) clamp(0.6vw, 0.9vw, 1.2vw);
   display: flex;
   flex-direction: column;
-  min-height: 140px;
+  min-height: clamp(10vh, 12vh, 14vh);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .team-performer-card::before {
@@ -376,21 +466,21 @@
 }
 
 .team-name-header {
-  font-size: 1.15rem;
+  font-size: clamp(1vh, 1.4vh, 1.8vh);
   font-weight: 700;
   color: #1A1A1A;
-  margin-bottom: 0.625rem;
+  margin-bottom: clamp(0.5vh, 0.7vh, 0.9vh);
   text-align: left;
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
 
 .team-green-line {
-  height: 3px;
+  height: clamp(0.2vh, 0.3vh, 0.4vh);
   background: linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%);
   width: 100%;
-  margin-bottom: 1rem;
-  border-radius: 2px;
+  margin-bottom: clamp(0.8vh, 1.2vh, 1.5vh);
+  border-radius: clamp(0.1vh, 0.2vh, 0.3vh);
   box-shadow: 0 1px 3px rgba(76, 175, 80, 0.2);
 }
 
@@ -398,9 +488,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
-  padding-left: 1rem;
-  min-height: 70px;
+  gap: clamp(0.5vh, 0.7vh, 0.9vh);
+  padding-left: clamp(0.8vw, 1.2vw, 1.5vw);
+  min-height: clamp(5vh, 6vh, 7vh);
 }
 
 .performers-section-label {
@@ -436,12 +526,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
+  padding: clamp(0.4vh, 0.6vh, 0.8vh) clamp(0.8vw, 1.2vw, 1.5vw);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
   background-size: 200% 200%;
   color: #FFFFFF;
-  border-radius: 24px;
-  font-size: 0.8125rem;
+  border-radius: clamp(1.2vh, 1.5vh, 2vh);
+  font-size: clamp(0.7vh, 1vh, 1.2vh);
   font-weight: 600;
   text-align: center;
   white-space: nowrap;
@@ -686,14 +776,19 @@
   text-align: center;
 }
 
-/* Second Row Widgets */
+/* Second Row Widgets - Viewport based */
 .second-row-widgets {
   grid-column: 1 / -1;
   grid-row: 2;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
+  gap: clamp(0.8vw, 1.2vw, 1.5vw);
   height: 100%;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* On Break Widget */
@@ -807,7 +902,6 @@
 /* When no custom widgets, extend second row widgets to fill more space */
 .dashboard-grid.no-custom-widgets .second-row-widgets {
   grid-row: 2 / 6;
-  margin-top: 2rem;
 }
 
 .custom-widget {
@@ -896,7 +990,7 @@
 
 .data-table tbody {
   display: table-row-group;
-  max-height: calc(100% - 2.5rem);
+  max-height: calc(100% - clamp(2.5vh, 3.5vh, 4.5vh));
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -904,17 +998,17 @@
 .data-table th {
   background: #F5F5F5;
   color: #666666;
-  font-size: 1rem;
+  font-size: clamp(0.9vh, 1.3vh, 1.6vh);
   font-weight: 600;
-  padding: 0.5rem 0.75rem;
+  padding: clamp(0.5vh, 0.7vh, 0.9vh) clamp(0.8vw, 1.2vw, 1.5vw);
   text-align: left;
   border-bottom: 1px solid #E0E0E0;
 }
 
 .data-table td {
-  padding: 0.5rem 0.75rem;
+  padding: clamp(0.4vh, 0.6vh, 0.8vh) clamp(0.8vw, 1.2vw, 1.5vw);
   border-bottom: 1px solid #F0F0F0;
-  font-size: 1rem;
+  font-size: clamp(0.85vh, 1.2vh, 1.5vh);
   color: #333333;
   text-align: left;
 }
@@ -1232,6 +1326,7 @@
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
+    margin-bottom: 10px;
   }
   
   .side-by-side-section {
@@ -1529,6 +1624,15 @@
   .teams-display-container {
     grid-template-columns: 1fr;
   }
+  
+  /* Team metrics should ALWAYS be side by side - never stack vertically */
+  .team-display-content {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    grid-auto-flow: column !important;
+  }
 }
 
 /* New Teams Display Styles */
@@ -1555,51 +1659,94 @@
 .team-display-header {
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #4CAF50;
+  border-bottom: 2px solid #1c42ed;
 }
 
 .team-display-header h4 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #333333;
 }
 
 .team-display-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+  gap: clamp(0.5vh, 0.7vh, 0.9vh) clamp(0.5vw, 0.7vw, 0.9vw) !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  grid-auto-flow: column !important;
+}
+
+/* Ensure team metrics stay side by side in fullscreen mode */
+.public-live-dashboard.fullscreen .team-display-content {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  grid-auto-flow: column !important;
+  grid-auto-rows: auto !important;
+}
+
+.public-live-dashboard.fullscreen .team-metric {
+  display: block !important;
+  width: auto !important;
+  flex: none !important;
+  max-width: 100% !important;
+}
+
+/* Override any media queries that might affect team-display-content */
+@media (max-width: 768px) {
+  .team-display-content {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    grid-auto-flow: column !important;
+  }
+}
+
+@media (min-width: 1920px) {
+  .team-display-content {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    grid-auto-flow: column !important;
+  }
 }
 
 .team-metric {
   background: white;
-  padding: 0.75rem;
+  padding: clamp(0.5vh, 0.7vh, 0.9vh) clamp(0.5vw, 0.7vw, 0.9vw);
   border-radius: 6px;
-  border-left: 3px solid #4CAF50;
+  border-left: 3px solid #667eea;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .metric-label {
-  font-size: 0.875rem;
+  font-size: clamp(1.1vh, 1.6vh, 2vh);
   font-weight: 500;
   color: #666666;
-  margin-bottom: 0.5rem;
+  margin-bottom: clamp(0.3vh, 0.4vh, 0.5vh);
 }
 
 .metric-value {
-  font-size: 1.5rem;
+  font-size: clamp(1.6vh, 2.4vh, 3vh);
   font-weight: 700;
   color: #333333;
-  margin-bottom: 0.25rem;
+  margin-bottom: clamp(0.2vh, 0.3vh, 0.4vh);
 }
 
 .metric-suffix {
-  font-size: 0.875rem;
+  font-size: clamp(1.1vh, 1.6vh, 2vh);
   font-weight: 400;
   color: #666666;
 }
 
 .metric-subtext {
-  font-size: 0.75rem;
+  font-size: clamp(1.1vh, 1.6vh, 2vh);
   color: #999999;
 }
 
@@ -1661,20 +1808,20 @@
 
   /* Font sizes optimized for TV viewing distance */
   .stat-value {
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(2.5rem, 3.5vw, 2.25rem);
     line-height: 1.1;
   }
 
   .stat-label {
-    font-size: clamp(1rem, 2vw, 1.5rem);
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
   }
 
   .stat-comparison {
-    font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+    font-size: clamp(0.75rem, 1.2vw, 0.9375rem);
   }
 
   .stat-icon {
-    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
   }
 
   /* Performer Stat Card */
@@ -1690,14 +1837,14 @@
   }
 
   .performer-stat-title {
-    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-size: clamp(1rem, 2vw, 1.375rem);
     margin-bottom: clamp(0.5rem, 1vh, 0.75rem);
   }
 
   .performer-stat-icon {
-    width: clamp(2.5rem, 5vw, 3.5rem);
-    height: clamp(2.5rem, 5vw, 3.5rem);
-    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    width: clamp(2rem, 4vw, 2.75rem);
+    height: clamp(2rem, 4vw, 2.75rem);
+    font-size: clamp(1rem, 2vw, 1.375rem);
   }
 
   /* Widget Cards */
@@ -1708,7 +1855,7 @@
   }
 
   .widget-card .p-card-title {
-    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-size: clamp(1.125rem, 2.25vw, 1.75rem);
     padding-bottom: clamp(0.5rem, 1vh, 0.75rem);
     margin-bottom: clamp(0.5rem, 1vh, 0.75rem);
   }
@@ -1731,12 +1878,12 @@
   }
 
   .data-table th {
-    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
     padding: clamp(0.5rem, 1vh, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
   }
 
   .data-table td {
-    font-size: clamp(0.875rem, 1.8vw, 1.125rem);
+    font-size: clamp(0.75rem, 1.5vw, 0.9375rem);
     padding: clamp(0.5rem, 1vh, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
   }
 
@@ -1751,16 +1898,16 @@
     padding: clamp(1rem, 2vh, 1.25rem);
   }
 
-  .team-display-header h4 {
+  /* .team-display-header h4 {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+  } */
+
+  .metric-value {
     font-size: clamp(1.25rem, 2.5vw, 1.5rem);
   }
 
-  .metric-value {
-    font-size: clamp(1.5rem, 3vw, 2rem);
-  }
-
   .metric-label {
-    font-size: clamp(1rem, 2vw, 1.125rem);
+    font-size: clamp(0.875rem, 1.5vw, 0.9375rem);
   }
 
   /* Team Performer Cards */
@@ -1771,11 +1918,11 @@
   }
 
   .team-name-header {
-    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
   }
 
   .performer-pill-button {
-    font-size: clamp(0.875rem, 1.8vw, 1rem);
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
     padding: clamp(0.5rem, 1vh, 0.625rem) clamp(0.875rem, 1.8vw, 1.125rem);
   }
 
@@ -1792,20 +1939,20 @@
   }
 
   .custom-widget-title {
-    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    font-size: clamp(1rem, 2vw, 1.25rem);
   }
 
   .custom-widget-content {
-    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
   }
 
   /* Header Elements */
   .company-name {
-    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-size: clamp(1.5rem, 3vw, 2rem);
   }
 
   .dashboard-title {
-    font-size: clamp(1.125rem, 2.25vw, 1.375rem);
+    font-size: clamp(0.9375rem, 1.8vw, 1.125rem);
   }
 
   .company-logo {
@@ -1815,19 +1962,19 @@
 
   /* Break Status */
   .break-status {
-    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
     padding: clamp(0.375rem, 0.75vh, 0.5rem) clamp(0.875rem, 1.8vw, 1.125rem);
   }
 
   /* Activity Time */
   .activity-time {
-    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
   }
 
   /* Status Badges */
   .late-status-badge,
   .ontime-status-badge {
-    font-size: clamp(0.875rem, 1.8vw, 1.125rem);
+    font-size: clamp(0.75rem, 1.5vw, 0.9375rem);
     padding: clamp(0.375rem, 0.75vh, 0.5rem) clamp(0.75rem, 1.5vw, 1rem);
   }
 }
