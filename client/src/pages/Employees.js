@@ -437,7 +437,19 @@ const Employees = () => {
                   className="w-full" 
                   value={formData.role} 
                   onChange={(e) => onFormChange('role', e.value)} 
-                  options={[{ label: 'Admin', value: 'admin' }, { label: 'HR Admin', value: 'hr_admin' }, { label: 'Manager', value: 'manager' }, { label: 'Employee', value: 'employee' }]}
+                  options={(() => {
+                    const allRoles = [
+                      { label: 'Admin', value: 'admin' }, 
+                      { label: 'HR Admin', value: 'hr_admin' }, 
+                      { label: 'Manager', value: 'manager' }, 
+                      { label: 'Employee', value: 'employee' }
+                    ];
+                    // HR Admin cannot see or assign admin role
+                    if (user?.role === 'hr_admin') {
+                      return allRoles.filter(role => role.value !== 'admin');
+                    }
+                    return allRoles;
+                  })()}
                   disabled={user?.role === 'hr_admin' && editingEmployee?.role === 'admin'}
                   tooltip={user?.role === 'hr_admin' && editingEmployee?.role === 'admin' ? 'HR Admin cannot modify admin user roles' : ''}
                 />
