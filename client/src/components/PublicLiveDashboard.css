@@ -251,7 +251,7 @@
 }
 
 .stat-value {
-  font-size: clamp(1.5vh, 2.2vh, 2.8vh);
+  font-size: 2rem;
   font-weight: 700;
   margin-bottom: clamp(0.2vh, 0.3vh, 0.4vh);
   color: #333333;
@@ -259,7 +259,7 @@
 }
 
 .stat-label {
-  font-size: clamp(0.9vh, 1.3vh, 1.6vh);
+  font-size: 1.5rem;
   color: #666666;
   font-weight: 500;
   margin-bottom: clamp(0.1vh, 0.15vh, 0.2vh);
@@ -1808,12 +1808,12 @@
 
   /* Font sizes optimized for TV viewing distance */
   .stat-value {
-    font-size: 2rem;
+    font-size: clamp(2.5rem, 3.5vw, 2.25rem);
     line-height: 1.1;
   }
 
   .stat-label {
-    font-size: 1.5rem;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
   }
 
   .stat-comparison {
