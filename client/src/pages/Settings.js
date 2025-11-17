@@ -47,6 +47,8 @@ const Settings = () => {
 
   const [workStartTime, setWorkStartTime] = useState('09:00');
   const [isUpdatingWorkTime, setIsUpdatingWorkTime] = useState(false);
+  const [selectedTimezone, setSelectedTimezone] = useState(timezone);
+  const [isSavingTimezone, setIsSavingTimezone] = useState(false);
 
   // Load organization settings on component mount
   useEffect(() => {
@@ -55,6 +57,10 @@ const Settings = () => {
         const settings = await organizationService.getSettings();
         setOrganizationSettings(settings);
         setWorkStartTime(settings.workingHours?.start || '09:00');
+        // Sync timezone from organization settings
+        if (settings.timezone) {
+          setSelectedTimezone(settings.timezone);
+        }
       } catch (error) {
         console.error('Failed to load organization settings:', error);
       }
@@ -64,6 +70,11 @@ const Settings = () => {
       loadOrganizationSettings();
     }
   }, [user]);
+
+  // Sync selectedTimezone with timezone from context when it changes
+  useEffect(() => {
+    setSelectedTimezone(timezone);
+  }, [timezone]);
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -133,6 +144,57 @@ const Settings = () => {
       });
     } finally {
       setIsUpdatingWorkTime(false);
+    }
+  };
+
+  const handleTimezoneSave = async () => {
+    if (!user || (user.role !== 'admin' && user.role !== 'hr_admin')) {
+      toast.current.show({
+        severity: 'warn',
+        summary: 'Access Denied',
+        detail: 'Only administrators can save organization timezone settings',
+        life: 3000
+      });
+      return;
+    }
+
+    setIsSavingTimezone(true);
+    try {
+      // Get current organization settings
+      const currentSettings = await organizationService.getSettings();
+      
+      // Update timezone in organization settings
+      const updatedSettings = {
+        ...currentSettings,
+        timezone: selectedTimezone
+      };
+
+      await organizationService.updateSettings(updatedSettings);
+      
+      // Update localization context
+      changeTimezone(selectedTimezone);
+      
+      // Refresh settings to ensure sync
+      if (refreshSettings) {
+        await refreshSettings();
+      }
+
+      toast.current.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Organization timezone saved successfully. The entire application will now display times in this timezone.',
+        life: 4000
+      });
+    } catch (error) {
+      console.error('Failed to save timezone:', error);
+      toast.current.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: error.response?.data?.message || 'Failed to save timezone settings',
+        life: 3000
+      });
+    } finally {
+      setIsSavingTimezone(false);
     }
   };
 
@@ -259,12 +321,26 @@ const Settings = () => {
             </label>
             <Dropdown
               id="timezone"
-              value={timezone}
+              value={selectedTimezone}
               options={timezoneOptions}
-              onChange={(e) => changeTimezone(e.value)}
+              onChange={(e) => setSelectedTimezone(e.value)}
               className="settings-dropdown"
+              disabled={isSavingTimezone}
             />
           </div>
+          
+          {(user?.role === 'admin' || user?.role === 'hr_admin') && (
+            <div className="settings-field" style={{ marginTop: '1rem' }}>
+              <Button
+                label="Save Timezone"
+                icon="pi pi-save"
+                onClick={handleTimezoneSave}
+                loading={isSavingTimezone}
+                className="settings-button"
+                disabled={selectedTimezone === timezone}
+              />
+            </div>
+          )}
           
           <div className="settings-info-box">
             <div className="settings-info-title">
@@ -273,6 +349,13 @@ const Settings = () => {
             <p className="settings-info-text">
               Current time: {formatTime(new Date())}
             </p>
+            {(user?.role === 'admin' || user?.role === 'hr_admin') && (
+              <p className="settings-info-text" style={{ marginTop: '0.5rem', fontStyle: 'italic' }}>
+                {selectedTimezone !== timezone 
+                  ? 'You have unsaved changes. Click "Save Timezone" to apply this timezone to the entire organization.'
+                  : 'This timezone is currently active for the entire organization.'}
+              </p>
+            )}
           </div>
         </div>
 
