@@ -82,8 +82,8 @@ const SidebarMenu = ({ collapsed, onMenuItemClick }) => {
       });
     }
 
-    // Holidays (Admin, HR Admin, Employee)
-    if (hasPermission('manage_holidays') || hasPermission('view_own_data') || hasRole(['admin', 'hr_admin', 'employee'])) {
+    // Holidays (Admin, HR Admin, Manager, Employee)
+    if (hasPermission('manage_holidays') || hasPermission('view_own_data') || hasRole(['admin', 'hr_admin', 'manager', 'employee'])) {
       items.push({
         label: 'Holidays',
         icon: 'pi pi-calendar-plus',
