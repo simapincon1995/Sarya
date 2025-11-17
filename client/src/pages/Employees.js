@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from 'primereact/card';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -17,6 +17,10 @@ const Employees = () => {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const searchTimeoutRef = useRef(null);
 
   // CRUD UI state
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -41,15 +45,36 @@ const Employees = () => {
   });
 
   useEffect(() => {
-    loadEmployees();
+    loadEmployees(0, 10, '');
     loadManagers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadEmployees = async () => {
+  // Cleanup search timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const loadEmployees = async (page = currentPage, limit = rowsPerPage, search = globalFilter) => {
     try {
       setIsLoading(true);
-      const data = await employeeService.getEmployees();
+      const params = {
+        page: page + 1, // API uses 1-based page, DataTable uses 0-based
+        limit: limit
+      };
+      
+      // Add search parameter if there's a search term
+      if (search && search.trim()) {
+        params.search = search.trim();
+      }
+      
+      const data = await employeeService.getEmployees(params);
       setEmployees(data.employees);
+      setTotalRecords(data.total);
     } catch (error) {
       console.error('Error loading employees:', error);
     } finally {
@@ -134,7 +159,7 @@ const Employees = () => {
         });
       }
       closeEditor();
-      await loadEmployees();
+      await loadEmployees(currentPage, rowsPerPage, globalFilter);
     } catch (e) {
       console.error('Save employee failed:', e);
     } finally {
@@ -146,7 +171,7 @@ const Employees = () => {
     try {
       setIsLoading(true);
       await employeeService.deleteEmployee(row._id || row.id);
-      await loadEmployees();
+      await loadEmployees(currentPage, rowsPerPage, globalFilter);
     } catch (e) {
       console.error('Delete employee failed:', e);
     } finally {
@@ -197,13 +222,27 @@ const Employees = () => {
 
           <div className="flex justify-content-between align-items-center mb-4">
             <span className="text-color-secondary">
-              Total: {employees.length} employees
+              Total: {totalRecords} employees
             </span>
             <div className="flex align-items-center gap-2">
               <i className="pi pi-search"></i>
               <InputText
                 value={globalFilter}
-                onChange={(e) => setGlobalFilter(e.target.value)}
+                onChange={(e) => {
+                  const searchValue = e.target.value;
+                  setGlobalFilter(searchValue);
+                  
+                  // Clear previous timeout
+                  if (searchTimeoutRef.current) {
+                    clearTimeout(searchTimeoutRef.current);
+                  }
+                  
+                  // Debounce search - reload after user stops typing
+                  searchTimeoutRef.current = setTimeout(() => {
+                    setCurrentPage(0);
+                    loadEmployees(0, rowsPerPage, searchValue);
+                  }, 500);
+                }}
                 placeholder="Search employees..."
                 className="w-20rem"
               />
@@ -212,10 +251,17 @@ const Employees = () => {
 
           <DataTable
             value={employees}
-            globalFilter={globalFilter}
+            lazy
             paginator
-            rows={10}
-            rowsPerPageOptions={[5, 10, 25, 50]}
+            rows={rowsPerPage}
+            first={currentPage * rowsPerPage}
+            totalRecords={totalRecords}
+            onPage={(e) => {
+              setCurrentPage(e.page);
+              setRowsPerPage(e.rows);
+              loadEmployees(e.page, e.rows, globalFilter);
+            }}
+            loading={isLoading}
             emptyMessage="No employees found"
             className="p-datatable-sm"
           >

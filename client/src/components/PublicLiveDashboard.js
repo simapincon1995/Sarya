@@ -452,10 +452,6 @@ const PublicLiveDashboard = () => {
                 <div className="stat-content">
                   <div className="stat-value" style={{ fontSize: '1.2rem', color: '#666' }}>No Performers</div>
                   <div className="stat-label">Performer of the Day</div>
-                  <div className="stat-comparison">
-                    <i className="pi pi-info-circle"></i>
-                    Not Set
-                  </div>
                 </div>
               </Card>
             )}
