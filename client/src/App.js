@@ -63,10 +63,10 @@ function App() {
                   element={<Login />} 
                 />
                 
-                <Route 
+                {/* <Route 
                   path="/signup" 
                   element={<Signup />} 
-                />
+                /> */}
                 
                 {/* Public Live Dashboard Route */}
                 <Route 
