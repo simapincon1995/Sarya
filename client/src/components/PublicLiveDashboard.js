@@ -386,10 +386,6 @@ const PublicLiveDashboard = () => {
               <div className="stat-content">
                 <div className="stat-value">{dashboardData.overview.presentToday}</div>
                 <div className="stat-label">Present Today</div>
-                <div className="stat-comparison">
-                  <i className="pi pi-clock"></i>
-                  Checked In
-                </div>
               </div>
             </Card>
             <Card className="stat-card">
@@ -399,10 +395,6 @@ const PublicLiveDashboard = () => {
               <div className="stat-content">
                 <div className="stat-value">{dashboardData.overview.onBreak}</div>
                 <div className="stat-label">On Break</div>
-                <div className="stat-comparison">
-                  <i className="pi pi-coffee"></i>
-                  Active Breaks
-                </div>
               </div>
             </Card>
             <Card className="stat-card">
@@ -412,10 +404,6 @@ const PublicLiveDashboard = () => {
               <div className="stat-content">
                 <div className="stat-value">{dashboardData.overview.absent}</div>
                 <div className="stat-label">Absent</div>
-                <div className="stat-comparison">
-                  <i className="pi pi-user-minus"></i>
-                  Not Present
-                </div>
               </div>
             </Card>
             

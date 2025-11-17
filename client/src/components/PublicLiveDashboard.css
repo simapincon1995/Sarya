@@ -1808,12 +1808,12 @@
 
   /* Font sizes optimized for TV viewing distance */
   .stat-value {
-    font-size: clamp(2.5rem, 3.5vw, 2.25rem);
+    font-size: 2rem;
     line-height: 1.1;
   }
 
   .stat-label {
-    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-size: 1.5rem;
   }
 
   .stat-comparison {
