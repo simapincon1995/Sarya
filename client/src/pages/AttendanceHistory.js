@@ -1,25 +1,25 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Card } from 'primereact/card';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Calendar } from 'primereact/calendar';
-import { Button } from 'primereact/button';
-import { Tag } from 'primereact/tag';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
-import { Toast } from 'primereact/toast';
-import { confirmDialog, ConfirmDialog } from 'primereact/confirmdialog';
-import { useAuth } from '../contexts/AuthContext';
-import { attendanceService } from '../services/attendanceService';
-import { employeeService } from '../services/employeeService';
-import LoadingSpinner from '../components/Common/LoadingSpinner';
-import './AttendanceHistory.css';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Card } from "primereact/card";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Calendar } from "primereact/calendar";
+import { Button } from "primereact/button";
+import { Tag } from "primereact/tag";
+import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
+import { Toast } from "primereact/toast";
+import { confirmDialog, ConfirmDialog } from "primereact/confirmdialog";
+import { useAuth } from "../contexts/AuthContext";
+import { attendanceService } from "../services/attendanceService";
+import { employeeService } from "../services/employeeService";
+import LoadingSpinner from "../components/Common/LoadingSpinner";
+import "./AttendanceHistory.css";
 
 const AttendanceHistory = () => {
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [selectedDateRange, setSelectedDateRange] = useState([]);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [globalFilter, setGlobalFilter] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [employees, setEmployees] = useState([]);
   const { user, hasPermission } = useAuth();
@@ -30,7 +30,7 @@ const AttendanceHistory = () => {
       const data = await employeeService.getEmployees();
       setEmployees(data.employees || []);
     } catch (error) {
-      console.error('Error loading employees:', error);
+      console.error("Error loading employees:", error);
     }
   };
 
@@ -39,11 +39,11 @@ const AttendanceHistory = () => {
       setIsHistoryLoading(true);
       const params = {
         startDate: selectedDateRange[0],
-        endDate: selectedDateRange[1]
+        endDate: selectedDateRange[1],
       };
-      
+
       // Add employeeId based on user role and selection
-      if (user.role === 'employee') {
+      if (user.role === "employee") {
         // Employee can only see their own attendance
         params.employeeId = user.id;
       } else if (selectedEmployee) {
@@ -51,15 +51,15 @@ const AttendanceHistory = () => {
         params.employeeId = selectedEmployee;
       }
       // If no employee selected and user is HR admin, show all employees
-      
+
       const data = await attendanceService.getAttendanceHistory(params);
       setAttendanceHistory(data.attendances || []);
     } catch (error) {
-      console.error('Error loading attendance history:', error);
+      console.error("Error loading attendance history:", error);
       toast.current?.show({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to load attendance history'
+        severity: "error",
+        summary: "Error",
+        detail: "Failed to load attendance history",
       });
     } finally {
       setIsHistoryLoading(false);
@@ -71,7 +71,7 @@ const AttendanceHistory = () => {
   }, [loadAttendanceHistory]);
 
   useEffect(() => {
-    if (user.role !== 'employee') {
+    if (user.role !== "employee") {
       loadEmployees();
     }
   }, [user.role]);
@@ -80,63 +80,63 @@ const AttendanceHistory = () => {
     try {
       await attendanceService.deleteAttendance(recordId);
       toast.current?.show({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Attendance record deleted successfully'
+        severity: "success",
+        summary: "Success",
+        detail: "Attendance record deleted successfully",
       });
       await loadAttendanceHistory();
     } catch (error) {
-      console.error('Error deleting record:', error);
+      console.error("Error deleting record:", error);
       toast.current?.show({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to delete attendance record'
+        severity: "error",
+        summary: "Error",
+        detail: "Failed to delete attendance record",
       });
     }
   };
 
   const confirmDelete = (recordId) => {
     confirmDialog({
-      message: 'Are you sure you want to delete this attendance record?',
-      header: 'Confirm Delete',
-      icon: 'pi pi-exclamation-triangle',
+      message: "Are you sure you want to delete this attendance record?",
+      header: "Confirm Delete",
+      icon: "pi pi-exclamation-triangle",
       accept: () => handleDeleteRecord(recordId),
     });
   };
 
   const formatDate = (value) => {
-    if (!value) return '-';
-    return new Date(value).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    if (!value) return "-";
+    return new Date(value).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const formatTime = (value) => {
-    if (!value) return '-';
-    return new Date(value).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!value) return "-";
+    return new Date(value).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const statusBodyTemplate = (rowData) => {
-    let severity = 'secondary';
-    let value = rowData.status || 'Unknown';
+    let severity = "secondary";
+    let value = rowData.status || "Unknown";
 
     switch (rowData.status) {
-      case 'present':
-        severity = 'success';
+      case "present":
+        severity = "success";
         break;
-      case 'absent':
-        severity = 'danger';
+      case "absent":
+        severity = "danger";
         break;
-      case 'late':
-        severity = 'warning';
+      case "late":
+        severity = "warning";
         break;
-      case 'partial':
-        severity = 'info';
+      case "partial":
+        severity = "info";
         break;
       default:
         break;
@@ -148,15 +148,15 @@ const AttendanceHistory = () => {
   const actionBodyTemplate = (rowData) => {
     return (
       <div className="flex gap-2">
-        {hasPermission('manage_attendance') && (
+        {hasPermission("manage_attendance") && (
           <Button
             icon="pi pi-pencil"
             className="p-button-rounded p-button-text p-button-info"
-            onClick={() => console.log('Edit:', rowData.id)}
+            onClick={() => console.log("Edit:", rowData.id)}
             tooltip="Edit Record"
           />
         )}
-        {hasPermission('manage_attendance') && (
+        {hasPermission("manage_attendance") && (
           <Button
             icon="pi pi-trash"
             className="p-button-rounded p-button-text p-button-danger"
@@ -168,9 +168,9 @@ const AttendanceHistory = () => {
     );
   };
 
-  const employeeOptions = employees.map(emp => ({
+  const employeeOptions = employees.map((emp) => ({
     label: `${emp.firstName} ${emp.lastName} (${emp.employeeId})`,
-    value: emp._id
+    value: emp._id,
   }));
 
   const header = (
@@ -186,7 +186,7 @@ const AttendanceHistory = () => {
             className="search-input"
           />
         </div>
-        {user.role !== 'employee' && (
+        {user.role !== "employee" && (
           <Dropdown
             value={selectedEmployee}
             onChange={(e) => setSelectedEmployee(e.value)}
@@ -223,7 +223,7 @@ const AttendanceHistory = () => {
     <div className="attendance-history-page">
       <Toast ref={toast} />
       <ConfirmDialog />
-      
+
       <div className="history-container">
         <Card className="history-card">
           <DataTable
@@ -238,17 +238,17 @@ const AttendanceHistory = () => {
             emptyMessage="No attendance records found"
             className="history-table"
           >
-            <Column 
-              field="date" 
-              header="Date" 
+            <Column
+              field="date"
+              header="Date"
               body={(rowData) => formatDate(rowData.date)}
               sortable
-              style={{ minWidth: '120px' }}
+              style={{ minWidth: "120px" }}
             />
-            {user.role !== 'employee' && (
-              <Column 
-                field="employee.firstName" 
-                header="Employee" 
+            {user.role !== "employee" && (
+              <Column
+                field="employee.firstName"
+                header="Employee"
                 body={(rowData) => (
                   <div>
                     <div className="font-medium">
@@ -260,58 +260,60 @@ const AttendanceHistory = () => {
                   </div>
                 )}
                 sortable
-                style={{ minWidth: '150px' }}
+                style={{ minWidth: "150px" }}
               />
             )}
-            <Column 
-              field="checkIn.time" 
-              header="Check In" 
+            <Column
+              field="checkIn.time"
+              header="Check In"
               body={(rowData) => formatTime(rowData.checkIn?.time)}
               sortable
-              style={{ minWidth: '100px' }}
+              style={{ minWidth: "100px" }}
             />
-            <Column 
-              field="checkOut.time" 
-              header="Check Out" 
+            <Column
+              field="checkOut.time"
+              header="Check Out"
               body={(rowData) => formatTime(rowData.checkOut?.time)}
               sortable
-              style={{ minWidth: '100px' }}
+              style={{ minWidth: "100px" }}
             />
-            <Column 
-              field="totalWorkingHours" 
-              header="Work Hours" 
+            <Column
+              field="totalWorkingHours"
+              header="Work Hours"
               body={(rowData) => {
-                if (!rowData.totalWorkingHours) return '-';
+                if (!rowData.totalWorkingHours) return "-";
                 const hours = Math.floor(rowData.totalWorkingHours / 60);
-                const minutes = rowData.totalWorkingHours % 60;
+                const minutes = Math.round(rowData.totalWorkingHours % 60);
                 return `${hours}h ${minutes}m`;
               }}
               sortable
-              style={{ minWidth: '120px' }}
+              style={{ minWidth: "120px" }}
             />
-            <Column 
-              field="status" 
-              header="Status" 
+            <Column
+              field="status"
+              header="Status"
               body={statusBodyTemplate}
               sortable
-              style={{ minWidth: '100px' }}
+              style={{ minWidth: "100px" }}
             />
-            <Column 
-              field="totalBreakTime" 
-              header="Break Hours" 
+            <Column
+              field="totalBreakTime"
+              header="Break Hours"
               body={(rowData) => {
-                if (!rowData.totalBreakTime) return '-';
+                if (!rowData.totalBreakTime) return "-";
+
                 const hours = Math.floor(rowData.totalBreakTime / 60);
-                const minutes = rowData.totalBreakTime % 60;
+                const minutes = Math.round(rowData.totalBreakTime % 60);
+
                 return `${hours}h ${minutes}m`;
               }}
               sortable
-              style={{ minWidth: '120px' }}
+              style={{ minWidth: "120px" }}
             />
             <Column
               header="Actions"
               body={actionBodyTemplate}
-              style={{ minWidth: '120px' }}
+              style={{ minWidth: "120px" }}
               exportable={false}
             />
           </DataTable>

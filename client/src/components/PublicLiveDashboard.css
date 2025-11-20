@@ -1286,7 +1286,7 @@
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 0.6rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1299,7 +1299,7 @@
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 0.6rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1968,7 +1968,10 @@
 
   /* Activity Time */
   .activity-time {
-    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    font-size: 0.75rem;
+  }
+  .employee-name{
+    font-size: 0.75rem;
   }
 
   /* Status Badges */

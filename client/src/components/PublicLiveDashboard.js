@@ -613,7 +613,7 @@ const PublicLiveDashboard = () => {
                     <tbody>
                       {dashboardData.recentActivity.slice(0, 4).map((activity, index) => (
                         <tr key={index}>
-                          <td>
+                          <td className="employee-name">
                             {activity.employee?.firstName && activity.employee?.lastName 
                               ? `${activity.employee.firstName} ${activity.employee.lastName}`
                               : activity.employee?.name || 'Unknown Employee'

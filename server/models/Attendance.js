@@ -112,7 +112,8 @@ const attendanceSchema = new mongoose.Schema({
   timestamps: true
 });
 
-attendanceSchema.index({ employee: 1, date: 1 });
+// Unique index to prevent duplicate attendance records for same employee on same date
+attendanceSchema.index({ employee: 1, date: 1 }, { unique: true });
 attendanceSchema.index({ date: 1 });
 attendanceSchema.index({ status: 1 });
 
