@@ -165,5 +165,29 @@ export const attendanceService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Hide absent record (Admin/HR Admin only)
+  async hideAbsentRecord(employeeId, date, reason) {
+    try {
+      const response = await api.post('/attendance/hide-absent', {
+        employeeId,
+        date,
+        reason
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Unhide absent record (Admin/HR Admin only)
+  async unhideAbsentRecord(employeeId, date) {
+    try {
+      const response = await api.delete(`/attendance/hide-absent/${employeeId}/${date}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };

@@ -114,6 +114,36 @@ const AttendanceHistory = () => {
     }
   };
 
+  const handleDeleteAbsentRecord = async (record) => {
+    if (!record || !record.employee || !record.date) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Invalid record data",
+      });
+      return;
+    }
+    try {
+      const employeeId = record.employee._id || record.employee;
+      const date = record.date;
+      
+      await attendanceService.hideAbsentRecord(employeeId, date);
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Absent record deleted successfully",
+      });
+      await loadAttendanceHistory();
+    } catch (error) {
+      console.error("Error deleting absent record:", error);
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: error.response?.data?.message || "Failed to delete absent record",
+      });
+    }
+  };
+
   const confirmDelete = (recordId) => {
     if (!recordId) {
       toast.current?.show({
@@ -128,6 +158,26 @@ const AttendanceHistory = () => {
       header: "Confirm Delete",
       icon: "pi pi-exclamation-triangle",
       accept: () => handleDeleteRecord(recordId),
+    });
+  };
+
+  const confirmDeleteAbsent = (record) => {
+    if (!record || !record.employee) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Invalid record data",
+      });
+      return;
+    }
+    const employeeName = record.employee.firstName 
+      ? `${record.employee.firstName} ${record.employee.lastName}`
+      : "this employee";
+    confirmDialog({
+      message: `Are you sure you want to delete the absent record for ${employeeName} on ${formatDate(record.date)}?`,
+      header: "Confirm Delete Absent Record",
+      icon: "pi pi-exclamation-triangle",
+      accept: () => handleDeleteAbsentRecord(record),
     });
   };
 
@@ -387,6 +437,14 @@ const AttendanceHistory = () => {
             className="p-button-rounded p-button-text p-button-danger"
             onClick={() => confirmDelete(recordId)}
             tooltip="Delete Record"
+          />
+        )}
+        {hasPermission("manage_attendance") && isAbsent && (
+          <Button
+            icon="pi pi-trash"
+            className="p-button-rounded p-button-text p-button-danger"
+            onClick={() => confirmDeleteAbsent(rowData)}
+            tooltip="Delete Absent Record"
           />
         )}
       </div>

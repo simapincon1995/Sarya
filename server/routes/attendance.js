@@ -3,6 +3,7 @@ const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 const Holiday = require('../models/Holiday');
 const Organization = require('../models/Organization');
+const HiddenAbsentRecord = require('../models/HiddenAbsentRecord');
 const { authenticateToken, authorize, canAccessEmployee } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
 const { cleanupOldAttendanceRecords, getRetentionDays } = require('../utils/attendanceCleanup');
@@ -797,6 +798,20 @@ router.get('/history', authenticateToken, async (req, res) => {
     const employees = await User.find({ _id: { $in: employeeIds } })
       .select('firstName lastName employeeId department');
 
+    // Get hidden absent records for the date range and employees
+    const hiddenAbsentRecords = await HiddenAbsentRecord.find({
+      employee: { $in: employeeIds },
+      date: { $gte: dateStart, $lte: dateEnd }
+    });
+
+    // Create a map of hidden absent records by employee and date
+    const hiddenMap = new Map();
+    hiddenAbsentRecords.forEach(hidden => {
+      const dateKey = hidden.date.toISOString().split('T')[0];
+      const key = `${hidden.employee}_${dateKey}`;
+      hiddenMap.set(key, true);
+    });
+
     // Create a map of existing attendances by employee and date
     const attendanceMap = new Map();
     existingAttendances.forEach(att => {
@@ -817,12 +832,13 @@ router.get('/history', authenticateToken, async (req, res) => {
       for (const employee of employees) {
         const key = `${employee._id}_${dateKey}`;
         const existingAttendance = attendanceMap.get(key);
+        const isHidden = hiddenMap.get(key);
         
         if (existingAttendance) {
           // Use existing attendance record
           allRecords.push(existingAttendance);
-        } else {
-          // Create absent record placeholder
+        } else if (!isHidden) {
+          // Create absent record placeholder only if not hidden
           const absentRecord = {
             _id: null, // No database ID for absent records
             employee: {
@@ -847,6 +863,7 @@ router.get('/history', authenticateToken, async (req, res) => {
           };
           allRecords.push(absentRecord);
         }
+        // If isHidden is true, skip adding this absent record
       }
       
       currentDate.setDate(currentDate.getDate() + 1);
@@ -1142,6 +1159,97 @@ router.post('/cleanup', authenticateToken, authorize('admin', 'hr_admin'), async
   } catch (error) {
     console.error('Manual cleanup error:', error);
     res.status(500).json({ message: 'Failed to run cleanup', error: error.message });
+  }
+});
+
+// Hide/Delete absent employee record (Admin/HR Admin only)
+router.post('/hide-absent', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const { employeeId, date, reason } = req.body;
+    const userId = req.user._id;
+
+    if (!employeeId || !date) {
+      return res.status(400).json({ message: 'Employee ID and date are required' });
+    }
+
+    // Verify employee exists
+    const employee = await User.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
+    // Normalize date to start of day
+    const dateObj = new Date(date);
+    dateObj.setHours(0, 0, 0, 0);
+
+    // Check if there's an actual attendance record (shouldn't hide if record exists)
+    const attendance = await Attendance.findOne({
+      employee: employeeId,
+      date: { $gte: dateObj, $lt: new Date(dateObj.getTime() + 24 * 60 * 60 * 1000) }
+    });
+
+    if (attendance) {
+      return res.status(400).json({ message: 'Cannot hide absent record - attendance record exists for this date' });
+    }
+
+    // Create or update hidden absent record
+    const hiddenRecord = await HiddenAbsentRecord.findOneAndUpdate(
+      {
+        employee: employeeId,
+        date: dateObj
+      },
+      {
+        employee: employeeId,
+        date: dateObj,
+        hiddenBy: userId,
+        hiddenAt: new Date(),
+        reason: reason || null
+      },
+      {
+        upsert: true,
+        new: true
+      }
+    ).populate('employee', 'firstName lastName employeeId');
+
+    res.json({
+      message: 'Absent record hidden successfully',
+      hiddenRecord: {
+        id: hiddenRecord._id,
+        employee: hiddenRecord.employee,
+        date: hiddenRecord.date,
+        hiddenAt: hiddenRecord.hiddenAt
+      }
+    });
+  } catch (error) {
+    console.error('Hide absent record error:', error);
+    res.status(500).json({ message: 'Failed to hide absent record', error: error.message });
+  }
+});
+
+// Unhide absent employee record (Admin/HR Admin only)
+router.delete('/hide-absent/:employeeId/:date', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const { employeeId, date } = req.params;
+
+    // Normalize date to start of day
+    const dateObj = new Date(date);
+    dateObj.setHours(0, 0, 0, 0);
+
+    const hiddenRecord = await HiddenAbsentRecord.findOneAndDelete({
+      employee: employeeId,
+      date: dateObj
+    });
+
+    if (!hiddenRecord) {
+      return res.status(404).json({ message: 'Hidden absent record not found' });
+    }
+
+    res.json({
+      message: 'Absent record unhidden successfully'
+    });
+  } catch (error) {
+    console.error('Unhide absent record error:', error);
+    res.status(500).json({ message: 'Failed to unhide absent record', error: error.message });
   }
 });
 
