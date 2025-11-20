@@ -7,6 +7,7 @@ import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
+import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import { confirmDialog, ConfirmDialog } from "primereact/confirmdialog";
 import { useAuth } from "../contexts/AuthContext";
@@ -14,8 +15,6 @@ import { attendanceService } from "../services/attendanceService";
 import { employeeService } from "../services/employeeService";
 import LoadingSpinner from "../components/Common/LoadingSpinner";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 import "./AttendanceHistory.css";
 
 const AttendanceHistory = () => {
@@ -25,6 +24,14 @@ const AttendanceHistory = () => {
   const [globalFilter, setGlobalFilter] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [employees, setEmployees] = useState([]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    checkInTime: null,
+    checkOutTime: null,
+    status: "present",
+  });
   const { user, hasPermission } = useAuth();
   const toast = useRef(null);
 
@@ -80,6 +87,14 @@ const AttendanceHistory = () => {
   }, [user.role]);
 
   const handleDeleteRecord = async (recordId) => {
+    if (!recordId) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Invalid record ID",
+      });
+      return;
+    }
     try {
       await attendanceService.deleteAttendance(recordId);
       toast.current?.show({
@@ -93,18 +108,107 @@ const AttendanceHistory = () => {
       toast.current?.show({
         severity: "error",
         summary: "Error",
-        detail: "Failed to delete attendance record",
+        detail: error.response?.data?.message || "Failed to delete attendance record",
       });
     }
   };
 
   const confirmDelete = (recordId) => {
+    if (!recordId) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Invalid record ID",
+      });
+      return;
+    }
     confirmDialog({
       message: "Are you sure you want to delete this attendance record?",
       header: "Confirm Delete",
       icon: "pi pi-exclamation-triangle",
       accept: () => handleDeleteRecord(recordId),
     });
+  };
+
+  const openEditDialog = (record) => {
+    if (!record || !record._id) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Invalid record data",
+      });
+      return;
+    }
+    setEditingRecord(record);
+    setEditFormData({
+      checkInTime: record.checkIn?.time ? new Date(record.checkIn.time) : null,
+      checkOutTime: record.checkOut?.time ? new Date(record.checkOut.time) : null,
+      status: record.status || "present",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const closeEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setEditingRecord(null);
+    setEditFormData({
+      checkInTime: null,
+      checkOutTime: null,
+      status: "present",
+    });
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingRecord || !editingRecord._id) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Invalid record data",
+      });
+      return;
+    }
+
+    if (!editFormData.checkInTime) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "Validation Error",
+        detail: "Check-in time is required",
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const updateData = {
+        checkIn: {
+          time: editFormData.checkInTime,
+        },
+        checkOut: editFormData.checkOutTime
+          ? {
+              time: editFormData.checkOutTime,
+            }
+          : undefined,
+        status: editFormData.status,
+      };
+
+      await attendanceService.updateAttendance(editingRecord._id, updateData);
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Attendance record updated successfully",
+      });
+      closeEditDialog();
+      await loadAttendanceHistory();
+    } catch (error) {
+      console.error("Error updating record:", error);
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: error.response?.data?.message || "Failed to update attendance record",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatDate = (value) => {
@@ -185,6 +289,7 @@ const AttendanceHistory = () => {
       detail: "Attendance data exported to Excel",
     });
   };
+
   const statusBodyTemplate = (rowData) => {
     let severity = "secondary";
     let value = rowData.status || "Unknown";
@@ -210,13 +315,14 @@ const AttendanceHistory = () => {
   };
 
   const actionBodyTemplate = (rowData) => {
+    const recordId = rowData._id || rowData.id;
     return (
       <div className="flex gap-2">
         {hasPermission("manage_attendance") && (
           <Button
             icon="pi pi-pencil"
             className="p-button-rounded p-button-text p-button-info"
-            onClick={() => console.log("Edit:", rowData.id)}
+            onClick={() => openEditDialog(rowData)}
             tooltip="Edit Record"
           />
         )}
@@ -224,7 +330,7 @@ const AttendanceHistory = () => {
           <Button
             icon="pi pi-trash"
             className="p-button-rounded p-button-text p-button-danger"
-            onClick={() => confirmDelete(rowData.id)}
+            onClick={() => confirmDelete(recordId)}
             tooltip="Delete Record"
           />
         )}
@@ -250,6 +356,16 @@ const AttendanceHistory = () => {
             className="search-input"
           />
         </div>
+        {user.role !== "employee" && (
+          <Dropdown
+            value={selectedEmployee}
+            onChange={(e) => setSelectedEmployee(e.value)}
+            options={employeeOptions}
+            placeholder="Select Employee"
+            className="employee-selector"
+            showClear
+          />
+        )}
         <Calendar
           value={selectedDateRange}
           onChange={(e) => setSelectedDateRange(e.value)}
@@ -298,6 +414,7 @@ const AttendanceHistory = () => {
             responsiveLayout="scroll"
             emptyMessage="No attendance records found"
             className="history-table"
+            rowKey="_id"
           >
             <Column
               field="date"
@@ -380,6 +497,94 @@ const AttendanceHistory = () => {
           </DataTable>
         </Card>
       </div>
+
+      {/* Edit Attendance Dialog */}
+      <Dialog
+        header="Edit Attendance Record"
+        visible={isEditDialogOpen}
+        style={{ width: "600px" }}
+        modal
+        onHide={closeEditDialog}
+        footer={
+          <div className="flex justify-content-end gap-2">
+            <Button
+              label="Cancel"
+              className="p-button-text"
+              onClick={closeEditDialog}
+              disabled={isSubmitting}
+            />
+            <Button
+              label="Update"
+              icon="pi pi-check"
+              loading={isSubmitting}
+              onClick={handleEditSubmit}
+              disabled={isSubmitting}
+            />
+          </div>
+        }
+      >
+        <div className="grid">
+          <div className="col-12">
+            <div className="field">
+              <label htmlFor="checkInTime" className="block text-sm font-medium mb-2">
+                Check In Time <span className="text-red-500">*</span>
+              </label>
+              <Calendar
+                id="checkInTime"
+                value={editFormData.checkInTime}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, checkInTime: e.value })
+                }
+                showTime
+                hourFormat="12"
+                className="w-full"
+                showIcon
+              />
+            </div>
+          </div>
+          <div className="col-12">
+            <div className="field">
+              <label htmlFor="checkOutTime" className="block text-sm font-medium mb-2">
+                Check Out Time
+              </label>
+              <Calendar
+                id="checkOutTime"
+                value={editFormData.checkOutTime}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, checkOutTime: e.value })
+                }
+                showTime
+                hourFormat="12"
+                className="w-full"
+                showIcon
+              />
+            </div>
+          </div>
+          <div className="col-12">
+            <div className="field">
+              <label htmlFor="status" className="block text-sm font-medium mb-2">
+                Status
+              </label>
+              <Dropdown
+                id="status"
+                value={editFormData.status}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, status: e.value })
+                }
+                options={[
+                  { label: "Present", value: "present" },
+                  { label: "Absent", value: "absent" },
+                  { label: "Late", value: "late" },
+                  { label: "Half Day", value: "half-day" },
+                  { label: "On Leave", value: "on-leave" },
+                ]}
+                className="w-full"
+                placeholder="Select Status"
+              />
+            </div>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 };
