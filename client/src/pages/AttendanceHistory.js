@@ -452,7 +452,7 @@ const AttendanceHistory = () => {
   };
 
   const employeeOptions = employees.map((emp) => ({
-    label: `${emp.firstName} ${emp.lastName} (${emp.employeeId})`,
+    label: `${emp.firstName} ${emp.lastName}`,
     value: emp._id,
   }));
 
