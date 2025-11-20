@@ -727,7 +727,7 @@ router.get('/dashboard/overview', authenticateToken, dashboardLimiter, async (re
 // Get attendance history
 router.get('/history', authenticateToken, async (req, res) => {
   try {
-    const { employeeId, startDate, endDate, page = 1, limit = 30 } = req.query;
+    const { employeeId, startDate, endDate, page = 1, limit } = req.query;
     const user = req.user;
 
     // Determine which employees to include based on permissions
@@ -862,13 +862,20 @@ router.get('/history', authenticateToken, async (req, res) => {
       return nameA.localeCompare(nameB);
     });
 
-    // Apply pagination
+    // Apply pagination only if limit is specified
     const total = allRecords.length;
-    const paginatedRecords = allRecords.slice((page - 1) * limit, page * limit);
+    let paginatedRecords = allRecords;
+    let totalPages = 1;
+    
+    if (limit && parseInt(limit) > 0) {
+      const limitNum = parseInt(limit);
+      paginatedRecords = allRecords.slice((page - 1) * limitNum, page * limitNum);
+      totalPages = Math.ceil(total / limitNum);
+    }
 
     res.json({
       attendances: paginatedRecords,
-      totalPages: Math.ceil(total / limit),
+      totalPages: totalPages,
       currentPage: parseInt(page),
       total
     });

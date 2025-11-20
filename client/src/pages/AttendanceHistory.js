@@ -32,6 +32,7 @@ const AttendanceHistory = () => {
     checkOutTime: null,
     status: "present",
   });
+  const [totalRecords, setTotalRecords] = useState(0);
   const { user, hasPermission } = useAuth();
   const toast = useRef(null);
 
@@ -50,6 +51,7 @@ const AttendanceHistory = () => {
       const params = {
         startDate: selectedDateRange[0],
         endDate: selectedDateRange[1],
+        // No pagination - load all records
       };
 
       // Add employeeId based on user role and selection
@@ -64,6 +66,7 @@ const AttendanceHistory = () => {
 
       const data = await attendanceService.getAttendanceHistory(params);
       setAttendanceHistory(data.attendances || []);
+      setTotalRecords(data.total || data.attendances?.length || 0);
     } catch (error) {
       console.error("Error loading attendance history:", error);
       toast.current?.show({
@@ -462,13 +465,13 @@ const AttendanceHistory = () => {
             loading={isHistoryLoading}
             header={header}
             globalFilter={globalFilter}
-            paginator
-            rows={10}
-            rowsPerPageOptions={[5, 10, 25, 50]}
+            paginator={totalRecords > 10}
+            rows={totalRecords > 0 ? totalRecords : 10}
+            rowsPerPageOptions={totalRecords > 0 ? [10, 25, 50, 100, totalRecords].filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b) : [10, 25, 50, 100]}
             responsiveLayout="scroll"
             emptyMessage="No attendance records found"
             className="history-table"
-            rowKey="_id"
+            rowKey={(row) => row._id || `${row.employee?._id || row.employee}_${row.date}`}
           >
             <Column
               field="date"
