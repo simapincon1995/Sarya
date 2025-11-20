@@ -138,10 +138,17 @@ router.post('/', authenticateToken, async (req, res) => {
 // Get leave applications
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const { employeeId, status, leaveType, startDate, endDate, page = 1, limit = 10 } = req.query;
+    const { employeeId, status, leaveType, startDate, endDate, page = 1, limit = 10, tab } = req.query;
     const user = req.user;
 
+    // For managers, HR admins, and admins, support tab-based filtering
+    const isManagerOrAdmin = ['manager', 'hr_admin', 'admin'].includes(user.role);
+    const showOwnLeaves = tab === 'own' || (!tab && !isManagerOrAdmin);
+    const showReporteeLeaves = tab === 'reportees' && isManagerOrAdmin;
+
     let query = {};
+    let ownLeaves = [];
+    let reporteeLeaves = [];
 
     // Check permissions and set query
     if (employeeId) {
@@ -157,12 +164,102 @@ router.get('/', authenticateToken, async (req, res) => {
       query.employee = employeeId;
     } else if (user.role === 'employee') {
       query.employee = user._id;
-    } else if (user.role === 'manager') {
-      // Manager can see their team's leaves
-      query.employee = { $in: user.teamMembers };
+    } else if (isManagerOrAdmin) {
+      // For managers/admins, fetch both own and reportee leaves separately
+      // Always fetch own leaves if showing own tab or no tab specified
+      if (showOwnLeaves || !tab) {
+        const ownQuery = { employee: user._id };
+        if (status) ownQuery.status = status;
+        if (leaveType) ownQuery.leaveType = leaveType;
+        if (startDate && endDate) {
+          ownQuery.$or = [
+            { startDate: { $gte: new Date(startDate), $lte: new Date(endDate) } },
+            { endDate: { $gte: new Date(startDate), $lte: new Date(endDate) } },
+            { startDate: { $lte: new Date(startDate) }, endDate: { $gte: new Date(endDate) } }
+          ];
+        }
+        // Remove pagination limit if limit is very large (10000)
+        const ownQueryExec = Leave.find(ownQuery)
+          .populate('employee', 'firstName lastName employeeId department')
+          .populate('approvedBy', 'firstName lastName employeeId')
+          .sort({ appliedDate: -1 });
+        
+        if (limit && limit < 10000) {
+          ownQueryExec.limit(limit * 1).skip((page - 1) * limit);
+        }
+        
+        ownLeaves = await ownQueryExec;
+      }
+
+      // Always fetch reportee leaves if showing reportee tab or no tab specified
+      let reporteeQuery = {};
+      if (showReporteeLeaves || !tab) {
+        if (user.role === 'manager') {
+          reporteeQuery.employee = { $in: user.teamMembers || [] };
+        } else {
+          // HR Admin and Admin can see all employees' leaves
+          reporteeQuery.employee = { $ne: user._id }; // Exclude own leaves
+        }
+        
+        if (status) reporteeQuery.status = status;
+        if (leaveType) reporteeQuery.leaveType = leaveType;
+        if (startDate && endDate) {
+          reporteeQuery.$or = [
+            { startDate: { $gte: new Date(startDate), $lte: new Date(endDate) } },
+            { endDate: { $gte: new Date(startDate), $lte: new Date(endDate) } },
+            { startDate: { $lte: new Date(startDate) }, endDate: { $gte: new Date(endDate) } }
+          ];
+        }
+        
+        // Remove pagination limit if limit is very large (10000)
+        const reporteeQueryExec = Leave.find(reporteeQuery)
+          .populate('employee', 'firstName lastName employeeId department')
+          .populate('approvedBy', 'firstName lastName employeeId')
+          .sort({ appliedDate: -1 });
+        
+        if (limit && limit < 10000) {
+          reporteeQueryExec.limit(limit * 1).skip((page - 1) * limit);
+        }
+        
+        reporteeLeaves = await reporteeQueryExec;
+      }
+
+      // Return both sets if no tab specified, or the requested tab
+      const leaves = showOwnLeaves ? ownLeaves : (showReporteeLeaves ? reporteeLeaves : [...ownLeaves, ...reporteeLeaves]);
+      
+      // Calculate totals
+      const ownQueryForCount = { employee: user._id };
+      if (status) ownQueryForCount.status = status;
+      if (leaveType) ownQueryForCount.leaveType = leaveType;
+      const totalOwn = await Leave.countDocuments(ownQueryForCount);
+      
+      const reporteeQueryForCount = {};
+      if (user.role === 'manager') {
+        reporteeQueryForCount.employee = { $in: user.teamMembers || [] };
+      } else {
+        reporteeQueryForCount.employee = { $ne: user._id };
+      }
+      if (status) reporteeQueryForCount.status = status;
+      if (leaveType) reporteeQueryForCount.leaveType = leaveType;
+      const totalReportees = await Leave.countDocuments(reporteeQueryForCount);
+      
+      const total = showOwnLeaves ? totalOwn : (showReporteeLeaves ? totalReportees : totalOwn + totalReportees);
+
+      return res.json({
+        leaves,
+        ownLeaves: showOwnLeaves || !tab ? ownLeaves : [],
+        reporteeLeaves: showReporteeLeaves || !tab ? reporteeLeaves : [],
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        total,
+        hasTabs: true
+      });
+    } else {
+      // Regular employee - just their own leaves
+      query.employee = user._id;
     }
 
-    // Apply filters
+    // Apply filters for regular query
     if (status) query.status = status;
     if (leaveType) query.leaveType = leaveType;
     if (startDate && endDate) {
@@ -180,12 +277,17 @@ router.get('/', authenticateToken, async (req, res) => {
       ];
     }
 
-    const leaves = await Leave.find(query)
+    // Remove pagination limit if limit is very large (10000)
+    const leavesQuery = Leave.find(query)
       .populate('employee', 'firstName lastName employeeId department')
       .populate('approvedBy', 'firstName lastName employeeId')
-      .sort({ appliedDate: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .sort({ appliedDate: -1 });
+    
+    if (limit && limit < 10000) {
+      leavesQuery.limit(limit * 1).skip((page - 1) * limit);
+    }
+    
+    const leaves = await leavesQuery;
 
     const total = await Leave.countDocuments(query);
 
@@ -193,7 +295,8 @@ router.get('/', authenticateToken, async (req, res) => {
       leaves,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
-      total
+      total,
+      hasTabs: false
     });
   } catch (error) {
     console.error('Get leaves error:', error);

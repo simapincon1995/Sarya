@@ -17,6 +17,9 @@ import { usePopupState, useFormSubmission } from '../hooks/usePopupState';
 
 const Leaves = () => {
   const [leaves, setLeaves] = useState([]);
+  const [ownLeaves, setOwnLeaves] = useState([]);
+  const [reporteeLeaves, setReporteeLeaves] = useState([]);
+  const [selectedView, setSelectedView] = useState('own');
   const [isLoading, setIsLoading] = useState(true);
   
   // Use custom popup hooks for better state management
@@ -37,16 +40,36 @@ const Leaves = () => {
   });
   const { hasPermission, user } = useAuth();
   const toast = React.useRef(null);
+  const isManagerOrAdmin = ['manager', 'hr_admin', 'admin'].includes(user?.role);
 
-  useEffect(() => {
-    loadLeaves();
-  }, []);
-
-  const loadLeaves = async () => {
+  const loadLeaves = async (tab = null) => {
     try {
       setIsLoading(true);
-      const data = await leaveService.getLeaves({ limit: 100 });
-      setLeaves(data.leaves || []);
+      // Remove limit to get all records, or use a very large limit
+      const params = { limit: 10000, page: 1 };
+      if (tab) {
+        params.tab = tab;
+      }
+      const data = await leaveService.getLeaves(params);
+      
+      if (data.hasTabs) {
+        // Manager/Admin/HR Admin - has tabs
+        // Update the specific tab's data if tab is specified, otherwise update both
+        if (tab === 'own') {
+          setOwnLeaves(data.ownLeaves || []);
+        } else if (tab === 'reportees') {
+          setReporteeLeaves(data.reporteeLeaves || []);
+        } else {
+          // No tab specified - load both tabs
+          setOwnLeaves(data.ownLeaves || []);
+          setReporteeLeaves(data.reporteeLeaves || []);
+        }
+      } else {
+        // Regular employee - no tabs
+        setLeaves(data.leaves || []);
+        setOwnLeaves([]);
+        setReporteeLeaves([]);
+      }
     } catch (error) {
       console.error('Error loading leaves:', error);
       toast.current?.show({
@@ -58,6 +81,31 @@ const Leaves = () => {
       setIsLoading(false);
     }
   };
+
+  // Initial load - fetch both tabs if manager/admin
+  useEffect(() => {
+    if (isManagerOrAdmin) {
+      // Load both tabs on initial mount (no tab param loads both)
+      loadLeaves();
+    } else {
+      loadLeaves();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reload when view changes (only for manager/admin, skip initial mount)
+  const isMountedRef = React.useRef(false);
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+    if (isManagerOrAdmin) {
+      const tab = selectedView === 'own' ? 'own' : 'reportees';
+      loadLeaves(tab);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedView]);
 
   const openCreate = () => {
     setEditorMode('create');
@@ -182,7 +230,13 @@ const Leaves = () => {
           });
         }
       }, async () => {
-        await loadLeaves();
+        // Reload leaves based on current view
+        if (isManagerOrAdmin) {
+          // Load both tabs to ensure data is fresh
+          await loadLeaves();
+        } else {
+          await loadLeaves();
+        }
       });
     } catch (error) {
       // Error is already handled by the hook, but we can add additional handling here if needed
@@ -198,7 +252,8 @@ const Leaves = () => {
         summary: 'Success',
         detail: 'Leave cancelled successfully'
       });
-      await loadLeaves();
+      const tab = isManagerOrAdmin ? (selectedView === 'own' ? 'own' : 'reportees') : null;
+      await loadLeaves(tab);
     } catch (error) {
       console.error('Cancel leave failed:', error);
       toast.current?.show({
@@ -247,6 +302,58 @@ const Leaves = () => {
     });
   };
 
+  // Approve/Reject functionality
+  const approvalPopup = usePopupState(false);
+  const [approvalData, setApprovalData] = useState({ leave: null, action: null, rejectionReason: '' });
+
+  const openApprovalDialog = (leave, action) => {
+    setApprovalData({ leave, action, rejectionReason: '' });
+    approvalPopup.openPopup();
+  };
+
+  const closeApprovalDialog = () => {
+    approvalPopup.closePopup();
+    setApprovalData({ leave: null, action: null, rejectionReason: '' });
+  };
+
+  const handleApproveReject = async () => {
+    if (!approvalData.leave) return;
+
+    if (approvalData.action === 'reject' && !approvalData.rejectionReason.trim()) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please provide a reason for rejection'
+      });
+      return;
+    }
+
+    try {
+      await submitForm(async () => {
+        await leaveService.approveLeave(
+          approvalData.leave._id,
+          approvalData.action,
+          approvalData.action === 'reject' ? approvalData.rejectionReason : null
+        );
+        toast.current?.show({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Leave ${approvalData.action === 'approved' ? 'approved' : 'rejected'} successfully`
+        });
+      }, async () => {
+        // Reload both tabs to ensure data is fresh
+        if (isManagerOrAdmin) {
+          await loadLeaves(); // Load both tabs
+        } else {
+          await loadLeaves();
+        }
+      });
+      closeApprovalDialog();
+    } catch (error) {
+      console.error('Approve/Reject leave error:', error);
+    }
+  };
+
   const leaveTypeOptions = [
     { label: 'Casual', value: 'casual' },
     { label: 'Sick', value: 'sick' },
@@ -289,6 +396,147 @@ const Leaves = () => {
     return <Tag value={config.label} severity={config.severity} />;
   };
 
+  const renderDataTable = (tableLeaves, showEmployee = false, showApprovalActions = false) => {
+    if (isLoading) {
+      return <LoadingSpinner />;
+    }
+    
+    return (
+      <DataTable
+        value={tableLeaves || []}
+        paginator
+        rows={10}
+        rowsPerPageOptions={[5, 10, 25]}
+        emptyMessage="No leave applications found"
+        className="p-datatable-sm"
+      >
+      {showEmployee && (
+        <Column
+          header="Employee"
+          body={(rowData) => (
+            <div>
+              <div className="font-medium">
+                {rowData.employee?.firstName} {rowData.employee?.lastName}
+              </div>
+              <div className="text-sm text-color-secondary">
+                {rowData.employee?.employeeId} - {rowData.employee?.department}
+              </div>
+            </div>
+          )}
+          sortable
+          style={{ minWidth: '200px' }}
+        />
+      )}
+      <Column
+        field="leaveType"
+        header="Type"
+        body={(rowData) => getLeaveTypeBadge(rowData.leaveType)}
+        sortable
+      />
+      <Column
+        field="startDate"
+        header="Start Date"
+        body={(rowData) => new Date(rowData.startDate).toLocaleDateString()}
+        sortable
+      />
+      <Column
+        field="endDate"
+        header="End Date"
+        body={(rowData) => new Date(rowData.endDate).toLocaleDateString()}
+        sortable
+      />
+      <Column
+        field="totalDays"
+        header="Days"
+        sortable
+      />
+      <Column
+        field="reason"
+        header="Reason"
+        style={{ maxWidth: '200px' }}
+        body={(rowData) => (
+          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {rowData.reason}
+          </div>
+        )}
+      />
+      <Column
+        field="status"
+        header="Status"
+        body={(rowData) => getStatusBadge(rowData.status)}
+        sortable
+      />
+      <Column
+        field="appliedDate"
+        header="Applied Date"
+        body={(rowData) => new Date(rowData.appliedDate).toLocaleDateString()}
+        sortable
+      />
+      <Column
+        header="Actions"
+        body={(rowData) => (
+          <div className="flex gap-2">
+            <Button
+              icon="pi pi-eye"
+              className="p-button-text p-button-sm"
+              tooltip="View Details"
+              onClick={() => openDetail(rowData)}
+            />
+            {showApprovalActions && rowData.status === 'pending' && (
+              <>
+                <Button
+                  icon="pi pi-check"
+                  className="p-button-text p-button-sm p-button-success"
+                  tooltip="Approve"
+                  onClick={() => openApprovalDialog(rowData, 'approved')}
+                />
+                <Button
+                  icon="pi pi-times"
+                  className="p-button-text p-button-sm p-button-danger"
+                  tooltip="Reject"
+                  onClick={() => openApprovalDialog(rowData, 'rejected')}
+                />
+              </>
+            )}
+            {!showApprovalActions && (hasPermission('manage_leaves') || 
+              (rowData.status === 'pending' && (hasPermission('apply_leaves') || rowData.employee?._id === user?.id || rowData.employee === user?.id))) && (
+              <>
+                {(hasPermission('manage_leaves') || (rowData.status === 'pending' && (rowData.employee?._id === user?.id || rowData.employee === user?.id))) && (
+                  <Button
+                    icon="pi pi-pencil"
+                    className="p-button-text p-button-sm"
+                    tooltip="Edit"
+                    onClick={() => openEdit(rowData)}
+                  />
+                )}
+                {rowData.status === 'pending' && 
+                 (hasPermission('apply_leaves') || rowData.employee?._id === user?.id || rowData.employee === user?.id) && (
+                  <Button
+                    icon="pi pi-times"
+                    className="p-button-text p-button-sm p-button-danger"
+                    tooltip="Cancel"
+                    onClick={() => confirmCancel(rowData)}
+                  />
+                )}
+                {(hasPermission('manage_leaves') || 
+                  (rowData.status === 'pending' && (hasPermission('apply_leaves') || rowData.employee?._id === user?.id || rowData.employee === user?.id))) && (
+                  <Button
+                    icon="pi pi-trash"
+                    className="p-button-text p-button-sm p-button-danger"
+                    tooltip="Delete"
+                    onClick={() => confirmDelete(rowData)}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        )}
+        style={{ width: showApprovalActions ? '200px' : '150px' }}
+      />
+    </DataTable>
+    );
+  };
+
   if (isLoading) {
     return <LoadingSpinner message="Loading leaves..." />;
   }
@@ -301,115 +549,39 @@ const Leaves = () => {
         <Card>
           <div className="flex justify-content-between align-items-center mb-4">
             <h2 className="text-2xl font-bold m-0">Leave Management</h2>
-            {hasPermission('apply_leaves') && (
-              <Button
-                label="Apply Leave"
-                icon="pi pi-plus"
-                className="p-button-primary"
-                onClick={openCreate}
-              />
-            )}
+            <div className="flex align-items-center gap-3">
+              {isManagerOrAdmin && (
+                <Dropdown
+                  value={selectedView}
+                  options={[
+                    { label: 'Own Leaves', value: 'own' },
+                    { label: 'Reportee Leaves', value: 'reportees' }
+                  ]}
+                  onChange={(e) => setSelectedView(e.value)}
+                  placeholder="Select View"
+                  style={{ minWidth: '200px' }}
+                />
+              )}
+              {hasPermission('apply_leaves') && (
+                <Button
+                  label="Apply Leave"
+                  icon="pi pi-plus"
+                  className="p-button-primary"
+                  onClick={openCreate}
+                />
+              )}
+            </div>
           </div>
 
-          <DataTable
-            value={leaves}
-            paginator
-            rows={10}
-            rowsPerPageOptions={[5, 10, 25]}
-            emptyMessage="No leave applications found"
-            className="p-datatable-sm"
-          >
-            <Column
-              field="leaveType"
-              header="Type"
-              body={(rowData) => getLeaveTypeBadge(rowData.leaveType)}
-              sortable
-            />
-            <Column
-              field="startDate"
-              header="Start Date"
-              body={(rowData) => new Date(rowData.startDate).toLocaleDateString()}
-              sortable
-            />
-            <Column
-              field="endDate"
-              header="End Date"
-              body={(rowData) => new Date(rowData.endDate).toLocaleDateString()}
-              sortable
-            />
-            <Column
-              field="totalDays"
-              header="Days"
-              sortable
-            />
-            <Column
-              field="reason"
-              header="Reason"
-              style={{ maxWidth: '200px' }}
-              body={(rowData) => (
-                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {rowData.reason}
-                </div>
-              )}
-            />
-            <Column
-              field="status"
-              header="Status"
-              body={(rowData) => getStatusBadge(rowData.status)}
-              sortable
-            />
-            <Column
-              field="appliedDate"
-              header="Applied Date"
-              body={(rowData) => new Date(rowData.appliedDate).toLocaleDateString()}
-              sortable
-            />
-            <Column
-              header="Actions"
-              body={(rowData) => (
-                <div className="flex gap-2">
-                  <Button
-                    icon="pi pi-eye"
-                    className="p-button-text p-button-sm"
-                    tooltip="View Details"
-                    onClick={() => openDetail(rowData)}
-                  />
-                  {(hasPermission('manage_leaves') || 
-                    (rowData.status === 'pending' && (hasPermission('apply_leaves') || rowData.employee === user?.id))) && (
-                    <>
-                      {(hasPermission('manage_leaves') || (rowData.status === 'pending' && rowData.employee === user?.id)) && (
-                        <Button
-                          icon="pi pi-pencil"
-                          className="p-button-text p-button-sm"
-                          tooltip="Edit"
-                          onClick={() => openEdit(rowData)}
-                        />
-                      )}
-                      {rowData.status === 'pending' && 
-                       (hasPermission('apply_leaves') || rowData.employee === user?.id) && (
-                        <Button
-                          icon="pi pi-times"
-                          className="p-button-text p-button-sm p-button-danger"
-                          tooltip="Cancel"
-                          onClick={() => confirmCancel(rowData)}
-                        />
-                      )}
-                      {(hasPermission('manage_leaves') || 
-                        (rowData.status === 'pending' && (hasPermission('apply_leaves') || rowData.employee === user?.id))) && (
-                        <Button
-                          icon="pi pi-trash"
-                          className="p-button-text p-button-sm p-button-danger"
-                          tooltip="Delete"
-                          onClick={() => confirmDelete(rowData)}
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-              style={{ width: '150px' }}
-            />
-          </DataTable>
+          {isManagerOrAdmin ? (
+            selectedView === 'own' ? (
+              renderDataTable(ownLeaves, false, false)
+            ) : (
+              renderDataTable(reporteeLeaves, true, true)
+            )
+          ) : (
+            renderDataTable(leaves, false, false)
+          )}
         </Card>
 
         {/* Leave Application Dialog */}
@@ -614,6 +786,96 @@ const Leaves = () => {
                     <div className="mt-1 p-3 surface-100 border-round text-red-600">
                       {viewingLeave.rejectionReason}
                     </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Dialog>
+
+        {/* Approve/Reject Leave Dialog */}
+        <Dialog
+          header={approvalData.action === 'approved' ? 'Approve Leave' : 'Reject Leave'}
+          visible={approvalPopup.isOpen}
+          style={{ width: '500px' }}
+          modal
+          onHide={closeApprovalDialog}
+          footer={
+            <div className="flex justify-content-end gap-2">
+              <Button
+                label="Cancel"
+                className="p-button-text"
+                onClick={closeApprovalDialog}
+                disabled={approvalPopup.isLoading}
+              />
+              <Button
+                label={approvalData.action === 'approved' ? 'Approve' : 'Reject'}
+                icon={approvalData.action === 'approved' ? 'pi pi-check' : 'pi pi-times'}
+                className={approvalData.action === 'approved' ? 'p-button-success' : 'p-button-danger'}
+                loading={approvalPopup.isLoading}
+                onClick={handleApproveReject}
+                disabled={approvalPopup.isLoading}
+              />
+            </div>
+          }
+        >
+          {approvalData.leave && (
+            <div className="grid">
+              <div className="col-12">
+                <div className="mb-3">
+                  <strong>Employee:</strong>
+                  <div className="mt-1">
+                    {approvalData.leave.employee?.firstName} {approvalData.leave.employee?.lastName} ({approvalData.leave.employee?.employeeId})
+                  </div>
+                </div>
+              </div>
+              <div className="col-12 md:col-6">
+                <div className="mb-3">
+                  <strong>Leave Type:</strong>
+                  <div className="mt-1">{getLeaveTypeBadge(approvalData.leave.leaveType)}</div>
+                </div>
+              </div>
+              <div className="col-12 md:col-6">
+                <div className="mb-3">
+                  <strong>Total Days:</strong>
+                  <div className="mt-1">{approvalData.leave.totalDays}</div>
+                </div>
+              </div>
+              <div className="col-12 md:col-6">
+                <div className="mb-3">
+                  <strong>Start Date:</strong>
+                  <div className="mt-1">{new Date(approvalData.leave.startDate).toLocaleDateString()}</div>
+                </div>
+              </div>
+              <div className="col-12 md:col-6">
+                <div className="mb-3">
+                  <strong>End Date:</strong>
+                  <div className="mt-1">{new Date(approvalData.leave.endDate).toLocaleDateString()}</div>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="mb-3">
+                  <strong>Reason:</strong>
+                  <div className="mt-1 p-3 surface-100 border-round">
+                    {approvalData.leave.reason}
+                  </div>
+                </div>
+              </div>
+              {approvalData.action === 'rejected' && (
+                <div className="col-12">
+                  <div className="field">
+                    <label htmlFor="rejectionReason" className="block text-sm font-medium mb-2">
+                      Rejection Reason <span className="text-red-500">*</span>
+                    </label>
+                    <InputTextarea
+                      id="rejectionReason"
+                      className="w-full"
+                      value={approvalData.rejectionReason}
+                      onChange={(e) => setApprovalData({ ...approvalData, rejectionReason: e.target.value })}
+                      rows={4}
+                      placeholder="Please provide a reason for rejection"
+                      maxLength={500}
+                    />
                   </div>
                 </div>
               )}
