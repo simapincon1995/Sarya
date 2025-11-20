@@ -135,9 +135,23 @@ const Leaves = () => {
     editorPopup.openPopup();
   };
 
-  const openDetail = (row) => {
-    setViewingLeave(row);
-    detailPopup.openPopup();
+  const openDetail = async (row) => {
+    try {
+      // Fetch the full leave details to ensure we have all fields including rejectionReason
+      const leaveDetails = await leaveService.getLeave(row._id);
+      setViewingLeave(leaveDetails);
+      detailPopup.openPopup();
+    } catch (error) {
+      console.error('Error fetching leave details:', error);
+      // Fallback to row data if API call fails
+      setViewingLeave(row);
+      detailPopup.openPopup();
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load leave details'
+      });
+    }
   };
 
   const closeEditor = () => {
