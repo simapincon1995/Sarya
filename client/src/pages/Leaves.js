@@ -333,7 +333,7 @@ const Leaves = () => {
   const handleApproveReject = async () => {
     if (!approvalData.leave) return;
 
-    if (approvalData.action === 'reject' && !approvalData.rejectionReason.trim()) {
+    if (approvalData.action === 'rejected' && !approvalData.rejectionReason.trim()) {
       toast.current?.show({
         severity: 'error',
         summary: 'Validation Error',
@@ -347,7 +347,7 @@ const Leaves = () => {
         await leaveService.approveLeave(
           approvalData.leave._id,
           approvalData.action,
-          approvalData.action === 'reject' ? approvalData.rejectionReason : null
+          approvalData.action === 'rejected' ? approvalData.rejectionReason : null
         );
         toast.current?.show({
           severity: 'success',
