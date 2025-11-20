@@ -13,6 +13,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { attendanceService } from "../services/attendanceService";
 import { employeeService } from "../services/employeeService";
 import LoadingSpinner from "../components/Common/LoadingSpinner";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import "./AttendanceHistory.css";
 
 const AttendanceHistory = () => {
@@ -121,6 +124,67 @@ const AttendanceHistory = () => {
     });
   };
 
+  const formatWorkingHours = (minutes) => {
+    if (!minutes) return "-";
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    return `${hours}h ${mins}m`;
+  };
+
+  const exportToExcel = () => {
+    if (attendanceHistory.length === 0) {
+      toast.current?.show({
+        severity: "warn",
+        summary: "No Data",
+        detail: "No attendance records to export",
+      });
+      return;
+    }
+
+    // Prepare data for export
+    const exportData = attendanceHistory.map((record) => {
+      const row = {
+        Date: formatDate(record.date),
+        "Check In": formatTime(record.checkIn?.time),
+        "Check Out": formatTime(record.checkOut?.time),
+        "Work Hours": formatWorkingHours(record.totalWorkingHours),
+        Status: record.status || "-",
+        "Break Hours": formatWorkingHours(record.totalBreakTime),
+      };
+
+      // Add employee info if user is not an employee
+      if (user.role !== "employee") {
+        row["Employee Name"] = record.employee
+          ? `${record.employee.firstName} ${record.employee.lastName}`
+          : "-";
+        row["Employee ID"] = record.employee?.employeeId || "-";
+      }
+
+      return row;
+    });
+
+    // Create workbook and worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance History");
+
+    // Generate filename with date range
+    let filename = "Attendance_History";
+    if (selectedDateRange && selectedDateRange.length === 2) {
+      const startDate = formatDate(selectedDateRange[0]).replace(/\s/g, "_");
+      const endDate = formatDate(selectedDateRange[1]).replace(/\s/g, "_");
+      filename = `Attendance_History_${startDate}_to_${endDate}`;
+    }
+
+    // Write file
+    XLSX.writeFile(wb, `${filename}.xlsx`);
+
+    toast.current?.show({
+      severity: "success",
+      summary: "Export Successful",
+      detail: "Attendance data exported to Excel",
+    });
+  };
   const statusBodyTemplate = (rowData) => {
     let severity = "secondary";
     let value = rowData.status || "Unknown";
@@ -186,16 +250,6 @@ const AttendanceHistory = () => {
             className="search-input"
           />
         </div>
-        {user.role !== "employee" && (
-          <Dropdown
-            value={selectedEmployee}
-            onChange={(e) => setSelectedEmployee(e.value)}
-            options={employeeOptions}
-            placeholder="Select Employee"
-            className="employee-selector"
-            showClear
-          />
-        )}
         <Calendar
           value={selectedDateRange}
           onChange={(e) => setSelectedDateRange(e.value)}
@@ -204,6 +258,13 @@ const AttendanceHistory = () => {
           placeholder="Select date range"
           className="date-range-picker"
           showIcon
+        />        
+        <Button
+          icon="pi pi-file-excel"
+          className="p-button-success p-button-outlined"
+          onClick={exportToExcel}
+          tooltip="Export to Excel"
+          label="Export Excel"
         />
         <Button
           icon="pi pi-refresh"

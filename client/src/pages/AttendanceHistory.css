@@ -165,13 +165,7 @@
   font-size: 0.875rem;
 }
 
-/* Action buttons */
-.history-table .p-button {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
+
 
 .history-table .p-button.p-button-info {
   background: rgba(59, 130, 246, 0.1);
