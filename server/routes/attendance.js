@@ -730,9 +730,11 @@ router.get('/history', authenticateToken, async (req, res) => {
     const { employeeId, startDate, endDate, page = 1, limit = 30 } = req.query;
     const user = req.user;
 
-    let query = {};
+    // Determine which employees to include based on permissions
+    let employeeQuery = { isActive: true, role: { $in: ['employee', 'manager', 'hr_admin', 'admin'] } };
+    let employeeIds = [];
 
-    // Check permissions
+    // Check permissions and build employee query
     if (employeeId) {
       if (user.role === 'employee' && user._id.toString() !== employeeId) {
         return res.status(403).json({ message: 'Access denied' });
@@ -743,38 +745,201 @@ router.get('/history', authenticateToken, async (req, res) => {
           return res.status(403).json({ message: 'Access denied' });
         }
       }
-      query.employee = employeeId;
+      employeeIds = [employeeId];
     } else if (user.role === 'employee') {
-      query.employee = user._id;
+      employeeIds = [user._id];
     } else if (user.role === 'manager') {
-      query.employee = { $in: user.teamMembers };
+      employeeIds = user.teamMembers || [];
+    } else {
+      // Admin or HR Admin - get all employees
+      const allEmployees = await User.find(employeeQuery).select('_id');
+      employeeIds = allEmployees.map(emp => emp._id);
     }
 
-    // Apply date filters
+    if (employeeIds.length === 0) {
+      return res.json({
+        attendances: [],
+        totalPages: 0,
+        currentPage: page,
+        total: 0
+      });
+    }
+
+    // Build date range
+    let dateStart, dateEnd;
     if (startDate && endDate) {
-      query.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      };
+      dateStart = new Date(startDate);
+      dateStart.setHours(0, 0, 0, 0);
+      dateEnd = new Date(endDate);
+      dateEnd.setHours(23, 59, 59, 999);
+    } else {
+      // Default to last 30 days if no date range provided
+      dateEnd = new Date();
+      dateEnd.setHours(23, 59, 59, 999);
+      dateStart = new Date();
+      dateStart.setDate(dateStart.getDate() - 30);
+      dateStart.setHours(0, 0, 0, 0);
     }
 
-    const attendances = await Attendance.find(query)
-      .populate('employee', 'firstName lastName employeeId department')
-      .sort({ date: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    // Get all attendance records for the date range and employees
+    const attendanceQuery = {
+      employee: { $in: employeeIds },
+      date: { $gte: dateStart, $lte: dateEnd }
+    };
 
-    const total = await Attendance.countDocuments(query);
+    const existingAttendances = await Attendance.find(attendanceQuery)
+      .populate('employee', 'firstName lastName employeeId department')
+      .sort({ date: -1, employee: 1 });
+
+    // Get all employees with their details
+    const employees = await User.find({ _id: { $in: employeeIds } })
+      .select('firstName lastName employeeId department');
+
+    // Create a map of existing attendances by employee and date
+    const attendanceMap = new Map();
+    existingAttendances.forEach(att => {
+      const dateKey = att.date.toISOString().split('T')[0];
+      const key = `${att.employee._id}_${dateKey}`;
+      attendanceMap.set(key, att);
+    });
+
+    // Generate all date-employee combinations
+    const allRecords = [];
+    const currentDate = new Date(dateStart);
+    
+    while (currentDate <= dateEnd) {
+      const dateKey = currentDate.toISOString().split('T')[0];
+      const dateForRecord = new Date(currentDate); // Create a new date object for each record
+      dateForRecord.setHours(0, 0, 0, 0); // Normalize to start of day
+      
+      for (const employee of employees) {
+        const key = `${employee._id}_${dateKey}`;
+        const existingAttendance = attendanceMap.get(key);
+        
+        if (existingAttendance) {
+          // Use existing attendance record
+          allRecords.push(existingAttendance);
+        } else {
+          // Create absent record placeholder
+          const absentRecord = {
+            _id: null, // No database ID for absent records
+            employee: {
+              _id: employee._id,
+              firstName: employee.firstName,
+              lastName: employee.lastName,
+              employeeId: employee.employeeId,
+              department: employee.department
+            },
+            date: dateForRecord,
+            checkIn: null,
+            checkOut: null,
+            breaks: [],
+            totalWorkingHours: 0,
+            totalBreakTime: 0,
+            status: 'absent',
+            isLate: false,
+            lateMinutes: 0,
+            overtime: 0,
+            notes: null,
+            isAbsent: true // Flag to identify absent records
+          };
+          allRecords.push(absentRecord);
+        }
+      }
+      
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Sort by date (descending) and then by employee name
+    allRecords.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      if (dateB.getTime() !== dateA.getTime()) {
+        return dateB.getTime() - dateA.getTime();
+      }
+      const nameA = `${a.employee?.firstName || ''} ${a.employee?.lastName || ''}`.toLowerCase();
+      const nameB = `${b.employee?.firstName || ''} ${b.employee?.lastName || ''}`.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    // Apply pagination
+    const total = allRecords.length;
+    const paginatedRecords = allRecords.slice((page - 1) * limit, page * limit);
 
     res.json({
-      attendances,
+      attendances: paginatedRecords,
       totalPages: Math.ceil(total / limit),
-      currentPage: page,
+      currentPage: parseInt(page),
       total
     });
   } catch (error) {
     console.error('Get attendance history error:', error);
     res.status(500).json({ message: 'Failed to fetch attendance history', error: error.message });
+  }
+});
+
+// Create attendance record manually (for absent employees)
+router.post('/create', authenticateToken, authorize('admin', 'hr_admin', 'manager'), async (req, res) => {
+  try {
+    const { employeeId, date, checkIn, checkOut, status } = req.body;
+    const user = req.user;
+
+    if (!employeeId || !date) {
+      return res.status(400).json({ message: 'Employee ID and date are required' });
+    }
+
+    // Check permissions for managers
+    if (user.role === 'manager') {
+      const employee = await User.findById(employeeId);
+      if (!employee || !user.teamMembers.includes(employeeId)) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    }
+
+    // Check if record already exists
+    const dateObj = new Date(date);
+    dateObj.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(dateObj);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const existingAttendance = await Attendance.findOne({
+      employee: employeeId,
+      date: { $gte: dateObj, $lt: tomorrow }
+    });
+
+    if (existingAttendance) {
+      return res.status(400).json({ message: 'Attendance record already exists for this date' });
+    }
+
+    // Create new attendance record
+    const attendance = new Attendance({
+      employee: employeeId,
+      date: dateObj,
+      checkIn: checkIn ? {
+        time: new Date(checkIn.time),
+        location: checkIn.location,
+        ipAddress: checkIn.ipAddress,
+        deviceInfo: checkIn.deviceInfo
+      } : undefined,
+      checkOut: checkOut ? {
+        time: new Date(checkOut.time),
+        location: checkOut.location,
+        ipAddress: checkOut.ipAddress,
+        deviceInfo: checkOut.deviceInfo
+      } : undefined,
+      status: status || 'present'
+    });
+
+    await attendance.save();
+    await attendance.populate('employee', 'firstName lastName employeeId department');
+
+    res.json({
+      message: 'Attendance record created successfully',
+      attendance
+    });
+  } catch (error) {
+    console.error('Create attendance error:', error);
+    res.status(500).json({ message: 'Failed to create attendance', error: error.message });
   }
 });
 
@@ -797,10 +962,25 @@ router.put('/:attendanceId', authenticateToken, authorize('admin', 'hr_admin', '
     }
 
     // Update allowed fields
-    const allowedUpdates = ['checkIn', 'checkOut', 'breaks', 'isLate', 'isEarlyLeave'];
+    const allowedUpdates = ['checkIn', 'checkOut', 'breaks', 'isLate', 'isEarlyLeave', 'status'];
     allowedUpdates.forEach(field => {
       if (updateData[field] !== undefined) {
-        attendance[field] = updateData[field];
+        if (field === 'checkIn' || field === 'checkOut') {
+          // Handle nested objects
+          if (updateData[field] && updateData[field].time) {
+            attendance[field] = {
+              ...attendance[field],
+              time: new Date(updateData[field].time),
+              location: updateData[field].location || attendance[field]?.location,
+              ipAddress: updateData[field].ipAddress || attendance[field]?.ipAddress,
+              deviceInfo: updateData[field].deviceInfo || attendance[field]?.deviceInfo
+            };
+          } else if (updateData[field] === null) {
+            attendance[field] = undefined;
+          }
+        } else {
+          attendance[field] = updateData[field];
+        }
       }
     });
 

@@ -131,7 +131,7 @@ const AttendanceHistory = () => {
   };
 
   const openEditDialog = (record) => {
-    if (!record || !record._id) {
+    if (!record) {
       toast.current?.show({
         severity: "error",
         summary: "Error",
@@ -143,7 +143,7 @@ const AttendanceHistory = () => {
     setEditFormData({
       checkInTime: record.checkIn?.time ? new Date(record.checkIn.time) : null,
       checkOutTime: record.checkOut?.time ? new Date(record.checkOut.time) : null,
-      status: record.status || "present",
+      status: record.status || (record.isAbsent ? "absent" : "present"),
     });
     setIsEditDialogOpen(true);
   };
@@ -159,7 +159,7 @@ const AttendanceHistory = () => {
   };
 
   const handleEditSubmit = async () => {
-    if (!editingRecord || !editingRecord._id) {
+    if (!editingRecord) {
       toast.current?.show({
         severity: "error",
         summary: "Error",
@@ -168,6 +168,59 @@ const AttendanceHistory = () => {
       return;
     }
 
+    // For absent records (no _id), we need to create a new attendance record
+    // For existing records, we update them
+    if (!editingRecord._id) {
+      // This is an absent record - we'll need to create it via check-in or manual creation
+      // For now, we'll require check-in time and create the record
+      if (!editFormData.checkInTime) {
+        toast.current?.show({
+          severity: "warn",
+          summary: "Validation Error",
+          detail: "Check-in time is required to create attendance record",
+        });
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+        // Create new attendance record for absent employee
+        const createData = {
+          employeeId: editingRecord.employee?._id || editingRecord.employee,
+          date: editingRecord.date,
+          checkIn: {
+            time: editFormData.checkInTime,
+          },
+          checkOut: editFormData.checkOutTime
+            ? {
+                time: editFormData.checkOutTime,
+              }
+            : undefined,
+          status: editFormData.status,
+        };
+
+        await attendanceService.createAttendance(createData);
+        toast.current?.show({
+          severity: "success",
+          summary: "Success",
+          detail: "Attendance record created successfully",
+        });
+        closeEditDialog();
+        await loadAttendanceHistory();
+      } catch (error) {
+        console.error("Error creating record:", error);
+        toast.current?.show({
+          severity: "error",
+          summary: "Error",
+          detail: error.response?.data?.message || "Failed to create attendance record",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // Existing record - update it
     if (!editFormData.checkInTime) {
       toast.current?.show({
         severity: "warn",
@@ -249,10 +302,10 @@ const AttendanceHistory = () => {
     const exportData = attendanceHistory.map((record) => {
       const row = {
         Date: formatDate(record.date),
-        "Check In": formatTime(record.checkIn?.time),
-        "Check Out": formatTime(record.checkOut?.time),
+        "Check In": record.checkIn?.time ? formatTime(record.checkIn.time) : "-",
+        "Check Out": record.checkOut?.time ? formatTime(record.checkOut.time) : "-",
         "Work Hours": formatWorkingHours(record.totalWorkingHours),
-        Status: record.status || "-",
+        Status: record.status || (record.isAbsent ? "absent" : "-"),
         "Break Hours": formatWorkingHours(record.totalBreakTime),
       };
 
@@ -316,6 +369,7 @@ const AttendanceHistory = () => {
 
   const actionBodyTemplate = (rowData) => {
     const recordId = rowData._id || rowData.id;
+    const isAbsent = rowData.isAbsent || !recordId;
     return (
       <div className="flex gap-2">
         {hasPermission("manage_attendance") && (
@@ -323,10 +377,10 @@ const AttendanceHistory = () => {
             icon="pi pi-pencil"
             className="p-button-rounded p-button-text p-button-info"
             onClick={() => openEditDialog(rowData)}
-            tooltip="Edit Record"
+            tooltip={isAbsent ? "Create Attendance Record" : "Edit Record"}
           />
         )}
-        {hasPermission("manage_attendance") && (
+        {hasPermission("manage_attendance") && !isAbsent && (
           <Button
             icon="pi pi-trash"
             className="p-button-rounded p-button-text p-button-danger"
@@ -500,7 +554,7 @@ const AttendanceHistory = () => {
 
       {/* Edit Attendance Dialog */}
       <Dialog
-        header="Edit Attendance Record"
+        header={editingRecord?.isAbsent ? "Create Attendance Record" : "Edit Attendance Record"}
         visible={isEditDialogOpen}
         style={{ width: "600px" }}
         modal
@@ -514,7 +568,7 @@ const AttendanceHistory = () => {
               disabled={isSubmitting}
             />
             <Button
-              label="Update"
+              label={editingRecord?.isAbsent ? "Create" : "Update"}
               icon="pi pi-check"
               loading={isSubmitting}
               onClick={handleEditSubmit}

@@ -75,6 +75,16 @@ export const attendanceService = {
     }
   },
 
+  // Create attendance record (for absent employees)
+  async createAttendance(data) {
+    try {
+      const response = await api.post('/attendance/create', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Update attendance
   async updateAttendance(attendanceId, data) {
     try {
