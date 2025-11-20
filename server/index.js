@@ -54,7 +54,13 @@ mongoose.connect(mongoUri, {
   serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
 })
-  .then(() => console.log('✅ MongoDB connected successfully'))
+  .then(() => {
+    console.log('✅ MongoDB connected successfully');
+    
+    // Start attendance cleanup scheduler (runs daily at midnight)
+    const { scheduleDailyCleanup } = require('./utils/attendanceCleanup');
+    scheduleDailyCleanup();
+  })
   .catch(err => console.error('❌ MongoDB connection error:', err.message));
 
 // -------------------- Routes --------------------

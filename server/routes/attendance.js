@@ -5,6 +5,7 @@ const Holiday = require('../models/Holiday');
 const Organization = require('../models/Organization');
 const { authenticateToken, authorize, canAccessEmployee } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
+const { cleanupOldAttendanceRecords, getRetentionDays } = require('../utils/attendanceCleanup');
 
 const router = express.Router();
 
@@ -773,11 +774,12 @@ router.get('/history', authenticateToken, async (req, res) => {
       dateEnd = new Date(endDate);
       dateEnd.setHours(23, 59, 59, 999);
     } else {
-      // Default to last 30 days if no date range provided
+      // Default to retention days if no date range provided (matches retention policy)
+      const retentionDays = getRetentionDays();
       dateEnd = new Date();
       dateEnd.setHours(23, 59, 59, 999);
       dateStart = new Date();
-      dateStart.setDate(dateStart.getDate() - 30);
+      dateStart.setDate(dateStart.getDate() - retentionDays);
       dateStart.setHours(0, 0, 0, 0);
     }
 
@@ -1116,6 +1118,30 @@ router.put('/activity-note/:noteId', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Update activity note error:', error);
     res.status(500).json({ message: 'Failed to update activity note', error: error.message });
+  }
+});
+
+// Manual cleanup of old attendance records (Admin/HR Admin only)
+router.post('/cleanup', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const result = await cleanupOldAttendanceRecords();
+    
+    if (result.success) {
+      res.json({
+        message: 'Cleanup completed successfully',
+        deletedCount: result.deletedCount,
+        cutoffDate: result.cutoffDate,
+        retentionDays: result.retentionDays
+      });
+    } else {
+      res.status(500).json({
+        message: 'Cleanup failed',
+        error: result.error
+      });
+    }
+  } catch (error) {
+    console.error('Manual cleanup error:', error);
+    res.status(500).json({ message: 'Failed to run cleanup', error: error.message });
   }
 });
 
