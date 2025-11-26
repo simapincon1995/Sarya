@@ -191,6 +191,12 @@ const Employees = () => {
     try {
       setIsLoading(true);
       const response = await employeeService.generateAppointmentLetter(employee._id);
+      
+      // Validate response structure
+      if (!response || !response.document || !response.document.content) {
+        throw new Error('Invalid response structure from server');
+      }
+      
       setDocumentContent(response.document.content);
       setDocumentType('Appointment Letter');
       setDocumentDialog(true);
@@ -204,7 +210,7 @@ const Employees = () => {
       toast.current?.show({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to generate appointment letter'
+        detail: error.response?.data?.message || error.message || 'Failed to generate appointment letter'
       });
     } finally {
       setIsLoading(false);
@@ -216,6 +222,11 @@ const Employees = () => {
       setIsLoading(true);
       const lastWorkingDate = new Date().toISOString();
       const response = await employeeService.generateExperienceCertificate(employee._id, lastWorkingDate);
+      
+      if (!response || !response.document || !response.document.content) {
+        throw new Error('Invalid response structure from server');
+      }
+      
       setDocumentContent(response.document.content);
       setDocumentType('Experience Certificate');
       setDocumentDialog(true);
@@ -229,7 +240,7 @@ const Employees = () => {
       toast.current?.show({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to generate experience certificate'
+        detail: error.response?.data?.message || error.message || 'Failed to generate experience certificate'
       });
     } finally {
       setIsLoading(false);
@@ -241,6 +252,11 @@ const Employees = () => {
       setIsLoading(true);
       const lastWorkingDate = new Date().toISOString();
       const response = await employeeService.generateRelievingLetter(employee._id, lastWorkingDate);
+      
+      if (!response || !response.document || !response.document.content) {
+        throw new Error('Invalid response structure from server');
+      }
+      
       setDocumentContent(response.document.content);
       setDocumentType('Relieving Letter');
       setDocumentDialog(true);
@@ -254,7 +270,7 @@ const Employees = () => {
       toast.current?.show({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to generate relieving letter'
+        detail: error.response?.data?.message || error.message || 'Failed to generate relieving letter'
       });
     } finally {
       setIsLoading(false);
@@ -718,43 +734,55 @@ const Employees = () => {
         <Dialog
           header={documentType}
           visible={documentDialog}
-          style={{ width: '900px', height: '80vh' }}
-          maximizable
+          style={{ width: '900px' }}
           modal
-          onHide={() => setDocumentDialog(false)}
+          onHide={() => {
+            setDocumentDialog(false);
+            setDocumentContent('');
+            setDocumentType('');
+          }}
           footer={
             <div className="flex justify-content-end gap-2">
               <Button
                 label="Download"
                 icon="pi pi-download"
-                className="p-button-secondary"
                 onClick={downloadDocument}
               />
               <Button
                 label="Print"
                 icon="pi pi-print"
-                className="p-button-primary"
                 onClick={printDocument}
               />
               <Button
                 label="Close"
                 icon="pi pi-times"
                 className="p-button-text"
-                onClick={() => setDocumentDialog(false)}
+                onClick={() => {
+                  setDocumentDialog(false);
+                  setDocumentContent('');
+                  setDocumentType('');
+                }}
               />
             </div>
           }
         >
-          <div
-            style={{
-              height: 'calc(80vh - 180px)',
-              overflow: 'auto',
-              border: '1px solid #ddd',
-              padding: '20px',
-              background: '#fff'
-            }}
-            dangerouslySetInnerHTML={{ __html: documentContent }}
-          />
+          {documentContent ? (
+            <div
+              style={{
+                height: '70vh',
+                overflow: 'auto',
+                border: '1px solid #ddd',
+                padding: '20px',
+                background: '#fff'
+              }}
+              dangerouslySetInnerHTML={{ __html: documentContent }}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <i className="pi pi-spin pi-spinner" style={{ fontSize: '3rem' }}></i>
+              <p>Loading document...</p>
+            </div>
+          )}
         </Dialog>
 
         <Toast ref={toast} />
