@@ -49,7 +49,7 @@ const templateSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false // Allow system-generated templates
   },
   lastModifiedBy: {
     type: mongoose.Schema.Types.ObjectId,
