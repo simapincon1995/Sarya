@@ -380,10 +380,29 @@ router.post('/generate-offer', authenticateToken, authorize('admin', 'hr_admin')
     }
 
     // Get offer letter template
-    const template = await Template.findOne({ type: 'offer_letter', isDefault: true });
+    let template = await Template.findOne({ type: 'offer_letter', isDefault: true });
+    
+    // If no template exists, create default templates
+    if (!template) {
+      console.log('⚠️  Offer letter template not found. Creating default templates...');
+      try {
+        await Template.createDefaultTemplates();
+        template = await Template.findOne({ type: 'offer_letter', isDefault: true });
+        console.log('✅ Default templates created successfully');
+      } catch (createError) {
+        console.error('❌ Failed to create default templates:', createError);
+        return res.status(500).json({ 
+          message: 'Offer letter template not found and could not be created automatically',
+          error: createError.message 
+        });
+      }
+    }
     
     if (!template) {
-      return res.status(404).json({ message: 'Offer letter template not found' });
+      return res.status(404).json({ 
+        message: 'Offer letter template not found. Please contact administrator.',
+        hint: 'Run: node init-templates.js'
+      });
     }
 
     const probationEndDate = calculateProbationEnd(joiningDate, probationPeriod);
@@ -438,10 +457,29 @@ router.post('/:employeeId/generate-appointment', authenticateToken, authorize('a
     }
 
     // Get appointment letter template
-    const template = await Template.findOne({ type: 'appointment_letter', isDefault: true });
+    let template = await Template.findOne({ type: 'appointment_letter', isDefault: true });
+    
+    // If no template exists, create default templates
+    if (!template) {
+      console.log('⚠️  Appointment letter template not found. Creating default templates...');
+      try {
+        await Template.createDefaultTemplates();
+        template = await Template.findOne({ type: 'appointment_letter', isDefault: true });
+        console.log('✅ Default templates created successfully');
+      } catch (createError) {
+        console.error('❌ Failed to create default templates:', createError);
+        return res.status(500).json({ 
+          message: 'Appointment letter template not found and could not be created automatically',
+          error: createError.message 
+        });
+      }
+    }
     
     if (!template) {
-      return res.status(404).json({ message: 'Appointment letter template not found' });
+      return res.status(404).json({ 
+        message: 'Appointment letter template not found. Please run template initialization.',
+        hint: 'Contact administrator to run: node init-templates.js'
+      });
     }
 
     const probationEndDate = calculateProbationEnd(employee.joiningDate || new Date(), 3);
@@ -497,10 +535,29 @@ router.post('/:employeeId/generate-experience', authenticateToken, authorize('ad
     }
 
     // Get experience certificate template
-    const template = await Template.findOne({ type: 'experience_certificate', isDefault: true });
+    let template = await Template.findOne({ type: 'experience_certificate', isDefault: true });
+    
+    // If no template exists, create default templates
+    if (!template) {
+      console.log('⚠️  Experience certificate template not found. Creating default templates...');
+      try {
+        await Template.createDefaultTemplates();
+        template = await Template.findOne({ type: 'experience_certificate', isDefault: true });
+        console.log('✅ Default templates created successfully');
+      } catch (createError) {
+        console.error('❌ Failed to create default templates:', createError);
+        return res.status(500).json({ 
+          message: 'Experience certificate template not found and could not be created automatically',
+          error: createError.message 
+        });
+      }
+    }
     
     if (!template) {
-      return res.status(404).json({ message: 'Experience certificate template not found' });
+      return res.status(404).json({ 
+        message: 'Experience certificate template not found. Please contact administrator.',
+        hint: 'Run: node init-templates.js'
+      });
     }
 
     const exitDate = lastWorkingDate ? new Date(lastWorkingDate) : new Date();
@@ -556,10 +613,29 @@ router.post('/:employeeId/generate-relieving', authenticateToken, authorize('adm
     }
 
     // Get relieving letter template
-    const template = await Template.findOne({ type: 'relieving_letter', isDefault: true });
+    let template = await Template.findOne({ type: 'relieving_letter', isDefault: true });
+    
+    // If no template exists, create default templates
+    if (!template) {
+      console.log('⚠️  Relieving letter template not found. Creating default templates...');
+      try {
+        await Template.createDefaultTemplates();
+        template = await Template.findOne({ type: 'relieving_letter', isDefault: true });
+        console.log('✅ Default templates created successfully');
+      } catch (createError) {
+        console.error('❌ Failed to create default templates:', createError);
+        return res.status(500).json({ 
+          message: 'Relieving letter template not found and could not be created automatically',
+          error: createError.message 
+        });
+      }
+    }
     
     if (!template) {
-      return res.status(404).json({ message: 'Relieving letter template not found' });
+      return res.status(404).json({ 
+        message: 'Relieving letter template not found. Please contact administrator.',
+        hint: 'Run: node init-templates.js'
+      });
     }
 
     const exitDate = lastWorkingDate ? new Date(lastWorkingDate) : new Date();

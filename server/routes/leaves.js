@@ -379,7 +379,19 @@ router.put('/:leaveId/approve', authenticateToken, authorize('admin', 'hr_admin'
     let letterContent = null;
     try {
       const templateType = status === 'approved' ? 'leave_approval' : 'leave_rejection';
-      const template = await Template.findOne({ type: templateType, isDefault: true });
+      let template = await Template.findOne({ type: templateType, isDefault: true });
+
+      // If no template exists, create default templates
+      if (!template) {
+        console.log(`⚠️  ${templateType} template not found. Creating default templates...`);
+        try {
+          await Template.createDefaultTemplates();
+          template = await Template.findOne({ type: templateType, isDefault: true });
+          console.log('✅ Default templates created successfully');
+        } catch (createError) {
+          console.error('❌ Failed to create default templates:', createError);
+        }
+      }
 
       if (template) {
         const templateData = {

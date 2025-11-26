@@ -305,10 +305,29 @@ router.get('/:payrollId/payslip', authenticateToken, async (req, res) => {
     }
 
     // Get default payslip template
-    const template = await Template.findOne({ type: 'payslip', isDefault: true });
+    let template = await Template.findOne({ type: 'payslip', isDefault: true });
+
+    // If no template exists, create default templates
+    if (!template) {
+      console.log('⚠️  Payslip template not found. Creating default templates...');
+      try {
+        await Template.createDefaultTemplates();
+        template = await Template.findOne({ type: 'payslip', isDefault: true });
+        console.log('✅ Default templates created successfully');
+      } catch (createError) {
+        console.error('❌ Failed to create default templates:', createError);
+        return res.status(500).json({ 
+          message: 'Payslip template not found and could not be created automatically',
+          error: createError.message 
+        });
+      }
+    }
 
     if (!template) {
-      return res.status(404).json({ message: 'No payslip template found' });
+      return res.status(404).json({ 
+        message: 'No payslip template found. Please contact administrator.',
+        hint: 'Run: node init-templates.js'
+      });
     }
 
     // Calculate all amounts
@@ -428,10 +447,29 @@ router.post('/payslips/bulk-generate', authenticateToken, authorize('admin', 'hr
     }
 
     // Get payslip template
-    const template = await Template.findOne({ type: 'payslip', isDefault: true });
+    let template = await Template.findOne({ type: 'payslip', isDefault: true });
+
+    // If no template exists, create default templates
+    if (!template) {
+      console.log('⚠️  Payslip template not found. Creating default templates...');
+      try {
+        await Template.createDefaultTemplates();
+        template = await Template.findOne({ type: 'payslip', isDefault: true });
+        console.log('✅ Default templates created successfully');
+      } catch (createError) {
+        console.error('❌ Failed to create default templates:', createError);
+        return res.status(500).json({ 
+          message: 'Payslip template not found and could not be created automatically',
+          error: createError.message 
+        });
+      }
+    }
 
     if (!template) {
-      return res.status(404).json({ message: 'No payslip template found' });
+      return res.status(404).json({ 
+        message: 'No payslip template found. Please contact administrator.',
+        hint: 'Run: node init-templates.js'
+      });
     }
 
     const payslips = [];
