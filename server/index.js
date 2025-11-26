@@ -54,8 +54,24 @@ mongoose.connect(mongoUri, {
   serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
 })
-  .then(() => {
+  .then(async () => {
     console.log('✅ MongoDB connected successfully');
+    
+    // Initialize default templates if they don't exist
+    try {
+      const Template = require('./models/Template');
+      const templateCount = await Template.countDocuments({ isDefault: true });
+      
+      if (templateCount === 0) {
+        console.log('📝 No default templates found. Creating default templates...');
+        await Template.createDefaultTemplates();
+        console.log('✅ Default templates initialized successfully');
+      } else {
+        console.log(`✅ Found ${templateCount} default templates`);
+      }
+    } catch (error) {
+      console.error('⚠️  Template initialization warning:', error.message);
+    }
     
     // Start attendance cleanup scheduler (runs daily at midnight)
     const { scheduleDailyCleanup } = require('./utils/attendanceCleanup');
