@@ -15,6 +15,10 @@ import { Toast } from 'primereact/toast';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
 import { templateService } from '../services/templateService';
+import Quill from "quill";
+import ImageResize from "quill-image-resize-module-react";
+
+Quill.register("modules/imageResize", ImageResize);
 
 const Templates = () => {
   const [templates, setTemplates] = useState([]);
@@ -470,7 +474,17 @@ const Templates = () => {
     const config = typeConfig[type] || { severity: 'secondary', label: type };
     return <Tag value={config.label} severity={config.severity} />;
   };
-
+ const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline"],
+      ["link", "image"],
+      ["clean"],
+    ],
+    imageResize: {
+      modules: ["Resize", "DisplaySize"],
+    },
+  };
   const getStatusBadge = (isActive) => {
     return (
       <Tag
@@ -670,6 +684,7 @@ const Templates = () => {
                   value={formData.content} 
                   onTextChange={(e) => onFormChange('content', e.htmlValue)} 
                   style={{ height: '320px' }}
+                  modules={modules}
                 />
               </div>
             </div>
