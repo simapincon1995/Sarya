@@ -192,12 +192,27 @@ const Employees = () => {
       setIsLoading(true);
       const response = await employeeService.generateAppointmentLetter(employee._id);
       
+      console.log('API Response:', response);
+      console.log('Document content type:', typeof response.document.content);
+      console.log('Content preview:', response.document.content.substring(0, 200));
+      
       // Validate response structure
       if (!response || !response.document || !response.document.content) {
         throw new Error('Invalid response structure from server');
       }
       
-      setDocumentContent(response.document.content);
+      // Decode HTML entities if content is encoded
+      let content = response.document.content;
+      
+      // Check if content is HTML-encoded (contains &lt; instead of <)
+      if (content.includes('&lt;') || content.includes('&gt;')) {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = content;
+        content = textarea.value;
+        console.log('Decoded HTML content');
+      }
+      
+      setDocumentContent(content);
       setDocumentType('Appointment Letter');
       setDocumentDialog(true);
       toast.current?.show({
@@ -227,7 +242,15 @@ const Employees = () => {
         throw new Error('Invalid response structure from server');
       }
       
-      setDocumentContent(response.document.content);
+      // Decode HTML entities if content is encoded
+      let content = response.document.content;
+      if (content.includes('&lt;') || content.includes('&gt;')) {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = content;
+        content = textarea.value;
+      }
+      
+      setDocumentContent(content);
       setDocumentType('Experience Certificate');
       setDocumentDialog(true);
       toast.current?.show({
@@ -257,7 +280,15 @@ const Employees = () => {
         throw new Error('Invalid response structure from server');
       }
       
-      setDocumentContent(response.document.content);
+      // Decode HTML entities if content is encoded
+      let content = response.document.content;
+      if (content.includes('&lt;') || content.includes('&gt;')) {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = content;
+        content = textarea.value;
+      }
+      
+      setDocumentContent(content);
       setDocumentType('Relieving Letter');
       setDocumentDialog(true);
       toast.current?.show({
