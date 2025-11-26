@@ -6,6 +6,8 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
 import { Avatar } from 'primereact/avatar';
+import { Toast } from 'primereact/toast';
+import { OverlayPanel } from 'primereact/overlaypanel';
 import { useAuth } from '../contexts/AuthContext';
 import { employeeService } from '../services/employeeService';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
@@ -21,6 +23,12 @@ const Employees = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const searchTimeoutRef = useRef(null);
+  const toast = useRef(null);
+  const documentMenuRef = useRef(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [documentDialog, setDocumentDialog] = useState(false);
+  const [documentContent, setDocumentContent] = useState('');
+  const [documentType, setDocumentType] = useState('');
 
   // CRUD UI state
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -177,6 +185,99 @@ const Employees = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateAppointmentLetter = async (employee) => {
+    try {
+      setIsLoading(true);
+      const response = await employeeService.generateAppointmentLetter(employee._id);
+      setDocumentContent(response.document.content);
+      setDocumentType('Appointment Letter');
+      setDocumentDialog(true);
+      toast.current?.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Appointment letter generated successfully'
+      });
+    } catch (error) {
+      console.error('Error generating appointment letter:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to generate appointment letter'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateExperienceCertificate = async (employee) => {
+    try {
+      setIsLoading(true);
+      const lastWorkingDate = new Date().toISOString();
+      const response = await employeeService.generateExperienceCertificate(employee._id, lastWorkingDate);
+      setDocumentContent(response.document.content);
+      setDocumentType('Experience Certificate');
+      setDocumentDialog(true);
+      toast.current?.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Experience certificate generated successfully'
+      });
+    } catch (error) {
+      console.error('Error generating experience certificate:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to generate experience certificate'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateRelievingLetter = async (employee) => {
+    try {
+      setIsLoading(true);
+      const lastWorkingDate = new Date().toISOString();
+      const response = await employeeService.generateRelievingLetter(employee._id, lastWorkingDate);
+      setDocumentContent(response.document.content);
+      setDocumentType('Relieving Letter');
+      setDocumentDialog(true);
+      toast.current?.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Relieving letter generated successfully'
+      });
+    } catch (error) {
+      console.error('Error generating relieving letter:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to generate relieving letter'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const downloadDocument = () => {
+    const blob = new Blob([documentContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${documentType.replace(/ /g, '_')}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const printDocument = () => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(documentContent);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   const getRoleBadge = (role) => {
@@ -346,10 +447,23 @@ const Employees = () => {
                         onClick={() => deleteEmployee(rowData)}
                       />
                     )}
+                    {hasPermission('manage_employees') && (
+                      <>
+                        <Button
+                          icon="pi pi-file"
+                          className="p-button-text p-button-sm p-button-help"
+                          tooltip="Generate Documents"
+                          onClick={(e) => {
+                            setSelectedEmployee(rowData);
+                            documentMenuRef.current.toggle(e);
+                          }}
+                        />
+                      </>
+                    )}
                   </div>
                 );
               }}
-              style={{ width: '120px' }}
+              style={{ width: '180px' }}
             />
           </DataTable>
         </Card>
@@ -499,6 +613,84 @@ const Employees = () => {
             </div>
           </div>
         </Dialog>
+
+        {/* Document Generation Overlay */}
+        <OverlayPanel ref={documentMenuRef} style={{ width: '250px' }}>
+          <div className="flex flex-column gap-2">
+            <Button
+              label="Appointment Letter"
+              icon="pi pi-file"
+              className="p-button-text justify-content-start"
+              onClick={() => {
+                generateAppointmentLetter(selectedEmployee);
+                documentMenuRef.current.hide();
+              }}
+            />
+            <Button
+              label="Experience Certificate"
+              icon="pi pi-briefcase"
+              className="p-button-text justify-content-start"
+              onClick={() => {
+                generateExperienceCertificate(selectedEmployee);
+                documentMenuRef.current.hide();
+              }}
+            />
+            <Button
+              label="Relieving Letter"
+              icon="pi pi-sign-out"
+              className="p-button-text justify-content-start"
+              onClick={() => {
+                generateRelievingLetter(selectedEmployee);
+                documentMenuRef.current.hide();
+              }}
+            />
+          </div>
+        </OverlayPanel>
+
+        {/* Document Preview Dialog */}
+        <Dialog
+          header={documentType}
+          visible={documentDialog}
+          style={{ width: '900px', height: '80vh' }}
+          maximizable
+          modal
+          onHide={() => setDocumentDialog(false)}
+          footer={
+            <div className="flex justify-content-end gap-2">
+              <Button
+                label="Download"
+                icon="pi pi-download"
+                className="p-button-secondary"
+                onClick={downloadDocument}
+              />
+              <Button
+                label="Print"
+                icon="pi pi-print"
+                className="p-button-primary"
+                onClick={printDocument}
+              />
+              <Button
+                label="Close"
+                icon="pi pi-times"
+                className="p-button-text"
+                onClick={() => setDocumentDialog(false)}
+              />
+            </div>
+          }
+        >
+          <div
+            style={{
+              height: 'calc(80vh - 180px)',
+              overflow: 'auto',
+              border: '1px solid #ddd',
+              padding: '20px',
+              background: '#fff'
+            }}
+            dangerouslySetInnerHTML={{ __html: documentContent }}
+          />
+        </Dialog>
+
+        <Toast ref={toast} />
       </div>
     </div>
   );

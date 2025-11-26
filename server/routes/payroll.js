@@ -3,6 +3,12 @@ const Payroll = require('../models/Payroll');
 const User = require('../models/User');
 const Template = require('../models/Template');
 const { authenticateToken, authorize, canAccessPayroll } = require('../middleware/auth');
+const { 
+  formatCurrency, 
+  numberToWords, 
+  formatDate, 
+  getMonthName 
+} = require('../utils/documentUtils');
 
 const router = express.Router();
 
@@ -287,8 +293,7 @@ router.get('/:payrollId/payslip', authenticateToken, async (req, res) => {
     const user = req.user;
 
     const payroll = await Payroll.findById(payrollId)
-      .populate('employee', 'firstName lastName employeeId department')
-      .populate('template');
+      .populate('employee', 'firstName lastName employeeId department designation bankDetails pan');
 
     if (!payroll) {
       return res.status(404).json({ message: 'Payroll not found' });
@@ -299,34 +304,86 @@ router.get('/:payrollId/payslip', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Get default payslip template if no template assigned
-    let template = payroll.template;
-    if (!template) {
-      template = await Template.findOne({ type: 'payslip', isDefault: true });
-    }
+    // Get default payslip template
+    const template = await Template.findOne({ type: 'payslip', isDefault: true });
 
     if (!template) {
       return res.status(404).json({ message: 'No payslip template found' });
     }
 
-    // Prepare template data
+    // Calculate all amounts
+    const totalAllowances = payroll.allowances.reduce((sum, a) => sum + a.amount, 0);
+    const totalDeductions = payroll.deductions.reduce((sum, d) => sum + d.amount, 0);
+    const grossSalary = payroll.basicSalary + totalAllowances + payroll.overtime.amount;
+    const netSalary = grossSalary - totalDeductions;
+
+    // Get individual components
+    const hra = payroll.allowances.find(a => a.name === 'HRA')?.amount || 0;
+    const medical = payroll.allowances.find(a => a.name === 'Medical')?.amount || 0;
+    const transport = payroll.allowances.find(a => a.name === 'Transport')?.amount || 0;
+    const otherAllowances = payroll.allowances
+      .filter(a => !['HRA', 'Medical', 'Transport'].includes(a.name))
+      .reduce((sum, a) => sum + a.amount, 0);
+
+    const pf = payroll.deductions.find(d => d.name === 'PF')?.amount || 0;
+    const esi = payroll.deductions.find(d => d.name === 'ESI')?.amount || 0;
+    const tax = payroll.deductions.find(d => d.name === 'Tax')?.amount || 0;
+    const professionalTax = payroll.deductions.find(d => d.name === 'Professional Tax')?.amount || 0;
+    const otherDeductions = payroll.deductions
+      .filter(d => !['PF', 'ESI', 'Tax', 'Professional Tax'].includes(d.name))
+      .reduce((sum, d) => sum + d.amount, 0);
+
+    // Prepare comprehensive template data
     const templateData = {
-      month: payroll.month,
-      year: payroll.year,
+      // Company details
+      companyName: 'Sarya Connective',
+      
+      // Employee details
       employeeName: payroll.employee.fullName,
       employeeId: payroll.employee.employeeId,
-      department: payroll.employee.department,
-      designation: payroll.employee.designation,
-      basicSalary: payroll.basicSalary,
-      totalAllowances: payroll.calculations.totalAllowances,
-      totalDeductions: payroll.calculations.totalDeductions,
-      overtimeAmount: payroll.overtime.amount,
-      grossSalary: payroll.calculations.grossSalary,
-      netSalary: payroll.calculations.netSalary,
-      totalDays: payroll.attendance.totalDays,
-      presentDays: payroll.attendance.presentDays,
-      absentDays: payroll.attendance.absentDays,
-      generatedDate: new Date().toLocaleDateString()
+      department: payroll.employee.department || 'N/A',
+      designation: payroll.employee.designation || 'N/A',
+      
+      // Pay period
+      month: getMonthName(payroll.month),
+      year: payroll.year.toString(),
+      paymentDate: payroll.paidAt ? formatDate(payroll.paidAt, 'DD MMMM YYYY') : 'Pending',
+      
+      // Salary components - Earnings
+      basicSalary: formatCurrency(payroll.basicSalary),
+      hra: formatCurrency(hra),
+      medical: formatCurrency(medical),
+      transport: formatCurrency(transport),
+      overtimeAmount: formatCurrency(payroll.overtime.amount),
+      otherAllowances: formatCurrency(otherAllowances),
+      grossSalary: formatCurrency(grossSalary),
+      
+      // Deductions
+      pf: formatCurrency(pf),
+      esi: formatCurrency(esi),
+      professionalTax: formatCurrency(professionalTax),
+      tax: formatCurrency(tax),
+      otherDeductions: formatCurrency(otherDeductions),
+      totalDeductions: formatCurrency(totalDeductions),
+      
+      // Net Pay
+      netSalary: formatCurrency(netSalary),
+      netSalaryWords: numberToWords(netSalary),
+      
+      // Attendance
+      totalDays: payroll.attendance.totalDays.toString(),
+      presentDays: payroll.attendance.presentDays.toString(),
+      absentDays: payroll.attendance.absentDays.toString(),
+      paidLeaveDays: (payroll.attendance.paidLeaveDays || 0).toString(),
+      lateDays: (payroll.attendance.lateDays || 0).toString(),
+      workingHours: payroll.attendance.workingHours.toFixed(2),
+      
+      // Bank details
+      accountNumber: payroll.employee.bankDetails?.accountNumber || 'N/A',
+      pan: payroll.employee.pan || 'N/A',
+      
+      // Generation details
+      generatedDate: formatDate(new Date(), 'DD MMMM YYYY')
     };
 
     // Render template
@@ -336,15 +393,129 @@ router.get('/:payrollId/payslip', authenticateToken, async (req, res) => {
       payslip: {
         id: payroll._id,
         content: renderedContent,
-        employee: payroll.employee,
+        employee: {
+          id: payroll.employee._id,
+          name: payroll.employee.fullName,
+          employeeId: payroll.employee.employeeId
+        },
         month: payroll.month,
         year: payroll.year,
-        netSalary: payroll.calculations.netSalary
+        netSalary,
+        status: payroll.status
       }
     });
   } catch (error) {
     console.error('Generate payslip error:', error);
     res.status(500).json({ message: 'Failed to generate payslip', error: error.message });
+  }
+});
+
+// Bulk generate payslips for a month
+router.post('/payslips/bulk-generate', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const { month, year } = req.body;
+
+    if (!month || !year) {
+      return res.status(400).json({ message: 'Month and year are required' });
+    }
+
+    // Get all payrolls for the specified month and year
+    const payrolls = await Payroll.find({ month, year, status: { $in: ['approved', 'paid'] } })
+      .populate('employee', 'firstName lastName employeeId department designation');
+
+    if (payrolls.length === 0) {
+      return res.status(404).json({ message: 'No payrolls found for the specified period' });
+    }
+
+    // Get payslip template
+    const template = await Template.findOne({ type: 'payslip', isDefault: true });
+
+    if (!template) {
+      return res.status(404).json({ message: 'No payslip template found' });
+    }
+
+    const payslips = [];
+
+    for (const payroll of payrolls) {
+      const totalAllowances = payroll.allowances.reduce((sum, a) => sum + a.amount, 0);
+      const totalDeductions = payroll.deductions.reduce((sum, d) => sum + d.amount, 0);
+      const grossSalary = payroll.basicSalary + totalAllowances + payroll.overtime.amount;
+      const netSalary = grossSalary - totalDeductions;
+
+      const hra = payroll.allowances.find(a => a.name === 'HRA')?.amount || 0;
+      const medical = payroll.allowances.find(a => a.name === 'Medical')?.amount || 0;
+      const transport = payroll.allowances.find(a => a.name === 'Transport')?.amount || 0;
+      const otherAllowances = payroll.allowances
+        .filter(a => !['HRA', 'Medical', 'Transport'].includes(a.name))
+        .reduce((sum, a) => sum + a.amount, 0);
+
+      const pf = payroll.deductions.find(d => d.name === 'PF')?.amount || 0;
+      const esi = payroll.deductions.find(d => d.name === 'ESI')?.amount || 0;
+      const tax = payroll.deductions.find(d => d.name === 'Tax')?.amount || 0;
+      const professionalTax = payroll.deductions.find(d => d.name === 'Professional Tax')?.amount || 0;
+      const otherDeductions = payroll.deductions
+        .filter(d => !['PF', 'ESI', 'Tax', 'Professional Tax'].includes(d.name))
+        .reduce((sum, d) => sum + d.amount, 0);
+
+      const templateData = {
+        companyName: 'Sarya Connective',
+        employeeName: payroll.employee.fullName,
+        employeeId: payroll.employee.employeeId,
+        department: payroll.employee.department || 'N/A',
+        designation: payroll.employee.designation || 'N/A',
+        month: getMonthName(payroll.month),
+        year: payroll.year.toString(),
+        paymentDate: payroll.paidAt ? formatDate(payroll.paidAt, 'DD MMMM YYYY') : 'Pending',
+        basicSalary: formatCurrency(payroll.basicSalary),
+        hra: formatCurrency(hra),
+        medical: formatCurrency(medical),
+        transport: formatCurrency(transport),
+        overtimeAmount: formatCurrency(payroll.overtime.amount),
+        otherAllowances: formatCurrency(otherAllowances),
+        grossSalary: formatCurrency(grossSalary),
+        pf: formatCurrency(pf),
+        esi: formatCurrency(esi),
+        professionalTax: formatCurrency(professionalTax),
+        tax: formatCurrency(tax),
+        otherDeductions: formatCurrency(otherDeductions),
+        totalDeductions: formatCurrency(totalDeductions),
+        netSalary: formatCurrency(netSalary),
+        netSalaryWords: numberToWords(netSalary),
+        totalDays: payroll.attendance.totalDays.toString(),
+        presentDays: payroll.attendance.presentDays.toString(),
+        absentDays: payroll.attendance.absentDays.toString(),
+        paidLeaveDays: (payroll.attendance.paidLeaveDays || 0).toString(),
+        lateDays: (payroll.attendance.lateDays || 0).toString(),
+        workingHours: payroll.attendance.workingHours.toFixed(2),
+        accountNumber: 'N/A',
+        pan: 'N/A',
+        generatedDate: formatDate(new Date(), 'DD MMMM YYYY')
+      };
+
+      const renderedContent = template.render(templateData);
+
+      payslips.push({
+        payrollId: payroll._id,
+        employee: {
+          id: payroll.employee._id,
+          name: payroll.employee.fullName,
+          employeeId: payroll.employee.employeeId
+        },
+        content: renderedContent,
+        netSalary
+      });
+    }
+
+    res.json({
+      message: `Generated ${payslips.length} payslips successfully`,
+      month,
+      year,
+      count: payslips.length,
+      payslips
+    });
+  } catch (error) {
+    console.error('Bulk generate payslips error:', error);
+    res.status(500).json({ message: 'Failed to generate payslips', error: error.message });
   }
 });
 

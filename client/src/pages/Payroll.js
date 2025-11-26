@@ -20,6 +20,12 @@ const Payroll = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isBulkPayslipDialogOpen, setIsBulkPayslipDialogOpen] = useState(false);
+  const [bulkPayslips, setBulkPayslips] = useState([]);
+  const [bulkPayslipMonth, setBulkPayslipMonth] = useState(new Date().getMonth() + 1);
+  const [bulkPayslipYear, setBulkPayslipYear] = useState(new Date().getFullYear());
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
+  const [payslipPreviewOpen, setPayslipPreviewOpen] = useState(false);
   const [editorMode, setEditorMode] = useState('create'); // 'create' | 'edit'
   const [editingPayroll, setEditingPayroll] = useState(null);
   const [viewingPayroll, setViewingPayroll] = useState(null);
@@ -229,6 +235,65 @@ const Payroll = () => {
     });
   };
 
+  const generateBulkPayslips = async () => {
+    try {
+      setIsLoading(true);
+      const data = await payrollService.bulkGeneratePayslips(bulkPayslipMonth, bulkPayslipYear);
+      setBulkPayslips(data.payslips || []);
+      toast.current?.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: `Generated ${data.count} payslips`
+      });
+    } catch (error) {
+      console.error('Error generating bulk payslips:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to generate payslips'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const viewPayslip = (payslip) => {
+    setSelectedPayslip(payslip);
+    setPayslipPreviewOpen(true);
+  };
+
+  const downloadPayslip = (payslip) => {
+    const blob = new Blob([payslip.content], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Payslip_${payslip.employee.employeeId}_${bulkPayslipMonth}_${bulkPayslipYear}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const downloadAllPayslips = () => {
+    bulkPayslips.forEach((payslip, index) => {
+      setTimeout(() => {
+        downloadPayslip(payslip);
+      }, index * 500); // Delay between downloads
+    });
+    toast.current?.show({
+      severity: 'success',
+      summary: 'Success',
+      detail: `Downloaded ${bulkPayslips.length} payslips`
+    });
+  };
+
+  const printPayslip = (payslip) => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(payslip.content);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   const monthOptions = [
     { label: 'January', value: 1 },
     { label: 'February', value: 2 },
@@ -276,12 +341,20 @@ const Payroll = () => {
           <div className="flex justify-content-between align-items-center mb-4">
             <h2 className="text-2xl font-bold m-0">Payroll Management</h2>
             {hasPermission('manage_payroll') && (
-              <Button
-                label="Generate Payroll"
-                icon="pi pi-calculator"
-                className="p-button-primary"
-                onClick={openCreate}
-              />
+              <div className="flex gap-2">
+                <Button
+                  label="Bulk Payslips"
+                  icon="pi pi-file-pdf"
+                  className="p-button-secondary"
+                  onClick={() => setIsBulkPayslipDialogOpen(true)}
+                />
+                <Button
+                  label="Generate Payroll"
+                  icon="pi pi-calculator"
+                  className="p-button-primary"
+                  onClick={openCreate}
+                />
+              </div>
             )}
           </div>
 
@@ -753,6 +826,185 @@ const Payroll = () => {
                 </Card>
               </div>
             </div>
+          )}
+        </Dialog>
+
+        {/* Bulk Payslip Generation Dialog */}
+        <Dialog
+          header="Generate Bulk Payslips"
+          visible={isBulkPayslipDialogOpen}
+          style={{ width: '900px', height: '80vh' }}
+          modal
+          maximizable
+          onHide={() => {
+            setIsBulkPayslipDialogOpen(false);
+            setBulkPayslips([]);
+          }}
+          footer={
+            <div className="flex justify-content-between align-items-center">
+              <div>
+                {bulkPayslips.length > 0 && (
+                  <Button
+                    label={`Download All (${bulkPayslips.length})`}
+                    icon="pi pi-download"
+                    className="p-button-success"
+                    onClick={downloadAllPayslips}
+                  />
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  label="Close"
+                  icon="pi pi-times"
+                  className="p-button-text"
+                  onClick={() => {
+                    setIsBulkPayslipDialogOpen(false);
+                    setBulkPayslips([]);
+                  }}
+                />
+              </div>
+            </div>
+          }
+        >
+          <div className="grid mb-4">
+            <div className="col-6">
+              <div className="field">
+                <label htmlFor="bulkMonth" className="block text-sm font-medium mb-2">
+                  Month *
+                </label>
+                <Dropdown
+                  id="bulkMonth"
+                  className="w-full"
+                  value={bulkPayslipMonth}
+                  onChange={(e) => setBulkPayslipMonth(e.value)}
+                  options={monthOptions}
+                />
+              </div>
+            </div>
+            <div className="col-6">
+              <div className="field">
+                <label htmlFor="bulkYear" className="block text-sm font-medium mb-2">
+                  Year *
+                </label>
+                <InputNumber
+                  id="bulkYear"
+                  className="w-full"
+                  value={bulkPayslipYear}
+                  onValueChange={(e) => setBulkPayslipYear(e.value)}
+                  useGrouping={false}
+                />
+              </div>
+            </div>
+            <div className="col-12">
+              <Button
+                label="Generate Payslips"
+                icon="pi pi-file-pdf"
+                className="p-button-primary"
+                onClick={generateBulkPayslips}
+                loading={isLoading}
+              />
+            </div>
+          </div>
+
+          {bulkPayslips.length > 0 && (
+            <div>
+              <h4>Generated Payslips ({bulkPayslips.length})</h4>
+              <DataTable
+                value={bulkPayslips}
+                paginator
+                rows={10}
+                className="p-datatable-sm"
+                emptyMessage="No payslips generated"
+              >
+                <Column
+                  field="employee.employeeId"
+                  header="Employee ID"
+                  sortable
+                />
+                <Column
+                  field="employee.name"
+                  header="Employee Name"
+                  sortable
+                />
+                <Column
+                  field="netSalary"
+                  header="Net Salary"
+                  body={(rowData) => formatCurrency(rowData.netSalary)}
+                  sortable
+                />
+                <Column
+                  header="Actions"
+                  body={(rowData) => (
+                    <div className="flex gap-2">
+                      <Button
+                        icon="pi pi-eye"
+                        className="p-button-text p-button-sm"
+                        tooltip="View"
+                        onClick={() => viewPayslip(rowData)}
+                      />
+                      <Button
+                        icon="pi pi-download"
+                        className="p-button-text p-button-sm p-button-success"
+                        tooltip="Download"
+                        onClick={() => downloadPayslip(rowData)}
+                      />
+                      <Button
+                        icon="pi pi-print"
+                        className="p-button-text p-button-sm"
+                        tooltip="Print"
+                        onClick={() => printPayslip(rowData)}
+                      />
+                    </div>
+                  )}
+                  style={{ width: '150px' }}
+                />
+              </DataTable>
+            </div>
+          )}
+        </Dialog>
+
+        {/* Payslip Preview Dialog */}
+        <Dialog
+          header={`Payslip - ${selectedPayslip?.employee?.name || ''}`}
+          visible={payslipPreviewOpen}
+          style={{ width: '900px', height: '80vh' }}
+          maximizable
+          modal
+          onHide={() => setPayslipPreviewOpen(false)}
+          footer={
+            <div className="flex justify-content-end gap-2">
+              <Button
+                label="Download"
+                icon="pi pi-download"
+                className="p-button-secondary"
+                onClick={() => downloadPayslip(selectedPayslip)}
+              />
+              <Button
+                label="Print"
+                icon="pi pi-print"
+                className="p-button-primary"
+                onClick={() => printPayslip(selectedPayslip)}
+              />
+              <Button
+                label="Close"
+                icon="pi pi-times"
+                className="p-button-text"
+                onClick={() => setPayslipPreviewOpen(false)}
+              />
+            </div>
+          }
+        >
+          {selectedPayslip && (
+            <div
+              style={{
+                height: 'calc(80vh - 180px)',
+                overflow: 'auto',
+                border: '1px solid #ddd',
+                padding: '20px',
+                background: '#fff'
+              }}
+              dangerouslySetInnerHTML={{ __html: selectedPayslip.content }}
+            />
           )}
         </Dialog>
       </div>

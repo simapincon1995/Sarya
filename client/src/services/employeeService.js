@@ -79,5 +79,49 @@ export const employeeService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Generate offer letter
+  async generateOfferLetter(offerData) {
+    try {
+      const response = await api.post('/employees/generate-offer', offerData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Generate appointment letter
+  async generateAppointmentLetter(employeeId) {
+    try {
+      const response = await api.post(`/employees/${employeeId}/generate-appointment`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Generate experience certificate
+  async generateExperienceCertificate(employeeId, lastWorkingDate) {
+    try {
+      const response = await api.post(`/employees/${employeeId}/generate-experience`, {
+        lastWorkingDate
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Generate relieving letter
+  async generateRelievingLetter(employeeId, lastWorkingDate) {
+    try {
+      const response = await api.post(`/employees/${employeeId}/generate-relieving`, {
+        lastWorkingDate
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };

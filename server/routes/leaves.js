@@ -2,7 +2,9 @@ const express = require('express');
 const Leave = require('../models/Leave');
 const User = require('../models/User');
 const Holiday = require('../models/Holiday');
+const Template = require('../models/Template');
 const { authenticateToken, authorize, canAccessEmployee } = require('../middleware/auth');
+const { formatDate } = require('../utils/documentUtils');
 
 const router = express.Router();
 
@@ -373,6 +375,38 @@ router.put('/:leaveId/approve', authenticateToken, authorize('admin', 'hr_admin'
 
     await leave.save();
 
+    // Generate approval/rejection letter
+    let letterContent = null;
+    try {
+      const templateType = status === 'approved' ? 'leave_approval' : 'leave_rejection';
+      const template = await Template.findOne({ type: templateType, isDefault: true });
+
+      if (template) {
+        const templateData = {
+          employeeName: leave.employee.fullName,
+          leaveType: leave.leaveType,
+          startDate: formatDate(leave.startDate, 'DD MMMM YYYY'),
+          endDate: formatDate(leave.endDate, 'DD MMMM YYYY'),
+          totalDays: leave.totalDays.toString(),
+          reason: leave.reason,
+          approverName: user.fullName,
+          approverRemarks: leave.approverRemarks || 'N/A'
+        };
+
+        if (status === 'approved') {
+          templateData.approvalDate = formatDate(new Date(), 'DD MMMM YYYY');
+        } else {
+          templateData.rejectionReason = leave.rejectionReason || 'Not specified';
+          templateData.rejectionDate = formatDate(new Date(), 'DD MMMM YYYY');
+        }
+
+        letterContent = template.render(templateData);
+      }
+    } catch (templateError) {
+      console.error('Error generating leave letter:', templateError);
+      // Don't fail the request if letter generation fails
+    }
+
     // Emit real-time update
     try {
       if (req.io) {
@@ -398,7 +432,11 @@ router.put('/:leaveId/approve', authenticateToken, authorize('admin', 'hr_admin'
         approvedBy: user.fullName,
         approvedDate: leave.approvedDate,
         rejectionReason: leave.rejectionReason
-      }
+      },
+      letter: letterContent ? {
+        type: status === 'approved' ? 'leave_approval' : 'leave_rejection',
+        content: letterContent
+      } : null
     });
   } catch (error) {
     console.error('Approve leave error:', error);

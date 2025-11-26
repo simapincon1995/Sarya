@@ -9,6 +9,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
 import { Checkbox } from 'primereact/checkbox';
+import { Editor } from 'primereact/editor';
 import { confirmDialog, ConfirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -104,6 +105,270 @@ const Templates = () => {
 
   const onFormChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Load default template content when type is selected
+    if (name === 'type' && value && editorMode === 'create') {
+      const defaultContent = getDefaultTemplateContent(value);
+      if (defaultContent) {
+        setFormData(prev => ({ ...prev, content: defaultContent }));
+      }
+    }
+  };
+
+  const getDefaultTemplateContent = (type) => {
+    const templates = {
+      offer_letter: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+    .header h1 { margin: 0; color: #2c3e50; }
+    .date { text-align: right; margin: 20px 0; }
+    .content { margin: 20px 0; }
+    .terms { margin: 20px 0; }
+    .terms ul { list-style-type: none; padding: 0; }
+    .terms li { padding: 5px 0; }
+    .footer { margin-top: 40px; }
+    .signature { margin-top: 60px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{companyName}}</h1>
+    <p>{{companyAddress}}</p>
+  </div>
+  
+  <div class="date">
+    <strong>Date:</strong> {{offerDate}}
+  </div>
+  
+  <div class="content">
+    <p>Dear {{candidateName}},</p>
+    
+    <p>We are delighted to extend this offer of employment to you for the position of <strong>{{designation}}</strong> 
+    in our {{department}} department. We were impressed with your qualifications and believe you will make a 
+    valuable addition to our team.</p>
+    
+    <div class="terms">
+      <h3>Terms and Conditions of Employment:</h3>
+      <ul>
+        <li><strong>Position:</strong> {{designation}}</li>
+        <li><strong>Department:</strong> {{department}}</li>
+        <li><strong>Reporting Manager:</strong> {{reportingManager}}</li>
+        <li><strong>Start Date:</strong> {{joiningDate}}</li>
+        <li><strong>Work Location:</strong> {{location}}</li>
+        <li><strong>Annual CTC:</strong> {{ctc}}</li>
+        <li><strong>Probation Period:</strong> {{probationPeriod}} months</li>
+      </ul>
+    </div>
+    
+    <p>This offer is contingent upon successful completion of background verification and submission of required documents.</p>
+    
+    <p>Please confirm your acceptance of this offer by signing and returning a copy of this letter by <strong>{{acceptanceDeadline}}</strong>.</p>
+    
+    <p>We look forward to welcoming you to our team!</p>
+  </div>
+  
+  <div class="footer">
+    <p>Best regards,</p>
+    <div class="signature">
+      <p><strong>{{hrName}}</strong><br>
+      HR Manager<br>
+      {{companyName}}</p>
+    </div>
+  </div>
+</body>
+</html>`,
+      payslip: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.4; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; background: #2c3e50; color: white; padding: 15px; margin-bottom: 20px; }
+    .header h2 { margin: 0; }
+    .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+    .info-box { padding: 10px; background: #f8f9fa; border-left: 3px solid #3498db; }
+    .info-box p { margin: 5px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    table th { background: #34495e; color: white; padding: 10px; text-align: left; }
+    table td { padding: 10px; border-bottom: 1px solid #ddd; }
+    .earnings { background: #e8f5e9; }
+    .deductions { background: #ffebee; }
+    .total-row { font-weight: bold; background: #e3f2fd; }
+    .net-pay { background: #4caf50; color: white; padding: 15px; text-align: center; margin: 20px 0; border-radius: 5px; }
+    .net-pay h3 { margin: 0; font-size: 24px; }
+    .attendance { background: #fff3e0; padding: 15px; margin: 20px 0; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>{{companyName}}</h2>
+    <p>Payslip for {{month}} {{year}}</p>
+  </div>
+  
+  <div class="info-section">
+    <div class="info-box">
+      <p><strong>Employee Name:</strong> {{employeeName}}</p>
+      <p><strong>Employee ID:</strong> {{employeeId}}</p>
+      <p><strong>Department:</strong> {{department}}</p>
+      <p><strong>Designation:</strong> {{designation}}</p>
+    </div>
+    <div class="info-box">
+      <p><strong>Pay Period:</strong> {{month}} {{year}}</p>
+      <p><strong>Payment Date:</strong> {{paymentDate}}</p>
+      <p><strong>Bank Account:</strong> {{accountNumber}}</p>
+      <p><strong>PAN:</strong> {{pan}}</p>
+    </div>
+  </div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2" class="earnings">Earnings</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Basic Salary</td>
+        <td style="text-align: right;">{{basicSalary}}</td>
+      </tr>
+      <tr>
+        <td>House Rent Allowance (HRA)</td>
+        <td style="text-align: right;">{{hra}}</td>
+      </tr>
+      <tr>
+        <td>Medical Allowance</td>
+        <td style="text-align: right;">{{medical}}</td>
+      </tr>
+      <tr>
+        <td>Transport Allowance</td>
+        <td style="text-align: right;">{{transport}}</td>
+      </tr>
+      <tr>
+        <td>Overtime Pay</td>
+        <td style="text-align: right;">{{overtimeAmount}}</td>
+      </tr>
+      <tr>
+        <td>Other Allowances</td>
+        <td style="text-align: right;">{{otherAllowances}}</td>
+      </tr>
+      <tr class="total-row">
+        <td>Gross Salary</td>
+        <td style="text-align: right;">{{grossSalary}}</td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2" class="deductions">Deductions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Provident Fund (PF)</td>
+        <td style="text-align: right;">{{pf}}</td>
+      </tr>
+      <tr>
+        <td>Employee State Insurance (ESI)</td>
+        <td style="text-align: right;">{{esi}}</td>
+      </tr>
+      <tr>
+        <td>Professional Tax</td>
+        <td style="text-align: right;">{{professionalTax}}</td>
+      </tr>
+      <tr>
+        <td>Income Tax (TDS)</td>
+        <td style="text-align: right;">{{tax}}</td>
+      </tr>
+      <tr>
+        <td>Other Deductions</td>
+        <td style="text-align: right;">{{otherDeductions}}</td>
+      </tr>
+      <tr class="total-row">
+        <td>Total Deductions</td>
+        <td style="text-align: right;">{{totalDeductions}}</td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <div class="net-pay">
+    <h3>Net Salary: {{netSalary}}</h3>
+    <p>In Words: {{netSalaryWords}}</p>
+  </div>
+  
+  <div class="attendance">
+    <h3 style="margin-top: 0;">Attendance Summary</h3>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+      <p><strong>Total Days:</strong> {{totalDays}}</p>
+      <p><strong>Present Days:</strong> {{presentDays}}</p>
+      <p><strong>Absent Days:</strong> {{absentDays}}</p>
+      <p><strong>Paid Leaves:</strong> {{paidLeaveDays}}</p>
+      <p><strong>Late Days:</strong> {{lateDays}}</p>
+      <p><strong>Working Hours:</strong> {{workingHours}}</p>
+    </div>
+  </div>
+  
+  <p style="text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 12px;">
+    This is a computer-generated document and does not require a signature.<br>
+    Generated on {{generatedDate}}
+  </p>
+</body>
+</html>`,
+      appointment_letter: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+    .header h1 { margin: 0; color: #2c3e50; }
+    .content { margin: 20px 0; }
+    .details { margin: 20px 0; background: #f5f5f5; padding: 15px; border-left: 4px solid #3498db; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{{companyName}}</h1>
+    <p>APPOINTMENT LETTER</p>
+  </div>
+  
+  <p><strong>Date:</strong> {{appointmentDate}}</p>
+  <p><strong>Employee ID:</strong> {{employeeId}}</p>
+  
+  <div class="content">
+    <p>Dear {{employeeName}},</p>
+    
+    <p>Further to your acceptance of our offer, we are pleased to formally appoint you to the position of 
+    <strong>{{designation}}</strong> in our {{department}} department, effective {{joiningDate}}.</p>
+    
+    <div class="details">
+      <h3>Employment Details:</h3>
+      <p><strong>Designation:</strong> {{designation}}</p>
+      <p><strong>Department:</strong> {{department}}</p>
+      <p><strong>Reporting To:</strong> {{reportingManager}}</p>
+      <p><strong>Work Location:</strong> {{workLocation}}</p>
+      <p><strong>Monthly Salary:</strong> {{monthlySalary}}</p>
+      <p><strong>Probation Period:</strong> {{probationPeriod}} months (ending {{probationEndDate}})</p>
+    </div>
+    
+    <p>Your employment is subject to company policies and procedures as outlined in the Employee Handbook.</p>
+    
+    <p>We wish you a successful and rewarding career with {{companyName}}.</p>
+    
+    <p>Congratulations and welcome aboard!</p>
+  </div>
+  
+  <div class="signature" style="margin-top: 60px;">
+    <p><strong>{{hrName}}</strong><br>
+    HR Manager</p>
+  </div>
+</body>
+</html>`
+    };
+
+    return templates[type] || '';
   };
 
   const submitForm = async () => {
@@ -400,13 +665,11 @@ const Templates = () => {
                 <label htmlFor="content" className="block text-sm font-medium mb-2">
                   Template Content *
                 </label>
-                <InputTextarea 
+                <Editor 
                   id="content" 
-                  className="w-full" 
                   value={formData.content} 
-                  onChange={(e) => onFormChange('content', e.target.value)} 
-                  rows={15}
-                  style={{ fontFamily: 'monospace' }}
+                  onTextChange={(e) => onFormChange('content', e.htmlValue)} 
+                  style={{ height: '320px' }}
                 />
               </div>
             </div>

@@ -80,6 +80,10 @@ const payrollSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
+    paidLeaveDays: {
+      type: Number,
+      default: 0
+    },
     workingHours: {
       type: Number,
       default: 0
@@ -184,8 +188,18 @@ payrollSchema.pre('save', function(next) {
 payrollSchema.statics.generateMonthlyPayroll = async function(month, year, generatedBy) {
   const Employee = mongoose.model('User');
   const Attendance = mongoose.model('Attendance');
+  const Leave = mongoose.model('Leave');
+  const { 
+    calculatePF, 
+    calculateESI, 
+    calculateHRA, 
+    getMedicalAllowance, 
+    getTransportAllowance,
+    calculateMonthlyTax,
+    calculateOvertime
+  } = require('../utils/documentUtils');
   
-  const employees = await Employee.find({ isActive: true, role: 'employee' });
+  const employees = await Employee.find({ isActive: true, role: { $in: ['employee', 'manager', 'hr_admin'] } });
   const payrolls = [];
   
   for (const employee of employees) {
@@ -209,29 +223,83 @@ payrollSchema.statics.generateMonthlyPayroll = async function(month, year, gener
       date: { $gte: startDate, $lte: endDate }
     });
     
+    // Get approved leaves for the month
+    const approvedLeaves = await Leave.find({
+      employee: employee._id,
+      status: 'approved',
+      $or: [
+        { startDate: { $gte: startDate, $lte: endDate } },
+        { endDate: { $gte: startDate, $lte: endDate } },
+        { startDate: { $lte: startDate }, endDate: { $gte: endDate } }
+      ]
+    });
+    
+    // Calculate paid leave days for this month
+    let paidLeaveDays = 0;
+    approvedLeaves.forEach(leave => {
+      const leaveStart = leave.startDate < startDate ? startDate : leave.startDate;
+      const leaveEnd = leave.endDate > endDate ? endDate : leave.endDate;
+      const daysDiff = Math.ceil((leaveEnd - leaveStart) / (1000 * 60 * 60 * 24)) + 1;
+      paidLeaveDays += leave.isHalfDay ? 0.5 : daysDiff;
+    });
+    
     const totalDays = endDate.getDate();
     const presentDays = attendance.filter(a => a.status === 'present').length;
-    const absentDays = totalDays - presentDays;
+    const absentDays = totalDays - presentDays - paidLeaveDays;
     const lateDays = attendance.filter(a => a.isLate).length;
-    const workingHours = attendance.reduce((sum, a) => sum + a.totalWorkingHours, 0);
+    const workingHours = attendance.reduce((sum, a) => sum + (a.totalWorkingHours || 0), 0);
     
     // Calculate salary based on attendance
     const dailySalary = employee.salary / totalDays;
-    const basicSalary = dailySalary * presentDays;
+    const basicSalary = dailySalary * (presentDays + paidLeaveDays);
+    
+    // Calculate allowances
+    const hra = calculateHRA(basicSalary);
+    const medical = getMedicalAllowance();
+    const transport = getTransportAllowance();
+    
+    // Calculate overtime
+    const standardHours = (presentDays + paidLeaveDays) * 8;
+    const overtimeHours = Math.max(0, workingHours - standardHours);
+    const overtimeRate = dailySalary / 8 * 1.5;
+    const overtimeAmount = calculateOvertime(overtimeHours, basicSalary, totalDays, 8);
+    
+    // Calculate deductions
+    const pf = calculatePF(basicSalary);
+    const grossSalary = basicSalary + hra + medical + transport + overtimeAmount;
+    const esi = calculateESI(grossSalary);
+    const tax = calculateMonthlyTax(grossSalary);
     
     const payroll = new this({
       employee: employee._id,
       month,
       year,
-      basicSalary,
+      basicSalary: Math.round(basicSalary),
+      allowances: [
+        { name: 'HRA', amount: hra, isTaxable: true },
+        { name: 'Medical', amount: medical, isTaxable: false },
+        { name: 'Transport', amount: transport, isTaxable: false }
+      ],
+      deductions: [
+        { name: 'PF', amount: pf, type: 'insurance' },
+        { name: 'ESI', amount: esi, type: 'insurance' },
+        { name: 'Tax', amount: tax, type: 'tax' }
+      ],
+      overtime: {
+        hours: overtimeHours,
+        rate: overtimeRate,
+        amount: overtimeAmount
+      },
       attendance: {
         totalDays,
         presentDays,
-        absentDays,
+        absentDays: Math.max(0, absentDays),
         lateDays,
+        paidLeaveDays,
         workingHours
       },
-      generatedBy
+      generatedBy,
+      status: 'generated'
     });
     
     await payroll.save();

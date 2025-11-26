@@ -49,6 +49,11 @@ export const payrollService = {
   async getSummary(year, month) {
     const response = await api.get(`/payroll/summary/${year}/${month}`);
     return response.data.summary;
+  },
+
+  async bulkGeneratePayslips(month, year) {
+    const response = await api.post('/payroll/payslips/bulk-generate', { month, year });
+    return response.data;
   }
 };
 

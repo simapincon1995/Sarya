@@ -1,6 +1,14 @@
 const express = require('express');
 const User = require('../models/User');
+const Template = require('../models/Template');
 const { authenticateToken, authorize, canAccessEmployee } = require('../middleware/auth');
+const { 
+  formatCurrency, 
+  formatDate, 
+  calculateProbationEnd,
+  calculateExperience,
+  generateDocumentNumber
+} = require('../utils/documentUtils');
 
 const router = express.Router();
 
@@ -350,6 +358,243 @@ router.get('/meta/managers', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Get managers error:', error);
     res.status(500).json({ message: 'Failed to fetch managers', error: error.message });
+  }
+});
+
+// Generate offer letter for candidate
+router.post('/generate-offer', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const {
+      candidateName,
+      designation,
+      department,
+      reportingManager,
+      joiningDate,
+      salary,
+      location,
+      probationPeriod = 3
+    } = req.body;
+
+    if (!candidateName || !designation || !department || !joiningDate || !salary) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Get offer letter template
+    const template = await Template.findOne({ type: 'offer_letter', isDefault: true });
+    
+    if (!template) {
+      return res.status(404).json({ message: 'Offer letter template not found' });
+    }
+
+    const probationEndDate = calculateProbationEnd(joiningDate, probationPeriod);
+    const acceptanceDeadline = new Date();
+    acceptanceDeadline.setDate(acceptanceDeadline.getDate() + 7);
+
+    // Prepare template data
+    const templateData = {
+      companyName: 'Sarya Connective',
+      companyAddress: 'Your Company Address',
+      offerDate: formatDate(new Date(), 'DD MMMM YYYY'),
+      candidateName,
+      designation,
+      department,
+      reportingManager: reportingManager || 'To be assigned',
+      joiningDate: formatDate(joiningDate, 'DD MMMM YYYY'),
+      ctc: formatCurrency(salary * 12),
+      location: location || 'Office Location',
+      probationPeriod: probationPeriod.toString(),
+      acceptanceDeadline: formatDate(acceptanceDeadline, 'DD MMMM YYYY'),
+      hrName: req.user.fullName
+    };
+
+    // Render offer letter
+    const renderedContent = template.render(templateData);
+
+    res.json({
+      message: 'Offer letter generated successfully',
+      document: {
+        type: 'offer_letter',
+        content: renderedContent,
+        candidateName,
+        designation
+      }
+    });
+  } catch (error) {
+    console.error('Generate offer letter error:', error);
+    res.status(500).json({ message: 'Failed to generate offer letter', error: error.message });
+  }
+});
+
+// Generate appointment letter for new employee
+router.post('/:employeeId/generate-appointment', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+
+    const employee = await User.findById(employeeId)
+      .populate('manager', 'firstName lastName');
+
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
+    // Get appointment letter template
+    const template = await Template.findOne({ type: 'appointment_letter', isDefault: true });
+    
+    if (!template) {
+      return res.status(404).json({ message: 'Appointment letter template not found' });
+    }
+
+    const probationEndDate = calculateProbationEnd(employee.joiningDate || new Date(), 3);
+
+    // Prepare template data
+    const templateData = {
+      companyName: 'Sarya Connective',
+      appointmentDate: formatDate(new Date(), 'DD MMMM YYYY'),
+      employeeId: employee.employeeId,
+      employeeName: employee.fullName,
+      designation: employee.designation || 'Employee',
+      department: employee.department || 'General',
+      reportingManager: employee.manager ? employee.manager.fullName : 'HR Manager',
+      joiningDate: formatDate(employee.joiningDate || new Date(), 'DD MMMM YYYY'),
+      workLocation: employee.location || 'Office',
+      monthlySalary: formatCurrency(employee.salary || 0),
+      probationPeriod: '3',
+      probationEndDate: formatDate(probationEndDate, 'DD MMMM YYYY'),
+      hrName: req.user.fullName
+    };
+
+    // Render appointment letter
+    const renderedContent = template.render(templateData);
+
+    res.json({
+      message: 'Appointment letter generated successfully',
+      document: {
+        type: 'appointment_letter',
+        content: renderedContent,
+        employee: {
+          id: employee._id,
+          name: employee.fullName,
+          employeeId: employee.employeeId
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Generate appointment letter error:', error);
+    res.status(500).json({ message: 'Failed to generate appointment letter', error: error.message });
+  }
+});
+
+// Generate experience certificate
+router.post('/:employeeId/generate-experience', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { lastWorkingDate } = req.body;
+
+    const employee = await User.findById(employeeId);
+
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
+    // Get experience certificate template
+    const template = await Template.findOne({ type: 'experience_certificate', isDefault: true });
+    
+    if (!template) {
+      return res.status(404).json({ message: 'Experience certificate template not found' });
+    }
+
+    const exitDate = lastWorkingDate ? new Date(lastWorkingDate) : new Date();
+    const totalExperience = calculateExperience(employee.joiningDate || new Date(), exitDate);
+
+    // Prepare template data
+    const templateData = {
+      companyName: 'Sarya Connective',
+      companyAddress: 'Your Company Address',
+      issueDate: formatDate(new Date(), 'DD MMMM YYYY'),
+      certificateNumber: generateDocumentNumber('EXP'),
+      employeeName: employee.fullName,
+      employeeId: employee.employeeId,
+      designation: employee.designation || 'Employee',
+      department: employee.department || 'General',
+      joiningDate: formatDate(employee.joiningDate || new Date(), 'DD MMMM YYYY'),
+      lastWorkingDate: formatDate(exitDate, 'DD MMMM YYYY'),
+      totalExperience,
+      hrName: req.user.fullName
+    };
+
+    // Render experience certificate
+    const renderedContent = template.render(templateData);
+
+    res.json({
+      message: 'Experience certificate generated successfully',
+      document: {
+        type: 'experience_certificate',
+        content: renderedContent,
+        employee: {
+          id: employee._id,
+          name: employee.fullName,
+          employeeId: employee.employeeId
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Generate experience certificate error:', error);
+    res.status(500).json({ message: 'Failed to generate experience certificate', error: error.message });
+  }
+});
+
+// Generate relieving letter
+router.post('/:employeeId/generate-relieving', authenticateToken, authorize('admin', 'hr_admin'), async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { lastWorkingDate } = req.body;
+
+    const employee = await User.findById(employeeId);
+
+    if (!employee) {
+      return res.status(404).json({ message: 'Employee not found' });
+    }
+
+    // Get relieving letter template
+    const template = await Template.findOne({ type: 'relieving_letter', isDefault: true });
+    
+    if (!template) {
+      return res.status(404).json({ message: 'Relieving letter template not found' });
+    }
+
+    const exitDate = lastWorkingDate ? new Date(lastWorkingDate) : new Date();
+
+    // Prepare template data
+    const templateData = {
+      companyName: 'Sarya Connective',
+      companyAddress: 'Your Company Address',
+      relievingDate: formatDate(new Date(), 'DD MMMM YYYY'),
+      employeeName: employee.fullName,
+      employeeId: employee.employeeId,
+      designation: employee.designation || 'Employee',
+      joiningDate: formatDate(employee.joiningDate || new Date(), 'DD MMMM YYYY'),
+      lastWorkingDate: formatDate(exitDate, 'DD MMMM YYYY'),
+      hrName: req.user.fullName
+    };
+
+    // Render relieving letter
+    const renderedContent = template.render(templateData);
+
+    res.json({
+      message: 'Relieving letter generated successfully',
+      document: {
+        type: 'relieving_letter',
+        content: renderedContent,
+        employee: {
+          id: employee._id,
+          name: employee.fullName,
+          employeeId: employee.employeeId
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Generate relieving letter error:', error);
+    res.status(500).json({ message: 'Failed to generate relieving letter', error: error.message });
   }
 });
 
