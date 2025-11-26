@@ -262,22 +262,89 @@ const Employees = () => {
   };
 
   const downloadDocument = () => {
-    const blob = new Blob([documentContent], { type: 'text/html' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${documentType.replace(/ /g, '_')}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    try {
+      console.log('Downloading document:', documentType);
+      console.log('Content length:', documentContent?.length);
+      
+      if (!documentContent) {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No document content to download'
+        });
+        return;
+      }
+
+      const blob = new Blob([documentContent], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Create filename with employee name if available
+      const fileName = selectedEmployee 
+        ? `${documentType.replace(/ /g, '-').toLowerCase()}-${selectedEmployee.firstName}-${selectedEmployee.lastName}.html`
+        : `${documentType.replace(/ /g, '-').toLowerCase()}.html`;
+      
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.current?.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Document downloaded successfully'
+      });
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to download document'
+      });
+    }
   };
 
   const printDocument = () => {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(documentContent);
-    printWindow.document.close();
-    printWindow.print();
+    try {
+      console.log('Printing document:', documentType);
+      
+      if (!documentContent) {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No document content to print'
+        });
+        return;
+      }
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Please allow pop-ups to print documents'
+        });
+        return;
+      }
+      
+      printWindow.document.write(documentContent);
+      printWindow.document.close();
+      
+      // Wait for content to load before printing
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+      };
+    } catch (error) {
+      console.error('Error printing document:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to print document'
+      });
+    }
   };
 
   const getRoleBadge = (role) => {

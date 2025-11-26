@@ -263,35 +263,112 @@ const Payroll = () => {
   };
 
   const downloadPayslip = (payslip) => {
-    const blob = new Blob([payslip.content], { type: 'text/html' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Payslip_${payslip.employee.employeeId}_${bulkPayslipMonth}_${bulkPayslipYear}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    try {
+      console.log('Downloading payslip for:', payslip.employee?.employeeId);
+      
+      if (!payslip.content) {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No payslip content to download'
+        });
+        return;
+      }
+
+      const blob = new Blob([payslip.content], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const fileName = `payslip-${payslip.employee.employeeId}-${bulkPayslipMonth || 'current'}-${bulkPayslipYear || new Date().getFullYear()}.html`;
+      link.download = fileName;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('Payslip downloaded:', fileName);
+    } catch (error) {
+      console.error('Error downloading payslip:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to download payslip'
+      });
+    }
   };
 
   const downloadAllPayslips = () => {
-    bulkPayslips.forEach((payslip, index) => {
+    try {
+      let successCount = 0;
+      bulkPayslips.forEach((payslip, index) => {
+        setTimeout(() => {
+          try {
+            downloadPayslip(payslip);
+            successCount++;
+          } catch (error) {
+            console.error('Error downloading payslip:', error);
+          }
+        }, index * 500); // Delay between downloads
+      });
+      
       setTimeout(() => {
-        downloadPayslip(payslip);
-      }, index * 500); // Delay between downloads
-    });
-    toast.current?.show({
-      severity: 'success',
-      summary: 'Success',
-      detail: `Downloaded ${bulkPayslips.length} payslips`
-    });
+        toast.current?.show({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Downloaded ${bulkPayslips.length} payslips`
+        });
+      }, bulkPayslips.length * 500 + 100);
+    } catch (error) {
+      console.error('Error downloading all payslips:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to download all payslips'
+      });
+    }
   };
 
   const printPayslip = (payslip) => {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(payslip.content);
-    printWindow.document.close();
-    printWindow.print();
+    try {
+      console.log('Printing payslip for:', payslip.employee?.employeeId);
+      
+      if (!payslip.content) {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No payslip content to print'
+        });
+        return;
+      }
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Please allow pop-ups to print documents'
+        });
+        return;
+      }
+      
+      printWindow.document.write(payslip.content);
+      printWindow.document.close();
+      
+      // Wait for content to load before printing
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+      };
+    } catch (error) {
+      console.error('Error printing payslip:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to print payslip'
+      });
+    }
   };
 
   const monthOptions = [
